@@ -9,7 +9,7 @@ $(function () {
     });
 
     //获取当前在线人数
-    // checkOnline();
+    checkOnline();
 });
 
 jconfirm.defaults = {

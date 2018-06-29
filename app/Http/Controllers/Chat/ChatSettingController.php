@@ -15,7 +15,7 @@ class ChatSettingController extends Controller
     public function updRoleInfo(Request $request){
         $data['bg_color1'] = $request->input('bg1');                //背景1
         $data['font_color'] = $request->input('font');              //字体
-        $data['length'] = $request->input('length');                //消息最大长度
+        $data['length'] = $request->input('length')!=null?$request->input('length'):"";                //消息最大长度
         $data['updated_at'] = date("Y-m-d H:i:s",time());    //更新日期
 
         if(!empty($request->input('level')))

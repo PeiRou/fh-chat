@@ -22,6 +22,7 @@ class DataController extends Controller
         $users = DB::table('chat_users')
             ->join('chat_roles', 'chat_users.level', '=', 'chat_roles.level')
             ->select('users_id','username','nickname','login_ip','chat_roles.name as levelname','chat_status','recharge','bet','chat_users.level','chat_users.isnot_auto_count as unauto')
+            ->where('chat_role','>=',2)
             ->where(function ($query) use($account){        //用户名/呢称
                 if(isset($account) && $account){
                     $query->where('username','=',$account)

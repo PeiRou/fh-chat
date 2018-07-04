@@ -36,7 +36,7 @@ class AjaxStatusController extends Controller
         $userid = $request->get('id');
 
         //检查在线状态
-        if(!(Redis::get('user:'.md5($userid))))
+        if(!(Redis::get('usr:'.md5($userid))))
             $status = false;
         else
             $status = true;

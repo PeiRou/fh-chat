@@ -14,7 +14,7 @@
     <div class="field">
         <label>密码</label>
         <div class="ui input icon">
-            <input type="text" name=""  placeholder="" value="" />
+            <input type="text" name="password"  placeholder="" value="" />
         </div>
     </div>
 

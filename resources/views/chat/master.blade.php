@@ -30,7 +30,7 @@
 </div>
 <div class="nav-top">
     <div class="nav-logo">
-        <a href="{{ url('/chat/dash') }}"><img src="/home/images/SS500LOGO.png"></a>
+        <a href="{{ url('/chat/dash') }}"><img src="/chat/images/F77logo.png"></a>
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">

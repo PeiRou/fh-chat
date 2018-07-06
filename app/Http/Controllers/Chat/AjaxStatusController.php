@@ -12,7 +12,7 @@ class AjaxStatusController extends Controller
     //在线人数状态
     public function online()
     {
-        Redis::select(1);
+        Redis::select(3);
         $key = 'online';
         //还没检查在线状态的人数
         $onlineNum =  Redis::LLEN($key);

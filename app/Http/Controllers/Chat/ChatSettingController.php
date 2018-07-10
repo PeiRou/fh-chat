@@ -108,7 +108,6 @@ class ChatSettingController extends Controller
         if($update==1){
             Redis::select(1);                                   //切换到聊天室库
             Redis::setex('notice'.$roomid,10000,'on');
-            Redis::select(2);                                   //切换到主平台
             return response()->json(['status'=>true],200);
         }else
             return response()->json(['status'=>false,'msg'=>'修改聊天室公告失败'],200);
@@ -187,6 +186,59 @@ class ChatSettingController extends Controller
             return response()->json(['status'=>true],200);
         else
             return response()->json(['status'=>false,'msg'=>'删除违禁词失败'],200);
+    }
+
+    //发红包
+    public function addHongbao(Request $request)
+    {
+        $data['room_id'] = $request->input('room');                //房间id
+        $data['hongbao_total_amount'] = $request->input('hongbao_total_amount');        //红包总金额
+        $data['hongbao_remain_amount'] = $data['hongbao_total_amount'];                 //红包剩馀金额
+        $data['hongbao_total_num'] = $request->input('hongbao_total_num');              //红包总个数
+        $data['hongbao_remain_num'] = $request->input('hongbao_total_num');              //红包剩馀个数
+        $data['recharge'] = $request->input('recharge');                                //最低充值金额
+        $data['bet'] = $request->input('bet');                                          //最低下注金额
+
+        $data['sa_id'] = Session::get('account_id');              //添加管理员id
+        $data['account'] = Session::get('account');               //添加管理员
+        $data['hongbao_status'] = 1;                              //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
+
+        $id = DB::table('chat_hongbao')->insertGetId($data);
+        if ($id > 0) {
+            $this->reHongbao($data['room_id'].'&'.$id);
+        }else
+            return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
+    }
+
+    //重发红包
+    public function reHongbao($data){
+        $data = explode("&",$data);
+        $room = $data[0];
+        $id = $data[1];
+        $md5id = md5($data[1].time());
+        Redis::select(1);                                   //切换到聊天室库
+        Redis::LPUSH('hongbao'.$room,$md5id);
+        Redis::setex('hb:'.$md5id,100,$id);      //把计划信息写到redis
+        return response()->json(['status'=>true],200);
+    }
+
+    //关闭红包
+    public function closeHongbao($data){
+        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        if($upd==1)
+            return response()->json(['status'=>true],200);
+        else
+            return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);
+    }
+
+    //开启红包
+    public function openHongbao($data){
+        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>1));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        if($upd==1)
+            return response()->json(['status'=>true],200);
+        else
+            return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);
     }
 
     //修改平台配置

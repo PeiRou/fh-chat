@@ -99,18 +99,92 @@ class DataController extends Controller
             ->make(true);
     }
     //红包管理-表格数据
-    public function hongbaoManage()
+    public function hongbaoManage(Request $request)
     {
+        $starttime = $request->get('timeStart');
+        $endtime = $request->get('timeEnd');
+        $id = $request->get('id');
+        $status = $request->get('status');
         $users = DB::table('chat_hongbao')
             ->select('chat_hongbao.*','room_name')
-            ->join('chat_room', 'chat_room.room_id', '=', 'chat_hongbao.room_id')->get();
+            ->join('chat_room', 'chat_room.room_id', '=', 'chat_hongbao.room_id')
+            ->where(function ($query) use($starttime){        //发送时间(开始)
+                if(isset($starttime) && $starttime){
+                    $query->where('chat_hongbao.posttime','>=',date("Y-m-d 00:00:00",strtotime($starttime)));
+                }
+            })
+            ->where(function ($query) use($endtime){        //发送时间(结束)
+                if(isset($endtime) && $endtime){
+                    $query->where('chat_hongbao.posttime','<=',date("Y-m-d 23:59:59",strtotime($endtime)));
+                }
+            })
+            ->where(function ($query) use($id){        //红包id
+                if(isset($id) && $id>0){
+                    $query->where('chat_hongbao.chat_hongbao_idx',$id);
+                }
+            })
+            ->where(function ($query) use($status){        //红包id
+                if(isset($status) && $status>0){
+                    $query->where('chat_hongbao.hongbao_status',$status);
+                }
+            })
+            ->get();
         return DataTables::of($users)
             ->make(true);
     }
     //红包明细-表格数据
-    public function hongbaoDt()
+    public function hongbaoDt(Request $request)
     {
-        $users = DB::table('chat_hongbao_dt')->get();
+        $starttime = $request->get('timeStart');
+        $endtime = $request->get('timeEnd');
+        $id = $request->get('id');
+        $or_id = $request->get('or_id');
+        $account = $request->get('account');
+        $status = $request->get('status');
+        $min_amount = $request->get('min_amount');
+        $max_amount = $request->get('max_amount');
+
+        $users = DB::table('chat_hongbao_dt')
+            ->where(function ($query) use($starttime){        //发送时间(开始)
+                if(isset($starttime) && $starttime){
+                    $query->where('getdatetimes','>=',strtotime($starttime.' 00:00:00'));
+                }
+            })
+            ->where(function ($query) use($endtime){        //发送时间(结束)
+                if(isset($endtime) && $endtime){
+                    $query->where('getdatetimes','<=',strtotime($endtime.' 23:59:59'));
+                }
+            })
+            ->where(function ($query) use($id){        //红包id
+                if(isset($id) && $id>0){
+                    $query->where('hongbao_idx',$id);
+                }
+            })
+            ->where(function ($query) use($or_id){        //订单号
+                if(isset($or_id) && !empty($or_id)){
+                    $query->where('hongbao_dt_orderno',$or_id);
+                }
+            })
+            ->where(function ($query) use($account){        //用户名
+                if(isset($account) && !empty($account)){
+                    $query->where('username',$account);
+                }
+            })
+            ->where(function ($query) use($status){        //红包状态
+                if(isset($status) && $status>0){
+                    $query->where('hongbao_status',$status);
+                }
+            })
+            ->where(function ($query) use($min_amount){        //最小金额
+                if(isset($min_amount) && $min_amount){
+                    $query->where('amount','>=',$min_amount);
+                }
+            })
+            ->where(function ($query) use($max_amount){        //最大金额
+                if(isset($max_amount) && $max_amount){
+                    $query->where('amount',"<=",$max_amount);
+                }
+            })->get();
         return DataTables::of($users)
             ->make(true);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Home\CaptchaController;
@@ -55,9 +56,12 @@ class ChatViewController extends Controller
         return view('chat.hongbaoManage');
     }
     //红包明细
-    public function hongbaoDt()
+    public function hongbaoDt(Request $request)
     {
-        return view('chat.hongbaoDt');
+        $id = $request->input('id');
+        $start = $request->input('start');
+        $end = $request->input('end');
+        return view('chat.hongbaoDt')->with('id',$id)->with('start',$start)->with('end',$end);
     }
     //平台配置
     public function baseManage()

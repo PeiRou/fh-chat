@@ -50,10 +50,12 @@ $(function () {
             {data:function (data) {         //操作
                     var delEnabel = '';
                     if(data.id=="1" || data.id=="2"|| data.id=="4"|| data.id=="7")
-                        delEnabel = "disabled";
+                        delEnabel = "class='disabled'";
+                    else
+                        delEnabel = "onclick='del("+data.id+",\"delRoleInfo\")'";
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoleInfo("+data.id+")'>修改</li>" +
-                        "<li class='"+delEnabel+"' onclick='del("+data.id+",\"delRoleInfo\")'>删除</li>" +
+                        "<li "+delEnabel+"'>删除</li>" +
                         "</ul>";
                 }}
         ],

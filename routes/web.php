@@ -19,19 +19,23 @@ Route::group(['prefix' => 'web','namespace'=>'Home'],function (){
 });
 
 //ajax
-Route::post('/chat/action/updUserInfo','Chat\ChatAccountController@updUserInfo');           //修改聊天室用户信息
-Route::post('/chat/action/unSpeak/{id}','Chat\ChatAccountController@unSpeak');              //禁言聊天室用户
-Route::post('/chat/action/updRoleInfo','Chat\ChatSettingController@updRoleInfo');           //修改角色管理
-Route::post('/chat/action/delRoleInfo/{id}','Chat\ChatSettingController@delRoleInfo');           //删除角色管理
-Route::post('/chat/action/updRoomInfo','Chat\ChatSettingController@updRoomInfo');           //修改房间信息
-Route::post('/chat/action/unSpeakRoom/{id}','Chat\ChatSettingController@unSpeakRoom');      //禁言房间
-Route::post('/chat/action/updNoteInfo','Chat\ChatSettingController@updNoteInfo');           //修改聊天室公告
-Route::post('/chat/action/delNoteInfo/{id}','Chat\ChatSettingController@delNoteInfo');      //删除聊天室公告
-Route::post('/chat/action/updAdminInfo','Chat\ChatSettingController@updAdminInfo');         //修改聊天室管理员
-Route::post('/chat/action/delAdminInfo/{id}','Chat\ChatSettingController@delAdminInfo');         //删除聊天室管理员
-Route::post('/chat/action/updForbidInfo','Chat\ChatSettingController@updForbidInfo');       //修改聊天室违禁词
-Route::post('/chat/action/delForbidInfo/{id}','Chat\ChatSettingController@delForbidInfo');       //修改聊天室违禁词
-Route::post('/chat/action/updBaseInfo','Chat\ChatSettingController@updBaseInfo');           //修改平台配置
+Route::post('/chat/action/updUserInfo','Chat\ChatAccountController@updUserInfo');               //修改聊天室用户信息
+Route::post('/chat/action/unSpeak/{id}','Chat\ChatAccountController@unSpeak');                  //禁言聊天室用户
+Route::post('/chat/action/updRoleInfo','Chat\ChatSettingController@updRoleInfo');               //修改角色管理
+Route::post('/chat/action/delRoleInfo/{id}','Chat\ChatSettingController@delRoleInfo');          //删除角色管理
+Route::post('/chat/action/updRoomInfo','Chat\ChatSettingController@updRoomInfo');               //修改房间信息
+Route::post('/chat/action/unSpeakRoom/{id}','Chat\ChatSettingController@unSpeakRoom');          //禁言房间
+Route::post('/chat/action/updNoteInfo','Chat\ChatSettingController@updNoteInfo');               //修改聊天室公告
+Route::post('/chat/action/delNoteInfo/{id}','Chat\ChatSettingController@delNoteInfo');          //删除聊天室公告
+Route::post('/chat/action/updAdminInfo','Chat\ChatSettingController@updAdminInfo');             //修改聊天室管理员
+Route::post('/chat/action/delAdminInfo/{id}','Chat\ChatSettingController@delAdminInfo');        //删除聊天室管理员
+Route::post('/chat/action/updForbidInfo','Chat\ChatSettingController@updForbidInfo');           //修改聊天室违禁词
+Route::post('/chat/action/delForbidInfo/{id}','Chat\ChatSettingController@delForbidInfo');      //修改聊天室违禁词
+Route::post('/chat/action/addHongbao','Chat\ChatSettingController@addHongbao');                 //发红包
+Route::post('/chat/action/reHongbao/{id}','Chat\ChatSettingController@reHongbao');              //重发红包
+Route::post('/chat/action/closeHongbao/{id}','Chat\ChatSettingController@closeHongbao');        //关闭红包
+Route::post('/chat/action/openHongbao/{id}','Chat\ChatSettingController@openHongbao');          //开启红包
+Route::post('/chat/action/updBaseInfo','Chat\ChatSettingController@updBaseInfo');               //修改平台配置
 
 //modal
 Route::get('/chat/modal/editUserLevel/{id}','Chat\Ajax\ModalController@editUserLevel');         //显示修改聊天室用户信息-弹窗表单
@@ -40,6 +44,7 @@ Route::get('chat/modal/editRoomLimit/{id}','Chat\Ajax\ModalController@editRoomLi
 Route::get('chat/modal/editNoteInfo/{id}','Chat\Ajax\ModalController@editNoteInfo');            //显示修改聊天室公告-弹窗表单
 Route::get('chat/modal/editAdminInfo/{id}','Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
 Route::get('chat/modal/editForbidInfo/{id}','Chat\Ajax\ModalController@editForbidInfo');        //显示修改违禁词-弹窗表单
+Route::get('chat/modal/addHongbao/{id}','Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
 
 //datatable
 Route::get('/chat/datatables/user','Chat\Data\DataController@userManage');          // 会员管理-表格数据

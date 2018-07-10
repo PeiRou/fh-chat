@@ -44,7 +44,7 @@ Route::get('chat/modal/editRoomLimit/{id}','Chat\Ajax\ModalController@editRoomLi
 Route::get('chat/modal/editNoteInfo/{id}','Chat\Ajax\ModalController@editNoteInfo');            //显示修改聊天室公告-弹窗表单
 Route::get('chat/modal/editAdminInfo/{id}','Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
 Route::get('chat/modal/editForbidInfo/{id}','Chat\Ajax\ModalController@editForbidInfo');        //显示修改违禁词-弹窗表单
-Route::get('chat/modal/addHongbao/{id}','Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
+Route::get('chat/modal/addHongbao','Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
 
 //datatable
 Route::get('/chat/datatables/user','Chat\Data\DataController@userManage');          // 会员管理-表格数据

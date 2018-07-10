@@ -4,7 +4,7 @@
         <div class="ui input icon">
             <select name="room">
                 @foreach($room as $item )
-                    <option value="{{$item->roomid}}" @if($item->roomid == $roomid) selected="selected" @endif>{{$item->room_name}}</option>
+                    <option value="{{$item->roomid}}" @if($item->roomid == 1) selected="selected" @endif>{{$item->room_name}}</option>
                 @endforeach
             </select>
         </div>

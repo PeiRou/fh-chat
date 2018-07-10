@@ -78,9 +78,9 @@ class ModalController extends Controller
         return view('modal.editForbidInfo')->with('id',$data[0])->with('roomid',$data[1])->with('regex',$data[2]);
     }
     //显示发红包-弹窗表单
-    public function addHongbao($roomid)
+    public function addHongbao()
     {
         $room = DB::table('chat_room')->select('room_id as roomid','room_name')->get();
-        return view('modal.addHongbao')->with('room',$room)->with('roomid',$roomid);
+        return view('modal.addHongbao')->with('room',$room);
     }
 }

@@ -100,7 +100,6 @@ $(function () {
             {data:'posttime'},                      //发送时间
             {data:'account'},                       //操作人
             {data:function(data){                       //操作
-                    roomid = data.room_id;
                     if(data.hongbao_status==2)          //----重发
                         delEnabel = "class='disabled'";
                     else
@@ -149,7 +148,7 @@ function addHongbao() {
         title: '发红包',
         closeIcon:true,
         boxWidth:'20%',
-        content: 'url:/chat/modal/addHongbao/'+roomid,
+        content: 'url:/chat/modal/addHongbao/',
         buttons: {
             confirm: {
                 text: '提交',

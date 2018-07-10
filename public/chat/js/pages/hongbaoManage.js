@@ -148,7 +148,7 @@ function addHongbao() {
         title: '发红包',
         closeIcon:true,
         boxWidth:'20%',
-        content: 'url:/chat/modal/addHongbao/',
+        content: 'url:/chat/modal/addHongbao',
         buttons: {
             confirm: {
                 text: '提交',

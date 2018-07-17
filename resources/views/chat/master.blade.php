@@ -54,6 +54,9 @@
         <li id="menu-userManage" class="nav-item">
             <a href="{{ url('/chat/userManage') }}"><span><i class="icon-book"></i></span>用户管理</a>
         </li>
+        <li id="menu-levelManage" class="nav-item">
+            <a href="{{ url('/chat/levelManage') }}"><span><i class="icon-book"></i></span>层级管理</a>
+        </li>
         <li id="menu-roleManage" class="nav-item">
             <a href="{{ url('/chat/roleManage') }}"><span><i class="icon-book"></i></span>角色管理</a>
         </li>

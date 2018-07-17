@@ -195,4 +195,19 @@ class DataController extends Controller
         return DataTables::of($users)
             ->make(true);
     }
+
+    //层级管理-表格数据
+    public function levelManage(){
+        //角色表
+        $users = DB::table('chat_level')
+            ->select('id','levelname', 'recharge_min', 'bet_min', 'created_at', 'updated_at')
+            ->orderBy('id','asc')
+            ->get();
+        return DataTables::of($users)
+            ->editColumn('length',function ($users){
+                $length = empty($users->length)?'不限制':$users->length;
+                return $length;
+            })
+            ->make(true);
+    }
 }

@@ -23,9 +23,23 @@ $(function () {
             $('#dvOpenStatusOn').hide();
         }
     });
+    if($('#planSendMode').val()==0){
+        $('#dspPlan').show();
+    }
+    //如果选择手动发布
+    $('#planSendMode').change(function(){
+        if($(this).val()==0)
+            $('#dspPlan').show();
+        else
+            $('#dspPlan').hide();
+    });
+    $('#dspPlan').click(function () {
+        manual();
+    });
 });
-
-
+$('#dspPlan').click(function () {
+   console.log(1);
+});
 $('#updUserForm').formValidation({
     framework: 'semantic',
     icon: {
@@ -86,3 +100,37 @@ $('#updUserForm').formValidation({
         }
     });
 });
+//手动发送计画任务
+function manual() {
+    jc = $.confirm({
+        theme: 'material',
+        title: '手动发送计画',
+        closeIcon:true,
+        boxWidth:'20%',
+        content: 'url:/chat/modal/manualPlan',
+        buttons: {
+            confirm: {
+                text: '提交',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var form = this.$content.find('#updForm').data('formValidation').validate().isValid();
+                    if(!form){
+                        return false;
+                    }
+                    return false;
+                }
+            },
+            cancel: {
+                text:'关闭'
+            }
+        },
+        contentLoaded: function(data, status, xhr){
+            $('.jconfirm-content').css('overflow','hidden');
+            if(xhr == 'Forbidden')
+            {
+                this.setContent('<div class="modal-error"><span class="error403">403</span><br><span>您无权进行此操作</span></div>');
+                $('.jconfirm-buttons').hide();
+            }
+        }
+    });
+}

@@ -36,21 +36,26 @@ Route::post('/chat/action/reHongbao/{id}','Chat\ChatSettingController@reHongbao'
 Route::post('/chat/action/closeHongbao/{id}','Chat\ChatSettingController@closeHongbao');        //关闭红包
 Route::post('/chat/action/openHongbao/{id}','Chat\ChatSettingController@openHongbao');          //开启红包
 Route::post('/chat/action/updBaseInfo','Chat\ChatSettingController@updBaseInfo');               //修改平台配置
+Route::post('/chat/action/sendPlan','Chat\ChatSettingController@sendPlan');                     //手动发送计画任务
+Route::post('/chat/action/updLevelInfo','Chat\ChatSettingController@updLevelInfo');               //修改层级信息
 
 //modal
 Route::get('/chat/modal/editUserLevel/{id}','Chat\Ajax\ModalController@editUserLevel');         //显示修改聊天室用户信息-弹窗表单
 Route::get('/chat/modal/editRoleInfo/{id}','Chat\Ajax\ModalController@editRoleInfo');           //显示修改用户角色层级-弹窗表单
 Route::get('chat/modal/editRoomLimit/{id}','Chat\Ajax\ModalController@editRoomLimit');          //显示修改房间信息-弹窗表单
 Route::get('chat/modal/editNoteInfo/{id}','Chat\Ajax\ModalController@editNoteInfo');            //显示修改聊天室公告-弹窗表单
+Route::get('chat/modal/editLevelInfo/{id}','Chat\Ajax\ModalController@editLevelInfo');            //显示修改层级信息-弹窗表单
 Route::get('chat/modal/editAdminInfo/{id}','Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
 Route::get('chat/modal/editForbidInfo/{id}','Chat\Ajax\ModalController@editForbidInfo');        //显示修改违禁词-弹窗表单
 Route::get('chat/modal/addHongbao','Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
+Route::get('chat/modal/manualPlan','Chat\Ajax\ModalController@manualPlan');                //显示手动发送计画任务-弹窗表单
 
 //datatable
 Route::get('/chat/datatables/user','Chat\Data\DataController@userManage');          // 会员管理-表格数据
 Route::get('/chat/datatables/role','Chat\Data\DataController@roleManage');          // 角色管理-表格数据
 Route::get('/chat/datatables/room','Chat\Data\DataController@roomManage');          // 房间管理-表格数据
 Route::get('/chat/datatables/note','Chat\Data\DataController@noteManage');          // 公告管理-表格数据
+Route::get('/chat/datatables/level','Chat\Data\DataController@levelManage');        // 层级管理-表格数据
 Route::get('/chat/datatables/admin','Chat\Data\DataController@adminManage');        // 管理员管理-表格数据
 Route::get('/chat/datatables/forbid','Chat\Data\DataController@forbidManage');      // 违禁词管理-表格数据
 Route::get('/chat/datatables/hongbao','Chat\Data\DataController@hongbaoManage');    // 红包管理-表格数据
@@ -67,6 +72,7 @@ Route::get('/chat','Chat\SrcViewController@AdminLogin');                        
 Route::get('/chat/dash','Chat\ChatViewController@Dash');                                                         // 控制台首页
 Route::get('/chat/userManage','Chat\ChatViewController@userManage');                                             // 会员管理
 Route::get('/chat/roleManage','Chat\ChatViewController@roleManage');                                             // 角色管理
+Route::get('/chat/levelManage','Chat\ChatViewController@levelManage');                                           // 层级管理
 Route::get('/chat/roomManage','Chat\ChatViewController@roomManage');                                             // 房间管理
 Route::get('/chat/noteManage','Chat\ChatViewController@noteManage');                                             // 公告管理
 Route::get('/chat/adminManage','Chat\ChatViewController@adminManage');                                           // 管理员管理

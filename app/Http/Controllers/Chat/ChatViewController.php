@@ -25,6 +25,10 @@ class ChatViewController extends Controller
     {
         return view('chat.userManage');
     }
+    //等级管理
+    public function levelManage(){
+        return view('chat.levelManage');
+    }
     //角色管理
     public function roleManage()
     {

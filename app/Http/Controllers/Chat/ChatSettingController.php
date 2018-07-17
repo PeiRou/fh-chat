@@ -219,6 +219,7 @@ class ChatSettingController extends Controller
         $md5id = md5($data[1].time());
         Redis::select(1);                                   //切换到聊天室库
         Redis::LPUSH('hongbao'.$room,$md5id);
+        Redis::set('ishongbao'.$room);
         Redis::setex('hb:'.$md5id,100,$id);      //把计划信息写到redis
         return response()->json(['status'=>true],200);
     }
@@ -267,5 +268,43 @@ class ChatSettingController extends Controller
             return response()->json(['status'=>true],200);
         else
             return response()->json(['status'=>false,'msg'=>'修改违禁词失败'],200);
+    }
+    //手动发送计画任务
+    public function sendPlan(Request $request){
+        $plan = $request->input('plan').'<br>';                    //计划推送
+        $session_id = md5(time().rand(1,10));
+        $aRep =array(
+            'userId' => 'plans',
+            'plans' => $plan,
+            'img' => '/game/images/chat/sys.png'                          //用户头像
+        );
+        Redis::select(3);                                   //切换到聊天平台
+        Redis::LPUSH('plan',$session_id);
+        Redis::set('isplan','on');
+        Redis::setex('plan:'.$session_id,100,json_encode($aRep,JSON_UNESCAPED_UNICODE));      //把计划信息写到redis
+        return response()->json(['status'=>true],200);
+
+    }
+
+    //修改层级信息
+    public function updLevelInfo(Request $request){
+        if(!empty($request->input('id'))){
+            $id = $request->input('id');
+        }else{
+            return response()->json(['status'=>false,'msg'=>'修改参数错误'],200);
+        }
+        $data = [];
+        if(!empty($request->input('recharge_min'))){
+            $data['recharge_min'] = $request->input('recharge_min');
+        }
+        if(!empty($request->input('bet_min'))){
+            $data['bet_min'] = $request->input('bet_min');
+        }
+        $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
+        if(DB::table('chat_level')->where('id','=',$id)->update($data)){
+            return response()->json(['status'=>true],200);
+        }else{
+            return response()->json(['status'=>false,'msg'=>'修改层级失败'],200);
+        }
     }
 }

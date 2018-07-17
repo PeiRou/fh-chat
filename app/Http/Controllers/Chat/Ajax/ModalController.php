@@ -83,4 +83,14 @@ class ModalController extends Controller
         $room = DB::table('chat_room')->select('room_id as roomid','room_name')->get();
         return view('modal.addHongbao')->with('room',$room);
     }
+    //显示手动发送计画任务-弹窗表单
+    public function manualPlan()
+    {
+        return view('modal.manualPlan');
+    }
+    //显示修改层级信息-弹窗表单
+    public function editLevelInfo($id){
+        $level = DB::table('chat_level')->select('id','recharge_min','bet_min')->where('id','=',$id)->first();
+        return view('modal.editLevelInfo')->with('id',$level->id)->with('recharge_min',$level->recharge_min)->with('bet_min',$level->bet_min);
+    }
 }

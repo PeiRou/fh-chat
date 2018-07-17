@@ -19,10 +19,13 @@
             <div class="inline fields">
                 <div class="six wide field">
                     <label style="width :150px;text-align: right;" class="notEmpty">计划发布方式</label>
-                    <select class="ui dropdown" name="planSendMode">
+                    <select class="ui dropdown" name="planSendMode" id="planSendMode">
                         <option value="1" @if($base->plan_send_mode == "1") selected="selected" @endif>软件发布</option>
                         <option value="0" @if($base->plan_send_mode != "1") selected="selected" @endif>手动发布</option>
                     </select>
+                </div>
+                <div class="two wide field">
+                    <a class="ui teal button" id="dspPlan" style="display: none">点击显示输入框</a>
                 </div>
             </div>
             <div class="inline fields">
@@ -84,7 +87,7 @@
             <div class="inline fields">
                 <div class="three wide field">
                     <label style="width :114px;"></label>
-                    <button class="ui primary button">
+                    <button class="ui primary button" id="save" type="submit">
                         保存配置
                     </button>
                 </div>

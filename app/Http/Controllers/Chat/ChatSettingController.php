@@ -220,7 +220,7 @@ class ChatSettingController extends Controller
         Redis::select(1);                                   //切换到聊天室库
         Redis::LPUSH('hongbao'.$room,$md5id);
         Redis::setex('hb:'.$md5id,100,$id);      //把计划信息写到redis
-        Redis::set('ishongbao'.$room);
+        Redis::set('ishongbao'.$room,'on');
         return response()->json(['status'=>true],200);
     }
 

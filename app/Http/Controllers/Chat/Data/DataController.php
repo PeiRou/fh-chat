@@ -127,7 +127,7 @@ class DataController extends Controller
                 if(isset($status) && $status>0){
                     $query->where('chat_hongbao.hongbao_status',$status);
                 }
-            })
+            })->orderBy('chat_hongbao_idx','desc')
             ->get();
         return DataTables::of($users)
             ->make(true);

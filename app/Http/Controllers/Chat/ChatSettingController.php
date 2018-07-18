@@ -280,8 +280,8 @@ class ChatSettingController extends Controller
         );
         Redis::select(3);                                   //切换到聊天平台
         Redis::LPUSH('plan',$session_id);
-        Redis::set('isplan','on');
         Redis::setex('plan:'.$session_id,100,json_encode($aRep,JSON_UNESCAPED_UNICODE));      //把计划信息写到redis
+        Redis::set('isplan','on');
         return response()->json(['status'=>true],200);
 
     }

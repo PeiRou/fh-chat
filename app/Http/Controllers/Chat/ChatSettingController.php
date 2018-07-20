@@ -206,30 +206,36 @@ class ChatSettingController extends Controller
 
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
-            $this->reHongbao($data['room_id'].'&'.$id);
+            return $this->reHongbao($data['room_id'].'&'.$id);
         }else
             return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
     }
 
     //重发红包
     public function reHongbao($data){
+        Redis::select(1);
         $data = explode("&",$data);
         $room = $data[0];
         $id = $data[1];
         $md5id = md5($data[1].time());
-        Redis::select(1);                                   //切换到聊天室库
-        Redis::LPUSH('hongbao'.$room,$md5id);
-        Redis::setex('hb:'.$md5id,100,$id);      //把计划信息写到redis
-        Redis::set('ishongbao'.$room,'on');
-        return response()->json(['status'=>true],200);
+        $keyAll = 'hongbao'.$room;
+        if(!Redis::exists($keyAll.'exeing')){
+            Redis::setex($keyAll.'exeing',10,'on');
+            Redis::select(1);                                   //切换到聊天室库
+            Redis::HSET($keyAll,$md5id,$id);
+            Redis::set('is'.$keyAll,'on');
+        }
+        return response()->json(['status'=>true,'msg'=>'发红包成功'],200);
     }
 
     //关闭红包
     public function closeHongbao($data){
         $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
-        if($upd==1)
-            return response()->json(['status'=>true],200);
-        else
+        if($upd==1) {
+            Redis::select(1);
+            Redis::del('hbing'.$data);
+            return response()->json(['status' => true], 200);
+        }else
             return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);
     }
 
@@ -278,9 +284,9 @@ class ChatSettingController extends Controller
             'plans' => $plan,
             'img' => '/game/images/chat/sys.png'                          //用户头像
         );
-        Redis::select(3);                                   //切换到聊天平台
-        Redis::LPUSH('plan',$session_id);
-        Redis::setex('plan:'.$session_id,100,json_encode($aRep,JSON_UNESCAPED_UNICODE));      //把计划信息写到redis
+        $rsKeyH = 'plan';
+        Redis::select(1);                                   //切换到聊天平台
+        Redis::HSET($rsKeyH,$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
         Redis::set('isplan','on');
         return response()->json(['status'=>true],200);
 

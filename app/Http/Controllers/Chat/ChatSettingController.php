@@ -203,7 +203,7 @@ class ChatSettingController extends Controller
         $data['account'] = Session::get('account');               //添加管理员
         $data['hongbao_status'] = 1;                              //红包状态 1:抢疯中 2:已抢完 3:已关闭
         $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
-
+        return response()->json(['status'=>false,'msg'=>'暂时不开放发红包，功能待测试调试'],200);
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
             return $this->reHongbao($data['room_id'].'&'.$id);
@@ -213,6 +213,7 @@ class ChatSettingController extends Controller
 
     //重发红包
     public function reHongbao($data){
+        return response()->json(['status'=>false,'msg'=>'暂时不开放发红包，功能待测试调试'],200);
         Redis::select(1);
         $data = explode("&",$data);
         $room = $data[0];

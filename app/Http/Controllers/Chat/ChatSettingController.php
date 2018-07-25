@@ -106,8 +106,10 @@ class ChatSettingController extends Controller
             $update = DB::table('chat_note')->insert($data);
         }
         if($update==1){
-            Redis::select(1);                                   //切换到聊天室库
-            Redis::setex('notice'.$roomid,10000,'on');
+            $rsKeyH = 'chatList';
+            $redis = Redis::connection();
+            $redis->select(1);                                   //切换到聊天平台
+            $redis->HSET($rsKeyH,'notice'.$roomid.'='.'notice','notice');
             return response()->json(['status'=>true],200);
         }else
             return response()->json(['status'=>false,'msg'=>'修改聊天室公告失败'],200);
@@ -203,7 +205,7 @@ class ChatSettingController extends Controller
         $data['account'] = Session::get('account');               //添加管理员
         $data['hongbao_status'] = 1;                              //红包状态 1:抢疯中 2:已抢完 3:已关闭
         $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
-        return response()->json(['status'=>false,'msg'=>'暂时不开放发红包，功能待测试调试'],200);
+
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
             return $this->reHongbao($data['room_id'].'&'.$id);
@@ -213,19 +215,15 @@ class ChatSettingController extends Controller
 
     //重发红包
     public function reHongbao($data){
-        return response()->json(['status'=>false,'msg'=>'暂时不开放发红包，功能待测试调试'],200);
         Redis::select(1);
         $data = explode("&",$data);
         $room = $data[0];
         $id = $data[1];
         $md5id = md5($data[1].time());
-        $keyAll = 'hongbao'.$room;
-        if(!Redis::exists($keyAll.'exeing')){
-            Redis::setex($keyAll.'exeing',10,'on');
-            Redis::select(1);                                   //切换到聊天室库
-            Redis::HSET($keyAll,$md5id,$id);
-            Redis::set('is'.$keyAll,'on');
-        }
+        $rsKeyH = 'chatList';
+        $redis = Redis::connection();
+        $redis->select(1);                                   //切换到聊天平台
+        $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
         return response()->json(['status'=>true,'msg'=>'发红包成功'],200);
     }
 
@@ -285,10 +283,10 @@ class ChatSettingController extends Controller
             'plans' => $plan,
             'img' => '/game/images/chat/sys.png'                          //用户头像
         );
-        $rsKeyH = 'plan';
-        Redis::select(1);                                   //切换到聊天平台
-        Redis::HSET($rsKeyH,$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
-        Redis::set('isplan','on');
+        $rsKeyH = 'chatList';
+        $redis = Redis::connection();
+        $redis->select(1);                                   //切换到聊天平台
+        $redis->HSET($rsKeyH,'pln='.$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
         return response()->json(['status'=>true],200);
 
     }

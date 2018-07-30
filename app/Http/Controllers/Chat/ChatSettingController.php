@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +111,8 @@ class ChatSettingController extends Controller
             $redis = Redis::connection();
             $redis->select(1);                                   //切换到聊天平台
             $redis->HSET($rsKeyH,'notice'.$roomid.'='.'notice','notice');
+            $swoole = new Swoole();
+            $swoole->swooletest('notice',$roomid);
             return response()->json(['status'=>true],200);
         }else
             return response()->json(['status'=>false,'msg'=>'修改聊天室公告失败'],200);
@@ -224,6 +227,8 @@ class ChatSettingController extends Controller
         $redis = Redis::connection();
         $redis->select(1);                                   //切换到聊天平台
         $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
+        $swoole = new Swoole();
+        $swoole->swooletest('hongbao',$room);
         return response()->json(['status'=>true,'msg'=>'发红包成功'],200);
     }
 

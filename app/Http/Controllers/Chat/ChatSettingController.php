@@ -90,6 +90,11 @@ class ChatSettingController extends Controller
 
     //修改聊天室公告
     public function updNoteInfo(Request $request){
+        $redis = Redis::connection();
+        $redis->select(1);
+        if($redis->exists('addnotc'))
+            return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
+        $redis->setex('addnotc',5,'ing');
         $noteid = $request->input('id');
         $roomid = $request->input('roomid');
         $data['content'] = $request->input('content');                //公告信息
@@ -196,6 +201,11 @@ class ChatSettingController extends Controller
     //发红包
     public function addHongbao(Request $request)
     {
+        $redis = Redis::connection();
+        $redis->select(1);                                   //切换到聊天平台
+        if($redis->exists('addhb'))
+            return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
+        $redis->setex('addhb',5,'ing');
         $data['room_id'] = $request->input('room');                //房间id
         $data['hongbao_total_amount'] = $request->input('hongbao_total_amount');        //红包总金额
         $data['hongbao_remain_amount'] = $data['hongbao_total_amount'];                 //红包剩馀金额

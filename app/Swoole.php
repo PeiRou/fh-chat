@@ -15,7 +15,6 @@ class Swoole
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, env('WS_CURL',"http://127.0.0.1").":".env('WS_PORT',9500));
         //设置post数据
-        curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);
         curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
         curl_setopt($ch,CURLOPT_POST,1);
         curl_setopt($ch,CURLOPT_POSTFIELDS,$param);

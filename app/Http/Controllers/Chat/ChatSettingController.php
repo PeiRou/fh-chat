@@ -239,6 +239,11 @@ class ChatSettingController extends Controller
         $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
         $swoole = new Swoole();
         $swoole->swooletest('hongbao',$room);
+
+        $http = new \GuzzleHttp\Client();
+        $res = $http->request('POST',env('WS_CURL',"http://127.0.0.1").":".env('WS_PORT',9500)."?type=hongbao&room=".$room);
+        $json = json_decode((string) $res->getBody(), true);
+
         return response()->json(['status'=>true,'msg'=>'发红包成功'],200);
     }
 

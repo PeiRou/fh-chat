@@ -2,6 +2,7 @@
 
 namespace App;
 
+use GuzzleHttp\Client;
 
 class Swoole
 {

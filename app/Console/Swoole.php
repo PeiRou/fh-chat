@@ -60,8 +60,8 @@ class Swoole extends Command
         //创建websocket服务器对象，监听0.0.0.0:9502端口
         $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
         $this->ws->set(array(
-            'ssl_cert_file' => __DIR__.'/config/'.env('WS_HOST_SSL','chat.f5700.com').'ssl.crt',
-            'ssl_key_file' => __DIR__.'/config/'.env('WS_HOST_SSL','chat.f5700.com').'ssl.key',
+            'ssl_cert_file' => __DIR__.'/config/'.env('WS_HOST_SSL','fh').'ssl.crt',
+            'ssl_key_file' => __DIR__.'/config/'.env('WS_HOST_SSL','fh').'ssl.key',
         ));
 
         //监听WebSocket连接打开事件

@@ -17,12 +17,10 @@ class Swoole
 //        $ch = curl_init();
         $this->ch = curl_init();
         //设置post数据
-        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows");
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
+        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows?type=".$param['type']."&room=".$param['room']);
         curl_setopt($this->ch,CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($this->ch,CURLOPT_POST,1);
-        curl_setopt($this->ch,CURLOPT_POSTFIELDS,$param);
-        curl_setopt($this->ch, CURLOPT_TIMEOUT, $this->timeout);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
+        curl_setopt($this->ch,CURLOPT_HEADER,0);
         $output = curl_exec($this->ch);
         return $output;
         curl_close($ch);

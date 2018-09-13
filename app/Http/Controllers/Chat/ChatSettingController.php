@@ -237,8 +237,8 @@ class ChatSettingController extends Controller
         $redis = Redis::connection();
         $redis->select(1);                                   //切换到聊天平台
         $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
-//        $swoole = new Swoole();
-//        $swoole->swooletest('hongbao',$room);
+        $swoole = new Swoole();
+        $swoole->swooletest('hongbao',$room);
         return response()->json(['status'=>true,'msg'=>'发红包成功','type'=>'hongbao','data'=>$room],200);
     }
 

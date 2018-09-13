@@ -2,7 +2,6 @@
 
 namespace App;
 
-use GuzzleHttp\Client;
 
 class Swoole
 {
@@ -22,10 +21,5 @@ class Swoole
         curl_setopt($this->ch,CURLOPT_HEADER,0);
         $output = curl_exec($this->ch);
         return $output;
-        curl_close($ch);
-//        $http = new Client();
-//        $res = $http->request('POST',env('WS_CURL',"http://127.0.0.1").":".env('WS_PORT',9500)."?type=".$param['type']."&room=".$param['type']);
-//        $json = json_decode((string) $res->getBody(), true);
-        return $json;
     }
 }

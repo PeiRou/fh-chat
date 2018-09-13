@@ -208,7 +208,7 @@ function del(id,funcName) {
 }
 function ajaxSwoole(result) {
     $.ajax({
-        url: '/dows',
+        url: '/dows/',
         type: 'POST',
         data: {
             type :result.type,

@@ -17,7 +17,7 @@ class Swoole
 //        $ch = curl_init();
         $this->ch = curl_init();
         //设置post数据
-        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1").":".env('WS_PORT',9500));
+        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows");
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
         curl_setopt($this->ch,CURLOPT_RETURNTRANSFER,1);
         curl_setopt($this->ch,CURLOPT_POST,1);

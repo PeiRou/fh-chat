@@ -95,6 +95,7 @@
             data: $form.serialize(),
             success: function(result) {
                 if(result.status == true){
+                    ajaxSwoole(result);
                     jc.close();
                     $('#dtTable').DataTable().ajax.reload(null,false);
                 } else {

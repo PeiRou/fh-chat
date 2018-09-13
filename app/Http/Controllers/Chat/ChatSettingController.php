@@ -118,7 +118,7 @@ class ChatSettingController extends Controller
             $redis->HSET($rsKeyH,'notice'.$roomid.'='.'notice','notice');
 //            $swoole = new Swoole();
 //            $swoole->swooletest('notice',$roomid);
-            return response()->json(['status'=>true,'data'=>$roomid],200);
+            return response()->json(['status'=>true,'type'=>'notice','data'=>$roomid],200);
         }else
             return response()->json(['status'=>false,'msg'=>'修改聊天室公告失败'],200);
     }
@@ -239,7 +239,7 @@ class ChatSettingController extends Controller
         $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
 //        $swoole = new Swoole();
 //        $swoole->swooletest('hongbao',$room);
-        return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$room],200);
+        return response()->json(['status'=>true,'msg'=>'发红包成功','type'=>'hongbao','data'=>$room],200);
     }
 
     //关闭红包

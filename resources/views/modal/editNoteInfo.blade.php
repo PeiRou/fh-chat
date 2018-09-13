@@ -43,17 +43,7 @@
             data: $form.serialize(),
             success: function(result) {
                 if(result.status == true){
-                    $.ajax({
-                        url: '/dows'
-                        type: 'POST',
-                        data: {
-                            type :result.type,
-                            room :result.data,
-                        },
-                        success: function(result) {
-
-                        }
-                    });
+                    ajaxSwoole(result);
                     jc.close();
                     $('#dtTable').DataTable().ajax.reload(null,false);
                 } else {

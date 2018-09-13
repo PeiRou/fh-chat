@@ -195,17 +195,7 @@ function reHongbao(room,id) {
                         dataType:'json',
                         success:function (data) {
                             if(data.status == true){
-                                $.ajax({
-                                    url: '/dows',
-                                    type: 'POST',
-                                    data: {
-                                        type :result.type,
-                                        room :result.data,
-                                    },
-                                    success: function(result) {
-
-                                    }
-                                });
+                                ajaxSwoole(result);
                                 $('#dtTable').DataTable().ajax.reload(null,false)
                             }
                         },

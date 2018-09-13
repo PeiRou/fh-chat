@@ -206,3 +206,16 @@ function del(id,funcName) {
         }
     });
 }
+function ajaxSwoole(result) {
+    $.ajax({
+        url: '/dows',
+        type: 'POST',
+        data: {
+            type :result.type,
+            room :result.data,
+        },
+        success: function(result) {
+
+        }
+    });
+}

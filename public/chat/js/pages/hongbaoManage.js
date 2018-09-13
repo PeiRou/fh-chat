@@ -195,7 +195,7 @@ function reHongbao(room,id) {
                         dataType:'json',
                         success:function (data) {
                             if(data.status == true){
-                                ajaxSwoole(result);
+                                ajaxSwoole(data);
                                 $('#dtTable').DataTable().ajax.reload(null,false)
                             }
                         },

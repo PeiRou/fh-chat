@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 
 class Swoole
 {
+    private $timeout = 30;
     public function swooletest($type,$room)
     {
         $param['type'] = $type;

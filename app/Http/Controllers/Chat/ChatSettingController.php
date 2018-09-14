@@ -293,6 +293,9 @@ class ChatSettingController extends Controller
     public function sendPlan(Request $request){
         $plan = $request->input('plan').'<br>';                    //计划推送
         $session_id = md5(time().rand(1,10));
+        //字符串转十六进制函数
+        $plan = base64_encode(urlencode($plan));
+
         $aRep =array(
             'userId' => 'plans',
             'plans' => $plan,
@@ -301,7 +304,9 @@ class ChatSettingController extends Controller
         $rsKeyH = 'chatList';
         $redis = Redis::connection();
         $redis->select(1);                                   //切换到聊天平台
-        $redis->HSET($rsKeyH,'pln='.$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
+        $redis->HSET($rsKeyH,'pln1='.$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
+        $swoole = new Swoole();
+        $swoole->swooletest('plan',1);
         return response()->json(['status'=>true],200);
 
     }

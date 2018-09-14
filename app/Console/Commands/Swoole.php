@@ -151,7 +151,7 @@ class Swoole extends Command
         //接收WebSocket服务器推送功能
         $this->ws->on('request', function ($serv) {
             $room = isset($serv->post['room'])?$serv->post['room']:$serv->get['room'];
-            $type = isset($serv->post['room'])?$serv->post['type']:$serv->get['type'];
+            $type = isset($serv->post['type'])?$serv->post['type']:$serv->get['type'];
             switch ($type){
                 case 'plan':
                     //检查计划消息
@@ -181,6 +181,10 @@ class Swoole extends Command
                     //检查消息推送
                     $this->chkSendC($room);
                     break;
+                case 'upchat':
+                    //检查上传图片
+                    $this->upchat($serv);
+                    break;
             }
         });
 
@@ -190,6 +194,18 @@ class Swoole extends Command
         });
 
         $this->ws->start();
+    }
+    private function upchat($serv){
+        $path = isset($serv->post['path'])?$serv->post['path']:$serv->get['path'];
+        $imageName = isset($serv->post['imgName'])?$serv->post['imgName']:$serv->get['imgName'];
+        $img = isset($serv->post['img'])?$serv->post['img']:$serv->get['img'];
+        if(empty($path) || empty($img))
+            return false;
+        $docUrl = public_path().$path;
+        if(!file_exists($docUrl))                   //如果资料夹不存在，则创建资料夹
+            mkdir(public_path().$path);
+
+        \File::put(public_path(). $imageName, base64_decode($img));
     }
     //发消息给所有人
     private function sendToAll($room_id,$msg){

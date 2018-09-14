@@ -202,8 +202,9 @@ class Swoole extends Command
         if(empty($path) || empty($img))
             return false;
         $docUrl = public_path().$path;
+        echo $docUrl.PHP_EOL;
         if(!file_exists($docUrl))                   //如果资料夹不存在，则创建资料夹
-            mkdir(public_path().$path);
+            mkdir($docUrl);
 
         \File::put(public_path(). $imageName, base64_decode($img));
     }

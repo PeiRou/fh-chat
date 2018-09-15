@@ -136,6 +136,11 @@ class Swoole extends Command
                 $msg = $this->msg(5,'此帐户已禁言');
                 return $this->ws->push($request->fd, $msg);
             }
+            //消息过滤HTML标签
+            $request->data = trim ($request->data);
+            $request->data = strip_tags ($request->data);
+            $request->data = htmlspecialchars ($request->data);
+            $request->data = addslashes ($request->data);
             //消息处理违禁词
             $aMesgRep = $this->regSpeaking($request->data);
             //发送消息

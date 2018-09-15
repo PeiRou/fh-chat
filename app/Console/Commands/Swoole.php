@@ -314,6 +314,8 @@ class Swoole extends Command
     //检查抢到红包消息
     private function chkHongbaoNum($room_id,$serv){
         $dt_idx = isset($serv->post['hbN'])?$serv->post['hbN']:$serv->get['hbN'];
+        $userId = isset($serv->post['userId'])?$serv->post['userId']:$serv->get['userId'];
+        $amount = isset($serv->post['amount'])?$serv->post['amount']:$serv->get['amount'];
 
         $redis = Redis::connection();
         $redis->select(1);
@@ -321,10 +323,9 @@ class Swoole extends Command
         if(!$redis->exists($rsKeyH.$dt_idx.'ing')){
             $redis->setex($rsKeyH.$dt_idx.'ing',30,'on');
             //检查抢到红包消息
-            error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
-            $iRoomInfo = $this->getUsersess($dt_idx,'','hongbaoNum');     //包装计划消息
-            $iMsg = $iRoomInfo['amount'];          //把金额提出来
-            unset($iRoomInfo['amount']);
+            error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.'==='.$amount.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
+            $iRoomInfo = $this->getUsersess($dt_idx,$userId,'hongbaoNum');     //包装计划消息
+            $iMsg = $amount;          //把金额提出来
             $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息
             $this->sendToAll($room_id,$msg);
             $redis->del($rsKeyH.'ing');
@@ -430,11 +431,10 @@ class Swoole extends Command
                 $res['name'] = '系统红包';                          //名称显示
                 break;
             case 'hongbaoNum':
-                $aHongBao = DB::table('chat_hongbao_dt')->where('chat_hongbao_dt_idx',$iSess)->first();
-                $aAllInfo = $this->getIdToUserInfo(md5($aHongBao->users_id));
+//                $aHongBao = DB::table('chat_hongbao_dt')->where('chat_hongbao_dt_idx',$iSess)->first();
+                $aAllInfo = $this->getIdToUserInfo(md5($fd));
                 $res['room'] = 1;                                  //取得房间id
                 $res['name'] = $aAllInfo['name'];                  //名称显示
-                $res['amount'] = $aHongBao->amount;                  //红包金额
                 break;
             case 'delHis':
                 $res['room'] = 1;                                  //取得房间id

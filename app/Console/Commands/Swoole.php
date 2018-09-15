@@ -691,8 +691,10 @@ class Swoole extends Command
                 }
             }
         }
-        if(empty($iRoomUsers))
+        if(empty($iRoomUsers)){
+            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
             return array();
+        }
         return $iRoomUsers;   //获取聊天用户数组，在反序列化回数组
     }
     /**
@@ -715,7 +717,7 @@ class Swoole extends Command
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
         ksort($iRoomHisTxt);
         //检查计划消息
-        error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息1=> ".$rsKeyH.'|'.json_encode($iRoomHisTxt).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
+        error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息1=> ".$rsKeyH.'|room: '.$iRoomInfo['room'].'-'.json_encode($iRoomHisTxt).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
         $timess = (int)(microtime(true)*1000);
         foreach ($iRoomHisTxt as $tmpkey =>$hisMsg) {
             $hisMsg = (array)json_decode($hisMsg);

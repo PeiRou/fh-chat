@@ -155,7 +155,7 @@ class Swoole extends Command
             switch ($type){
                 case 'plan':
                     //检查计划消息
-                    $this->chkPlan($room);
+                    $this->chkPlan($room,$serv);
                     break;
                 case 'delHis':
                     //检查删除消息
@@ -167,7 +167,7 @@ class Swoole extends Command
                     break;
                 case 'hongbaoNum':
                     //检查抢红包消息
-                    $this->chkHongbaoNum($room);
+                    $this->chkHongbaoNum($room,$serv);
                     break;
                 case 'notice':
                     //检查公告异动
@@ -312,44 +312,45 @@ class Swoole extends Command
         }
     }
     //检查抢到红包消息
-    private function chkHongbaoNum($room_id){
+    private function chkHongbaoNum($room_id,$serv){
+        $dt_idx = isset($serv->post['hbN'])?$serv->post['hbN']:$serv->get['hbN'];
+
         $redis = Redis::connection();
         $redis->select(1);
         $rsKeyH = 'hbN';
-        if(!$redis->exists($rsKeyH.'ing')){
-            $redis->setex($rsKeyH.'ing',10,'on');
-            $iHongBaoNum = $this->updAllkey($rsKeyH,$room_id);     //红包异动
+        if(!$redis->exists($rsKeyH.$dt_idx.'ing')){
+            $redis->setex($rsKeyH.$dt_idx.'ing',30,'on');
             //检查抢到红包消息
-            foreach ($iHongBaoNum as $keyhb =>$checkHb) {
-                $this->delAllkey($keyhb);
-                error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$keyhb.'==='.$checkHb.'++++'.json_encode($iHongBaoNum).PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
-                $iRoomInfo = $this->getUsersess($checkHb,'','hongbaoNum');     //包装计划消息
-                $iMsg = $iRoomInfo['amount'];          //把金额提出来
-                unset($iRoomInfo['amount']);
-                $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息
-                $this->sendToAll($room_id,$msg);
-            }
+            error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
+            $iRoomInfo = $this->getUsersess($dt_idx,'','hongbaoNum');     //包装计划消息
+            $iMsg = $iRoomInfo['amount'];          //把金额提出来
+            unset($iRoomInfo['amount']);
+            $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息
+            $this->sendToAll($room_id,$msg);
             $redis->del($rsKeyH.'ing');
         }
     }
     //检查计画任务
-    private function chkPlan($room_id){
+    private function chkPlan($room_id,$serv){
+        $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
+        $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
+
         $redis = Redis::connection();
         $redis->select(1);
         $rsKeyH = 'pln';
-        $iPlan = $this->updAllkey($rsKeyH,$room_id);     //计画任务
-        //检查计划消息
-        foreach ($iPlan as $keyHis =>$valHis) {
-            $this->delAllkey($keyHis);
-            error_log(date('Y-m-d H:i:s',time())." 计划发消息every=> ".$rsKeyH.'|'.$keyHis.'==='.$valHis.'++++'.json_encode($iPlan).PHP_EOL, 3, '/tmp/chat/plan.log');
-            $iRoomInfo = $this->getUsersess($valHis,'','plan');     //包装计划消息
+        if(!$redis->exists($rsKeyH.$id.'ing')) {
+            $redis->setex($rsKeyH.$id. 'ing', 30, 'on');
+            //检查计划消息
+            error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . $valHis . PHP_EOL, 3, '/tmp/chat/plan.log');
+            $valHis = (array)json_decode($valHis, true);
+            $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
             $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
             unset($iRoomInfo['plans']);
             //计画消息组合底部固定信息
             $iMsg_back = DB::table('chat_base')->select('plan_msg')->first();
             $iMsg .= urlencode($iMsg_back->plan_msg);
-            $msg = $this->msg(2,base64_encode(str_replace('+', '%20',$iMsg)),$iRoomInfo);   //计划发消息
-            $this->sendToAll($room_id,$msg);
+            $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
+            $this->sendToAll($room_id, $msg);
         }
     }
     //检查消息推送
@@ -454,8 +455,8 @@ class Swoole extends Command
                     return array();                                 //切换到聊天室库
                 $this->updUserInfo($fd,$res);
                 $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$res['userId'])->first();
-                if(empty($aUsers)){
-                    $resUsers = DB::table('users')->select('testFlag')->where('id',$res['userId'])->first();//如果从未登入聊天室，则要把信息
+                if(empty($aUsers)){                                     //如果从未登入聊天室，则要把信息
+                    $resUsers = DB::table('users')->select('testFlag')->where('id',$res['userId'])->first();
                     $data['room_id'] = 1;           //目前一个平台只有一间房
                     $data['users_id'] = $res['userId'];
                     $data['username'] = $res['userName'];

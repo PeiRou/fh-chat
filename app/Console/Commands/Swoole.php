@@ -671,7 +671,12 @@ class Swoole extends Command
                 for($ii=0;$ii<10000;$ii++){
                     $timeIdx = $addId + $ii;
                     if(!$redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
-                        $addId = $timeIdx;
+                        if($ii>0){
+                            $addId = $timeIdx;
+                            $addVal = json_decode($addVal,true);
+                            $addVal['time'] = $addId;
+                            $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
+                        }
                         break;
                     }
                 }

@@ -342,7 +342,6 @@ class Swoole extends Command
             $redis->setex($rsKeyH.$id. 'ing', 30, 'on');
             //检查计划消息
             error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . $valHis . PHP_EOL, 3, '/tmp/chat/plan.log');
-            $valHis = (array)json_decode($valHis, true);
             $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
             $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
             unset($iRoomInfo['plans']);

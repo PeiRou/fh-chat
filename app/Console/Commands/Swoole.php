@@ -55,6 +55,7 @@ class Swoole extends Command
         }
     }
     private $chatkey = 'chatList';
+    private $tmpChatList = array();
 
     public function start(){
         //创建websocket服务器对象，监听0.0.0.0:9502端口
@@ -668,10 +669,15 @@ class Swoole extends Command
             return false;
         if(!empty($addId)) {
             $redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
+            if(!empty($this->tmpChatList))
+                $this->tmpChatList[$tmpTxt.$addId]=$addVal;
         }
         if($notReturn)
             return false;
-        $chatList = $redis->HGETALL($this->chatkey);
+        if(empty($this->tmpChatList))
+            $chatList = $redis->HGETALL($this->chatkey);
+        else
+            $chatList = $this->tmpChatList;
         $len = strlen($tmpTxt);
 
         foreach ($chatList as  $item=>$value){

@@ -670,13 +670,14 @@ class Swoole extends Command
             if($logo=='his'){
                 for($ii=0;$ii<10000;$ii++){
                     $timeIdx = $addId + $ii;
+                    error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                     if(!$redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
                         if($ii>0){
                             $addId = $timeIdx;
                             $addVal = json_decode($addVal,true);
                             $addVal['time'] = $addId;
                             $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
-                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
+                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间(ii+1)=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                         }
                         break;
                     }

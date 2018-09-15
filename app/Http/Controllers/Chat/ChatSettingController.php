@@ -216,7 +216,7 @@ class ChatSettingController extends Controller
 
         $data['sa_id'] = Session::get('account_id');              //添加管理员id
         $data['account'] = Session::get('account');               //添加管理员
-        $data['hongbao_status'] = 1;                              //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        $data['hongbao_status'] = 1;                              //红包状态 1:疯抢中 2:已抢完 3:已关闭
         $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
 
         $id = DB::table('chat_hongbao')->insertGetId($data);
@@ -244,7 +244,7 @@ class ChatSettingController extends Controller
 
     //关闭红包
     public function closeHongbao($data){
-        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:疯抢中 2:已抢完 3:已关闭
         if($upd==1) {
             Redis::select(1);
             Redis::del('hbing'.$data);
@@ -255,7 +255,7 @@ class ChatSettingController extends Controller
 
     //开启红包
     public function openHongbao($data){
-        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>1));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>1));      //红包状态 1:疯抢中 2:已抢完 3:已关闭
         if($upd==1)
             return response()->json(['status'=>true],200);
         else

@@ -75,7 +75,7 @@ $(function () {
             {data:function (data) {                 //状态
                     switch (parseInt(data.hongbao_status)){
                         case 1:
-                            var txt = "抢疯中";
+                            var txt = "疯抢中";
                             clsName = 1;      //绿色
                             break;
                         case 2:
@@ -91,7 +91,8 @@ $(function () {
                 }},
             {data:'hongbao_total_amount'},         //总金额
             {data:function (data) {                    //红包个数 hongbao_total_num
-                    return data.hongbao_remain_num+'/'+data.hongbao_total_num;
+                    var hav_num = parseInt(data.hongbao_total_num) - parseInt(data.hongbao_remain_num);
+                    return hav_num+'/'+data.hongbao_total_num;
                 }},
             {data:'hongbao_remain_amount'},        //剩馀馀额
             {data:function(data){                  //抢红包条件(最近2天)  recharge  bet

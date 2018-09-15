@@ -43,7 +43,7 @@
                     <div class="one wide field">
                         <select class="ui dropdown" id="status" style='height:32px !important'>
                             <option value="">全部</option>
-                            <option value="1">抢疯中</option>
+                            <option value="1">疯抢中</option>
                             <option value="2">已抢完</option>
                             <option value="3">已关闭</option>
                         </select>

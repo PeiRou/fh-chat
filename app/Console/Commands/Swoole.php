@@ -137,7 +137,7 @@ class Swoole extends Command
                 return $this->ws->push($request->fd, $msg);
             }
             //消息过滤HTML标签
-            $aMesgRep = urlencode($request->data);
+            $aMesgRep = urldecode($request->data);
             $aMesgRep = trim ($aMesgRep);
             $aMesgRep = strip_tags ($aMesgRep);
             $aMesgRep = htmlspecialchars ($aMesgRep);
@@ -145,6 +145,7 @@ class Swoole extends Command
             //消息处理违禁词
             $aMesgRep = $this->regSpeaking($aMesgRep);
             echo $aMesgRep.PHP_EOL;
+            $aMesgRep = urldecode($aMesgRep);
             $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
             //发送消息
             if(!is_array($iRoomInfo))

@@ -131,20 +131,17 @@ class Swoole extends Command
             //消息处理违禁词
             $aMesgRep = $this->regSpeaking($request->data);
             //发送消息
-            if(!$redis->exists('talking')){
-                $redis->setex('talking',1,'on');
-                if(!is_array($iRoomInfo))
-                    $iRoomInfo = (array)$iRoomInfo;
-                $getUuid = $this->getUuid($iRoomInfo['name']);
-                $iRoomInfo['timess'] = $getUuid['timess'];
-                $iRoomInfo['uuid'] = $getUuid['uuid'];
-                foreach ($iRoomUsers as $fdId =>$val) {
-                    if($val==$request->fd)//组装消息数据
-                        $msg = $this->msg(4,$aMesgRep,$iRoomInfo);   //自己发消息
-                    else
-                        $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
-                    $this->push($val, $msg,$iRoomInfo['room']);
-                }
+            if(!is_array($iRoomInfo))
+                $iRoomInfo = (array)$iRoomInfo;
+            $getUuid = $this->getUuid($iRoomInfo['name']);
+            $iRoomInfo['timess'] = $getUuid['timess'];
+            $iRoomInfo['uuid'] = $getUuid['uuid'];
+            foreach ($iRoomUsers as $fdId =>$val) {
+                if($val==$request->fd)//组装消息数据
+                    $msg = $this->msg(4,$aMesgRep,$iRoomInfo);   //自己发消息
+                else
+                    $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
+                $this->push($val, $msg,$iRoomInfo['room']);
             }
         });
         $this->ws->on('receive', function ($ws, $request) {
@@ -677,7 +674,7 @@ class Swoole extends Command
                             $addVal = json_decode($addVal,true);
                             $addVal['time'] = $addId;
                             $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
-                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间(ii+1)=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
+                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间()=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                         }
                         break;
                     }

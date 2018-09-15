@@ -43,7 +43,9 @@ class DataController extends Controller
                 if(isset($login_ip) && $login_ip){
                     $query->where("login_ip",'=',$login_ip);
                 }
-            })->get();
+            })
+            ->orderBy('users_id','DESC')
+            ->get();
         return DataTables::of($users)
             ->editColumn('nickname',function ($users){
                 $nickname = empty($users->nickname)?substr($users->username,0,2).'******'.substr($users->username,-2,3):$users->nickname;

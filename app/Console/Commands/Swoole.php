@@ -454,14 +454,15 @@ class Swoole extends Command
                     return array();                                 //切换到聊天室库
                 $this->updUserInfo($fd,$res);
                 $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$res['userId'])->first();
-                if(empty($aUsers)){                                     //如果从未登入聊天室，则要把信息
+                if(empty($aUsers)){
+                    $resUsers = DB::table('users')->select('testFlag')->where('id',$res['userId'])->first();//如果从未登入聊天室，则要把信息
                     $data['room_id'] = 1;           //目前一个平台只有一间房
                     $data['users_id'] = $res['userId'];
                     $data['username'] = $res['userName'];
                     $data['updated_at']= date("Y-m-d H:i:s",time());
                     $data['created_at']= date("Y-m-d H:i:s",time());
                     $data['level'] = 1;
-                    if(isset($res['testFlag']) && $res['testFlag']==1){      //判断如果是游客
+                    if(isset($resUsers->testFlag) && $resUsers->testFlag==1){      //判断如果是游客
                         $data['chat_role'] = 1;
                         $data['level'] = 0;
                     }

@@ -470,7 +470,7 @@ class Swoole extends Command
                 }
                 if(empty($res['userId']))
                     return array();
-                $aUsers = $this->chkUserSpeak($res['userId']);
+                $aUsers = $this->chkUserSpeak($res['userId'],$data);
                 //检查其他sess状态，并删除他们
                 $this->chkElseLogin($iSess,$res['userId']);
                 $uLv = $aUsers->level;
@@ -514,7 +514,7 @@ class Swoole extends Command
         }
     }
     //检查发言状态
-    private function chkUserSpeak($userid = 0){
+    private function chkUserSpeak($userid = 0,$aUsersData){
         //重新计算最近2天下注&充值
         $this->setBetRech($userid);
         //获取最近2天下注&充值
@@ -522,6 +522,13 @@ class Swoole extends Command
             ->select('chat_users.*','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet')
             ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
             ->where('users_id',$userid)->first();
+        if(empty($aUsers)){
+            $aUsers->chat_role = $aUsersData['chat_role'];
+            $aUsers->recharge = 0;
+            $aUsers->bet = 0;
+            $aUsers->isnot_auto_count = 0;
+            $aUsers->level = $aUsersData['level'];
+        }
         $uLv = $this->chkChat_level($aUsers->chat_role,$aUsers->recharge,$aUsers->bet,$aUsers->isnot_auto_count,$aUsers->level);          //取得用户层级
 
         DB::table('chat_users')->where('users_id',$userid)->update([

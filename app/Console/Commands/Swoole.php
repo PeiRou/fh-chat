@@ -258,9 +258,8 @@ class Swoole extends Command
         return $res;//如果房客存在，把用户组反序列化
     }
     private function getUuid($name=''){
-        $timess = (int)(microtime(true)*1000);
-        $txtId = md5($name.$timess.random_int(1,10000000));
-        return array('timess'=>$timess,'uuid'=>$txtId);
+        $timess = (int)(microtime(true)*1000*10000);
+        return array('timess'=>$timess,'uuid'=>$timess);
     }
     //检查公告异动
     private function chkNotice($room_id){
@@ -668,6 +667,15 @@ class Swoole extends Command
         if(empty($iRoomID))
             return false;
         if(!empty($addId)) {
+            if($logo=='his'){
+                for($ii=0;$ii<10000;$ii++){
+                    $timeIdx = $addId + $ii;
+                    if(!$redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
+                        $addId = $timeIdx;
+                        break;
+                    }
+                }
+            }
             $redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
             if(!empty($this->tmpChatList))
                 $this->tmpChatList[$tmpTxt.$addId]=$addVal;
@@ -732,10 +740,10 @@ class Swoole extends Command
         ksort($iRoomHisTxt);
         //检查计划消息
         error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息1=> ".$rsKeyH.'|room: '.$iRoomInfo['room'].'-'.json_encode($iRoomHisTxt).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
-        $timess = (int)(microtime(true)*1000);
+        $timess = (int)(microtime(true)*1000*10000);
         foreach ($iRoomHisTxt as $tmpkey =>$hisMsg) {
             $hisMsg = (array)json_decode($hisMsg);
-            if($hisMsg['time'] < ($timess-72000000)){
+            if($hisMsg['time'] < ($timess-(7200*1000*10000))){
                 $this->delAllkey($hisMsg['uuid'],$rsKeyH,$iRoomInfo['room']);       //删除历史
                 continue;
             }

@@ -45,10 +45,7 @@ class Swoole extends Command
             case 'close':
                 break;
             case 'start':
-                $redis = Redis::connection();
-                $redis->select(1);
-                $redis->del($this->chatkey);
-//                $redis->flushdb();       //服务一启动就要清除之前的聊天室redis
+                $this->init();
             default:
                 $this->start();
                 break;
@@ -56,6 +53,17 @@ class Swoole extends Command
     }
     private $chatkey = 'chatList';
     private $tmpChatList = array();
+
+    private function init(){
+        $redis = Redis::connection();
+        $redis->select(1);
+        $redis->del($this->chatkey);
+        $keys = $redis->keys('hbing'.'*');
+        foreach ($keys as $item){
+            $redis->del($item);
+        }
+//      $redis->flushdb();       //服务一启动就要清除之前的聊天室redis
+    }
 
     public function start(){
         //创建websocket服务器对象，监听0.0.0.0:9502端口
@@ -265,7 +273,7 @@ class Swoole extends Command
         $rsKeyH = 'notice';
         if(!$redis->exists($rsKeyH.'ing')){
             $redis->setex($rsKeyH.'ing',10,'on');       //删除信息处理中
-            $iNotice = $this->updAllkey($rsKeyH,$room_id);     //删除信息
+            $iNotice = $this->updAllkey($rsKeyH,$room_id);     //读取公告异动
             //检查删除消息
             foreach ($iNotice as $keyhb =>$checkDel) {
                 $this->delAllkey($keyhb);

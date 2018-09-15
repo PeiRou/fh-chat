@@ -676,7 +676,7 @@ class Swoole extends Command
                             $addVal = json_decode($addVal,true);
                             $addVal['time'] = $addId;
                             $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
-                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
+                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                         }
                         break;
                     }

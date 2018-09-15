@@ -260,7 +260,7 @@ class Swoole extends Command
             'k' => isset($userinfo['userId'])?md5($userinfo['userId']):'',              //用户id
             'nS' => isset($userinfo['noSpeak'])?$userinfo['noSpeak']:'',                //是否能发言
             'anS' => isset($userinfo['allnoSpeak'])?$userinfo['allnoSpeak']:'',        //是否全局不能发言
-            'uuid' => isset($userinfo['uuid'])?$userinfo['uuid']:$getUuid['uuid'],        //发言的唯一标实
+            'uuid' => isset($userinfo['uuid'])?(string)$userinfo['uuid']:(string)$getUuid['uuid'],        //发言的唯一标实
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess']      //服务器接收到讯息时间
         ];
@@ -272,7 +272,7 @@ class Swoole extends Command
     }
     private function getUuid($name=''){
         $timess = (int)(microtime(true)*1000*10000*10000);
-        return array('timess'=>$timess,'uuid'=>$timess);
+        return array('timess'=>$timess,'uuid'=>(string)$timess);
     }
     //检查公告异动
     private function chkNotice($room_id){

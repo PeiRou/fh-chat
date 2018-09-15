@@ -137,6 +137,7 @@ class Swoole extends Command
                 return $this->ws->push($request->fd, $msg);
             }
             //消息过滤HTML标签
+            echo $request->data.'-------';
             $aMesgRep = urldecode($request->data);
             echo $aMesgRep.PHP_EOL;
             $aMesgRep = trim ($aMesgRep);

@@ -140,7 +140,7 @@ class Swoole extends Command
             echo $request->data.'-------';
             $aMesgRep = urldecode($request->data);
             echo $aMesgRep.PHP_EOL;
-            echo urlencode($aMesgRep);.PHP_EOL;
+            echo urlencode($aMesgRep).PHP_EOL;
             $aMesgRep = trim ($aMesgRep);
             $aMesgRep = strip_tags ($aMesgRep);
             $aMesgRep = htmlspecialchars ($aMesgRep);

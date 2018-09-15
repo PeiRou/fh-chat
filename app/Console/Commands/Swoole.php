@@ -141,6 +141,7 @@ class Swoole extends Command
             $request->data = strip_tags ($request->data);
             $request->data = htmlspecialchars ($request->data);
             $request->data = addslashes ($request->data);
+            echo $request->data.PHP_EOL;
             //消息处理违禁词
             $aMesgRep = $this->regSpeaking($request->data);
             //发送消息

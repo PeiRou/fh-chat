@@ -112,10 +112,6 @@ class ChatSettingController extends Controller
             $update = DB::table('chat_note')->insert($data);
         }
         if($update==1){
-            $rsKeyH = 'chatList';
-            $redis = Redis::connection();
-            $redis->select(1);                                   //切换到聊天平台
-            $redis->HSET($rsKeyH,'notice'.$roomid.'='.'notice','notice');
             $swoole = new Swoole();
             $swoole->swooletest('notice',$roomid);
             return response()->json(['status'=>true,'data'=>$roomid],200);
@@ -232,13 +228,9 @@ class ChatSettingController extends Controller
         $data = explode("&",$data);
         $room = $data[0];
         $id = $data[1];
-        $md5id = md5($data[1].time());
-        $rsKeyH = 'chatList';
-        $redis = Redis::connection();
-        $redis->select(1);                                   //切换到聊天平台
-        $redis->HSET($rsKeyH,'hb'.$room.'='.$md5id,$id);
+        $data['id'] = $id;
         $swoole = new Swoole();
-        $swoole->swooletest('hongbao',$room);
+        $swoole->swooletest('hongbao',$room,$data);
         return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$room],200);
     }
 
@@ -301,12 +293,12 @@ class ChatSettingController extends Controller
             'plans' => $plan,
             'img' => '/game/images/chat/sys.png'                          //用户头像
         );
-        $rsKeyH = 'chatList';
         $redis = Redis::connection();
         $redis->select(1);                                   //切换到聊天平台
-        $redis->HSET($rsKeyH,'pln1='.$session_id,json_encode($aRep,JSON_UNESCAPED_UNICODE));
+        $data['id'] = $session_id;
+        $data['pln'] = json_encode($aRep,JSON_UNESCAPED_UNICODE);
         $swoole = new Swoole();
-        $swoole->swooletest('plan',1);
+        $swoole->swooletest('plan',1,$data);
         return response()->json(['status'=>true],200);
 
     }

@@ -177,7 +177,7 @@ class Swoole extends Command
                     break;
                 case 'hongbao':
                     //检查红包
-                    $this->chkHongbao($room);
+                    $this->chkHongbao($room,$serv);
                     break;
                 case 'hongbaoNum':
                     //检查抢红包消息
@@ -280,15 +280,11 @@ class Swoole extends Command
         $redis->select(1);
         $rsKeyH = 'notice';
         if(!$redis->exists($rsKeyH.'ing')){
-            $redis->setex($rsKeyH.'ing',10,'on');       //删除信息处理中
-            $iNotice = $this->updAllkey($rsKeyH,$room_id);     //读取公告异动
-            //检查删除消息
-            foreach ($iNotice as $keyhb =>$checkDel) {
-                $this->delAllkey($keyhb);
-                error_log(date('Y-m-d H:i:s',time())." 检查公告=> ".$rsKeyH.'|'.$keyhb.'==='.$checkDel.'++++'.json_encode($iNotice).PHP_EOL, 3, '/tmp/chat/notice.log');
-                $msg = $this->getChatNotice($room_id);
-                $this->sendToAll($room_id, $msg);
-            }
+            $redis->setex($rsKeyH.'ing',10,'on');       //公告异动处理中
+            //检查公告异动
+            error_log(date('Y-m-d H:i:s',time())." 检查公告=> ".$rsKeyH.'|'.PHP_EOL, 3, '/tmp/chat/notice.log');
+            $msg = $this->getChatNotice($room_id);
+            $this->sendToAll($room_id, $msg);
             $redis->del($rsKeyH.'ing');
         }
     }
@@ -309,20 +305,17 @@ class Swoole extends Command
         }
     }
     //检查红包异动
-    private function chkHongbao($room_id){
+    private function chkHongbao($room_id,$serv){
+        $hd_idx = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
+
         $redis = Redis::connection();
         $redis->select(1);
         $rsKeyH = 'hb';
-        $iHongBao = $this->updAllkey($rsKeyH,$room_id);     //红包异动
-        //检查红包异动
-        foreach ($iHongBao as $keyhb =>$checkHb) {
-            $this->delAllkey($keyhb);
-            error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$keyhb.'==='.$checkHb.'++++'.json_encode($iHongBao).PHP_EOL, 3, '/tmp/chat/hongbao.log');
-            $iRoomInfo = $this->getUsersess($checkHb,'','hongbao');     //包装红包消息
-            $iMsg = (int)$checkHb;
-            $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动
-            $this->sendToAll($room_id,$msg);
-        }
+        error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$hd_idx.PHP_EOL, 3, '/tmp/chat/hongbao.log');
+        $iRoomInfo = $this->getUsersess($hd_idx,'','hongbao');     //包装红包消息
+        $iMsg = (int)$hd_idx;
+        $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动
+        $this->sendToAll($room_id,$msg);
     }
     //检查抢到红包消息
     private function chkHongbaoNum($room_id,$serv){

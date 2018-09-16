@@ -50,6 +50,7 @@ class Swoole extends Command
                 break;
             case 'claen':
                 $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
+                die;
                 break;
             case 'start':
                 $this->init();

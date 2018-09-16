@@ -647,8 +647,10 @@ class Swoole extends Command
         $redis->select(1);
         $iRoomInfo = (array)$iRoomInfo;
         $room_key = 'usr'.$fd;               //成员房间号码
+        $redis->multi();
         $redis->HSET($this->chatkey,'usr:'.md5($iRoomInfo['userId']),$room_key);         //成员登记他的房间号码
         $redis->HSET($this->chatkey,$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));          //成员登记他的房间号码
+        $redis->exec();
 
     }
     //注销全局存LIST
@@ -696,7 +698,7 @@ class Swoole extends Command
                     }
                 }
             }
-            $redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
+            $redis->multi()->HSET($this->chatkey,$tmpTxt.$addId,$addVal)->exec();
             if(!empty($this->tmpChatList))
                 $this->tmpChatList[$tmpTxt.$addId]=$addVal;
         }

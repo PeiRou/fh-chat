@@ -173,7 +173,7 @@ class Swoole extends Command
                     break;
                 case 'delHis':
                     //检查删除消息
-                    $this->chkDelHis($room);
+                    $this->chkDelHis($room,$serv);
                     break;
                 case 'hongbao':
                     //检查红包
@@ -289,20 +289,17 @@ class Swoole extends Command
         }
     }
     //检查删除消息
-    private function chkDelhis($room_id){
+    private function chkDelhis($room_id,$serv){
+        $uuid = isset($serv->post['uuid'])?$serv->post['uuid']:$serv->get['uuid'];
+
         $redis = Redis::connection();
         $redis->select(1);
         $rsKeyH = 'delH';
-        $iHongBao = $this->updAllkey($rsKeyH,$room_id);     //删除信息
-        //检查删除消息
-        foreach ($iHongBao as $keyhb =>$checkDel) {
-            $this->delAllkey($keyhb);
-            error_log(date('Y-m-d H:i:s',time())." 检查删除消息=> ".$rsKeyH.'|'.$keyhb.'==='.$checkDel.'++++'.json_encode($iHongBao).PHP_EOL, 3, '/tmp/chat/delHis.log');
-            $iRoomInfo = $this->getUsersess($checkDel,'','delHis');     //包装删除信息
-            $iMsg = $checkDel;
-            $msg = $this->msg(10, $iMsg, $iRoomInfo);   //删除信息
-            $this->sendToAll($room_id, $msg);
-        }
+        error_log(date('Y-m-d H:i:s',time())." 检查删除消息=> ".$rsKeyH.'|'.$uuid.PHP_EOL, 3, '/tmp/chat/delHis.log');
+        $iRoomInfo = $this->getUsersess($uuid,'','delHis');     //包装删除信息
+        $iMsg = $uuid;
+        $msg = $this->msg(10, $iMsg, $iRoomInfo);   //删除信息
+        $this->sendToAll($room_id, $msg);
     }
     //检查红包异动
     private function chkHongbao($room_id,$serv){

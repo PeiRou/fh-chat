@@ -691,7 +691,9 @@ class Swoole extends Command
                     }
                 }
             }
-            $redis->multi()->HSET($this->chatkey,$tmpTxt.$addId,$addVal)->exec();
+            $redis->multi();
+            $redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
+            $redis->exec();
             if(!empty($this->tmpChatList))
                 $this->tmpChatList[$tmpTxt.$addId]=$addVal;
         }

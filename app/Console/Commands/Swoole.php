@@ -48,7 +48,7 @@ class Swoole extends Command
         switch ($action) {
             case 'close':
                 break;
-            case 'claen':
+            case 'clean':
                 $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
                 die;
                 break;

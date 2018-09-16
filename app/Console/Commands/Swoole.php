@@ -58,10 +58,12 @@ class Swoole extends Command
         $redis = Redis::connection();
         $redis->select(1);
         $redis->del($this->chatkey);
-        $keys = $redis->keys('*'.'ing:'.'*');
+        $keys = $redis->keys('*'.'ing'.'*');
+        $redis->multi();
         foreach ($keys as $item){
             $redis->del($item);
         }
+        $redis->exec();
 //      $redis->flushdb();       //服务一启动就要清除之前的聊天室redis
     }
 
@@ -655,7 +657,9 @@ class Swoole extends Command
         }
         $redis = Redis::connection();
         $redis->select(1);
+        $redis->multi();
         $redis->HDEL($this->chatkey,$addVal);
+        $redis->exec();
     }
 
     //全局存LIST

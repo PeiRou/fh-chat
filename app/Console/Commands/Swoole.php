@@ -509,20 +509,16 @@ class Swoole extends Command
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $arryKeys = $this->redis->keys('*');
-        try{
-            foreach ($arryKeys as $item){
-                if($item==$this->chatkey)
-                    continue;
-                    $redisUser = $this->redis->get($item);
-                    $redisUser = (array)json_decode($redisUser,true);
-                    if(isset($redisUser['userId'])){
-                        if($redisUser['userId']==$userId && $item!=$iSess){
-                            $this->redis->del($redisUser['userId']);
-                        }
-                    }
+        foreach ($arryKeys as $item){
+            if($item==$this->chatkey)
+                continue;
+            $redisUser = $this->redis->get($item);
+            $redisUser = (array)json_decode($redisUser,true);
+            if(isset($redisUser['userId'])){
+                if($redisUser['userId']==$userId && $item!=$iSess){
+                    $this->redis->del($redisUser['userId']);
+                }
             }
-        }catch (\Exception $e){
-            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".json_encode($arryKeys).PHP_EOL, 3, '/tmp/swoole/error.log');
         }
     }
     //检查发言状态

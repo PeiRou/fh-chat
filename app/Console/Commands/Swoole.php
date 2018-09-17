@@ -482,7 +482,7 @@ class Swoole extends Command
                 }
                 if(empty($res['userId']))
                     return array();
-                $aUsers = $this->chkUserSpeak($res['userId'],$data,$resUsers);
+                $aUsers = $this->chkUserSpeak($res['userId'],$data);
                 //检查其他sess状态，并删除他们
                 $this->chkElseLogin($iSess,$res['userId']);
                 $uLv = $aUsers->level;
@@ -526,7 +526,7 @@ class Swoole extends Command
         }
     }
     //检查发言状态
-    private function chkUserSpeak($userid = 0,$aUsersData,$resUsers){
+    private function chkUserSpeak($userid = 0,$aUsersData){
         //重新计算最近2天下注&充值
         $this->setBetRech($userid);
         //获取最近2天下注&充值

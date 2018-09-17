@@ -739,7 +739,7 @@ class Swoole extends Command
                 }
             }
         }catch (\Exception $e){
-
+            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/err.log');
         }
         if(empty($iRoomUsers)){
             error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');

@@ -530,14 +530,19 @@ class Swoole extends Command
             ->select('chat_users.*','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet')
             ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
             ->where('users_id',$userid)->first();
+        $chat_role = isset($aUsers->chat_role)?$aUsers->chat_role:1;
+        $recharge = isset($aUsers->recharge)?$aUsers->recharge:0;
+        $bet = isset($aUsers->bet)?$aUsers->bet:0;
+        $isnot_auto_count = isset($aUsers->isnot_auto_count)?$aUsers->isnot_auto_count:0;
+        $level = isset($aUsers->level)?$aUsers->level:1;
         if(empty($aUsers)){
-            $aUsers->chat_role = isset($aUsersData['chat_role'])?$aUsersData['chat_role']:1;
-            $aUsers->recharge = 0;
-            $aUsers->bet = 0;
-            $aUsers->isnot_auto_count = 0;
-            $aUsers->level = isset($aUsersData['level'])?$aUsersData['level']:1;
+            $chat_role = isset($aUsersData['chat_role'])?$aUsersData['chat_role']:1;
+            $recharge = 0;
+            $bet = 0;
+            $isnot_auto_count = 0;
+            $level = isset($aUsersData['level'])?$aUsersData['level']:1;
         }
-        $uLv = $this->chkChat_level($aUsers->chat_role,$aUsers->recharge,$aUsers->bet,$aUsers->isnot_auto_count,$aUsers->level);          //取得用户层级
+        $uLv = $this->chkChat_level($chat_role,$recharge,$bet,$isnot_auto_count,$level);          //取得用户层级
 
         DB::table('chat_users')->where('users_id',$userid)->update([
             'level'=> $uLv,

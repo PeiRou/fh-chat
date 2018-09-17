@@ -473,6 +473,7 @@ class Swoole extends Command
                     $data['updated_at']= date("Y-m-d H:i:s",time());
                     $data['created_at']= date("Y-m-d H:i:s",time());
                     $data['level'] = 1;
+                    $data['chat_role'] = 2;
                     if(isset($resUsers->testFlag) && $resUsers->testFlag==1){      //判断如果是游客
                         $data['chat_role'] = 1;
                         $data['level'] = 0;

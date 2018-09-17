@@ -522,6 +522,7 @@ class Swoole extends Command
                     }
             }
         }catch (\Exception $e){
+            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".json_encode($arryKeys).PHP_EOL, 3, '/tmp/swoole/error.log');
         }
     }
     //检查发言状态

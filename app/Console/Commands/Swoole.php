@@ -702,15 +702,12 @@ class Swoole extends Command
             $this->redis->multi();
             $this->redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
             $this->redis->exec();
-            if(!empty($this->tmpChatList))
-                $this->tmpChatList[$tmpTxt.$addId]=$addVal;
         }
         if($notReturn)
             return false;
-        if(empty($this->tmpChatList))
-            $chatList = $this->redis->HGETALL($this->chatkey);
-        else
-            $chatList = $this->tmpChatList;
+
+        $chatList = $this->redis->HGETALL($this->chatkey);
+
         $len = strlen($tmpTxt);
         $iRoomUsers = array();
         try{

@@ -711,31 +711,35 @@ class Swoole extends Command
         else
             $chatList = $this->tmpChatList;
         $len = strlen($tmpTxt);
-
-        foreach ($chatList as  $item=>$value){
-            if(substr($item,0,$len)==$tmpTxt){
-                switch ($logo){
-                    case 'usr':         //获取用户
-                        $aryValue = (array)json_decode($value);
-                        if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
-                            $itemfd = substr($item,$len);
-                            $iRoomUsers[$item] = $itemfd;
-                        }
-                        break;
-                    case 'his':         //历史消息
-                        $aryValue = (array)json_decode($value);
-                        $iRoomUsers[$aryValue['time']] = $value;
-                        break;
-                    case 'sendR':       //右下角的消息推送
-                    case 'sendC':       //中间的消息推送
-                        $item = substr($item,$len);
-                        $iRoomUsers[$item] = $value;
-                        break;
-                    default:
-                        $iRoomUsers[$item] = $value;
-                        break;
+        $iRoomUsers = array();
+        try{
+            foreach ($chatList as  $item=>$value){
+                if(substr($item,0,$len)==$tmpTxt){
+                    switch ($logo){
+                        case 'usr':         //获取用户
+                            $aryValue = (array)json_decode($value);
+                            if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
+                                $itemfd = substr($item,$len);
+                                $iRoomUsers[$item] = $itemfd;
+                            }
+                            break;
+                        case 'his':         //历史消息
+                            $aryValue = (array)json_decode($value);
+                            $iRoomUsers[$aryValue['time']] = $value;
+                            break;
+                        case 'sendR':       //右下角的消息推送
+                        case 'sendC':       //中间的消息推送
+                            $item = substr($item,$len);
+                            $iRoomUsers[$item] = $value;
+                            break;
+                        default:
+                            $iRoomUsers[$item] = $value;
+                            break;
+                    }
                 }
             }
+        }catch (\Exception $e){
+
         }
         if(empty($iRoomUsers)){
             error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');

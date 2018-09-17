@@ -526,7 +526,7 @@ class Swoole extends Command
         //重新计算最近2天下注&充值
         $this->setBetRech($userid);
         //获取最近2天下注&充值
-        $aUsers = DB::table('chat_users')
+        $aUsers = DB::connection('mysql::write')->table('chat_users')
             ->select('chat_users.*','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet')
             ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
             ->where('users_id',$userid)->first();
@@ -549,7 +549,7 @@ class Swoole extends Command
             'updated_at'=> date("Y-m-d H:i:s",time())
         ]);
         //检查是否符合平台的发言条件
-        if($aUsers->isnot_auto_count==0)
+        if($isnot_auto_count==0)
             $aUsers-> chat_status = ($aUsers->bet >= $aUsers->room_bet || $aUsers->recharge >= $aUsers->room_recharge)?$aUsers-> chat_status:1;
         //检查平台是否开放聊天
         $aUsers-> chat_status = $aUsers->is_speaking==1?$aUsers-> chat_status:1;

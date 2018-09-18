@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class Swoole extends Command
 {
@@ -49,7 +51,7 @@ class Swoole extends Command
             case 'close':
                 break;
             case 'clean':
-                $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
+                $this->clean();
                 die;
                 break;
             case 'start':
@@ -60,8 +62,10 @@ class Swoole extends Command
         }
     }
     private $chatkey = 'chatList';
-    private $tmpChatList = array();
 
+    /***
+     * 初始化
+     */
     private function init(){
         $this->redis->multi();
         $this->redis->del($this->chatkey);
@@ -70,6 +74,17 @@ class Swoole extends Command
             $this->redis->del($item);
         }
         $this->redis->exec();
+    }
+
+    /***
+     * 清空数据
+     */
+    private function clean(){
+        $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
+        $files = Storage::disk('chathis')->files();
+        foreach ($files as $hisKey){
+            Storage::disk('chathis')->delete($hisKey);              //删除历史
+        }
     }
 
     public function start(){
@@ -664,7 +679,6 @@ class Swoole extends Command
                 $addVal = $logo.$room_id.'='.$addVal;
                 break;
         }
-//        $redis = Redis::connection();
         $this->redis->select(1);
         $this->redis->multi();
         $this->redis->HDEL($this->chatkey,$addVal);
@@ -680,12 +694,12 @@ class Swoole extends Command
         else
             $tmpTxt = $logo.$iRoomID.'=';
 
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         if(empty($iRoomID))
             return false;
         if(!empty($addId)) {
             if($logo=='his'){
+                $timeIdx = $addId;
                 for($ii=0;$ii<10000;$ii++){
                     $timeIdx = $addId + $ii;
                     if(!$this->redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
@@ -699,16 +713,16 @@ class Swoole extends Command
                         break;
                     }
                 }
+                $write = Storage::disk('chathis')->put($tmpTxt.$timeIdx, $addVal);
+            }else{
+                $this->redis->multi();
+                $this->redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
+                $this->redis->exec();
             }
-            $this->redis->multi();
-            $this->redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
-            $this->redis->exec();
         }
         if($notReturn)
             return false;
-        $this->redis->multi();
         $chatList = $this->redis->HGETALL($this->chatkey);
-        $this->redis->exec();
 
         $len = strlen($tmpTxt);
         $iRoomUsers = array();
@@ -723,10 +737,6 @@ class Swoole extends Command
                                 $iRoomUsers[$item] = $itemfd;
                             }
                             break;
-                        case 'his':         //历史消息
-                            $aryValue = (array)json_decode($value);
-                            $iRoomUsers[$aryValue['time']] = $value;
-                            break;
                         case 'sendR':       //右下角的消息推送
                         case 'sendC':       //中间的消息推送
                             $item = substr($item,$len);
@@ -737,6 +747,17 @@ class Swoole extends Command
                             break;
                     }
                 }
+            }
+            switch ($logo){
+                case 'his':         //历史消息
+                    $iRoomUsers = array();
+                    $files = Storage::disk('chathis')->files();
+                    foreach ($files as $value){
+                        $orgHis = Storage::disk('chathis')->get($value);
+                        $aryHis =  (array)json_decode($orgHis);
+                        $iRoomUsers[$aryHis['time']] = $orgHis;
+                    }
+                    break;
             }
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/err.log');
@@ -751,7 +772,6 @@ class Swoole extends Command
      * 从md5的用户ID去找到在聊天室的广播号码，在取得每个人的聊天室信息
      */
     private function getIdToUserInfo($k){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $tmpUsr = $this->redis->HGET($this->chatkey,'usr:'.$k)?$this->redis->HGET($this->chatkey,'usr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
         $tmpUsrInfo = empty($tmpUsr) || !$this->redis->HEXISTS($this->chatkey,$tmpUsr)?'':(array)json_decode($this->redis->HGET($this->chatkey,$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
@@ -760,7 +780,6 @@ class Swoole extends Command
 
     //重新整理历史讯息
     private function chkHisMsg($iRoomInfo,$fd){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $rsKeyH = 'his';
 
@@ -770,9 +789,10 @@ class Swoole extends Command
         error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息1=> ".$rsKeyH.'|room: '.$iRoomInfo['room'].'-'.json_encode($iRoomHisTxt).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
         $timess = (int)(microtime(true)*1000*10000*10000);
         foreach ($iRoomHisTxt as $tmpkey =>$hisMsg) {
+            $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
             $hisMsg = (array)json_decode($hisMsg);
             if($hisMsg['time'] < ($timess-(7200*1000*10000*10000))){
-                $this->delAllkey($hisMsg['uuid'],$rsKeyH,$iRoomInfo['room']);       //删除历史
+                Storage::disk('chathis')->delete($hisKey);              //删除历史
                 continue;
             }
             if(isset($hisMsg['level']) && !empty($hisMsg['level']) && $hisMsg['level'] != 98){

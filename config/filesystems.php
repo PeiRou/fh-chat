@@ -53,9 +53,9 @@ return [
             'root' => public_path('static'),
         ],
 
-        'gameTime' => [
+        'chathis' => [
             'driver' => 'local',
-            'root' => storage_path('gameTime'),
+            'root' => storage_path('chathis'),
         ],
 
         'public' => [

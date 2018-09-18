@@ -63,9 +63,9 @@ class Swoole extends Command
     private $tmpChatList = array();
 
     private function init(){
+        $this->redis->multi();
         $this->redis->del($this->chatkey);
         $keys = $this->redis->keys('hbing'.'*');
-        $this->redis->multi();
         foreach ($keys as $item){
             $this->redis->del($item);
         }
@@ -516,7 +516,9 @@ class Swoole extends Command
             $redisUser = (array)json_decode($redisUser,true);
             if(isset($redisUser['userId'])){
                 if($redisUser['userId']==$userId && $item!=$iSess){
+                    $this->redis->multi();
                     $this->redis->del($redisUser['userId']);
+                    $this->redis->exec();
                 }
             }
         }
@@ -686,7 +688,6 @@ class Swoole extends Command
             if($logo=='his'){
                 for($ii=0;$ii<10000;$ii++){
                     $timeIdx = $addId + $ii;
-                    error_log(date('Y-m-d H:i:s',time())." 开始循环同时间=> ".$ii.' origin:'.$addId.' after:'.$timeIdx.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                     if(!$this->redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
                         if($ii>0){
                             $addId = $timeIdx;
@@ -705,8 +706,9 @@ class Swoole extends Command
         }
         if($notReturn)
             return false;
-
+        $this->redis->multi();
         $chatList = $this->redis->HGETALL($this->chatkey);
+        $this->redis->exec();
 
         $len = strlen($tmpTxt);
         $iRoomUsers = array();

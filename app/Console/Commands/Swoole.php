@@ -164,6 +164,7 @@ class Swoole extends Command
             $aMesgRep = strip_tags ($aMesgRep);
             $aMesgRep = htmlspecialchars ($aMesgRep);
             $aMesgRep = addslashes ($aMesgRep);
+            $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
             //消息处理违禁词
             $aMesgRep = $this->regSpeaking($aMesgRep);
             $aMesgRep = urlencode($aMesgRep);

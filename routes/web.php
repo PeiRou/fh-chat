@@ -25,6 +25,7 @@ Route::post('/chat/action/updRoleInfo','Chat\ChatSettingController@updRoleInfo')
 Route::post('/chat/action/delRoleInfo/{id}','Chat\ChatSettingController@delRoleInfo');          //删除角色管理
 Route::post('/chat/action/updRoomInfo','Chat\ChatSettingController@updRoomInfo');               //修改房间信息
 Route::post('/chat/action/unSpeakRoom/{id}','Chat\ChatSettingController@unSpeakRoom');          //禁言房间
+Route::post('/chat/action/onTestSpeakRoom/{id}','Chat\ChatSettingController@onTestSpeakRoom');    //开放测试帐号聊天
 Route::post('/chat/action/updNoteInfo','Chat\ChatSettingController@updNoteInfo');               //修改聊天室公告
 Route::post('/chat/action/delNoteInfo/{id}','Chat\ChatSettingController@delNoteInfo');          //删除聊天室公告
 Route::post('/chat/action/updAdminInfo','Chat\ChatSettingController@updAdminInfo');             //修改聊天室管理员

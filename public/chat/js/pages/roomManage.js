@@ -54,9 +54,17 @@ $(function () {
                         exe = 'on';
                         txt = '恢复';
                     }
+                    if(parseInt(data.isTestSpeak)==1){
+                        exe = 'on';
+                        txt = '开放';
+                    }else{
+                        exe = 'un';
+                        txt = '关闭';
+                    }
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.recharge+","+data.bet+")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
+                        "<li onclick='openTestAccount("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
                         "</ul>";
                 }}
         ],
@@ -132,6 +140,49 @@ function unSpeakRoom(id,status) {
                 action: function(){
                     $.ajax({
                         url:'/chat/action/unSpeakRoom/'+id+'&'+status,
+                        type:'post',
+                        dataType:'json',
+                        success:function (data) {
+                            if(data.status == true){
+                                $('#dtTable').DataTable().ajax.reload(null,false)
+                            }
+                        },
+                        error:function (e) {
+                            if(e.status == 403)
+                            {
+                                Calert('您没有此项权限！无法继续！','red')
+                            }
+                        }
+                    });
+                }
+            },
+            cancel:{
+                text:'取消'
+            }
+        }
+    });
+}
+
+//执行禁言
+function openTestAccount(id,status) {
+    if(status=="on"){
+        txt = '开放';
+    }else{
+        txt = '关闭';
+    }
+    jc = $.confirm({
+        title: '提示',
+        theme: 'material',
+        type: 'red',
+        boxWidth:'25%',
+        content: '确定要对房间'+txt+'测试帐号聊天吗？',
+        buttons: {
+            confirm: {
+                text:'确定',
+                btnClass: 'btn-red',
+                action: function(){
+                    $.ajax({
+                        url:'/chat/action/onTestSpeakRoom/'+id+'&'+status,
                         type:'post',
                         dataType:'json',
                         success:function (data) {

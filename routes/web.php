@@ -89,5 +89,7 @@ Route::get('/chat/admin/logout','Chat\ChatAccountController@logout');
 Route::get('/status/notice/online','Chat\AjaxStatusController@online');
 //检查在线状态
 Route::get('/status/notice/getOnlineStatus','Chat\AjaxStatusController@getOnlineStatus');
+//检查用户详细信息
+Route::get('/hisinfo','Chat\AjaxStatusController@getHisInfo');
 
 

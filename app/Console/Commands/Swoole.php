@@ -221,12 +221,6 @@ class Swoole extends Command
                     //检查上传图片
                     $this->upchat($serv);
                     break;
-                case 'getHisInfo':
-                    //管理员查看细节
-                    $tmp = $this->getHisInfo($serv);
-                    echo $tmp.'===';
-                    return $tmp;
-                    break;
             }
         });
 
@@ -237,13 +231,6 @@ class Swoole extends Command
 
         $this->ws->start();
     }
-
-    //管理员查看细节
-    private function getHisInfo($serv){
-        $hisKey = isset($serv->post['hisKey'])?$serv->post['hisKey']:$serv->get['hisKey'];
-        return Storage::disk('chathis')->get($hisKey);
-    }
-    //上传图片
     private function upchat($serv){
         $path = isset($serv->post['path'])?$serv->post['path']:$serv->get['path'];
         $imageName = isset($serv->post['imgName'])?$serv->post['imgName']:$serv->get['imgName'];

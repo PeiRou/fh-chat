@@ -37,4 +37,9 @@ class AjaxStatusController extends Controller
             'status' => $status
         ]);
     }
+    public function getHisInfo(Request $request){
+        $value = $request->get('uuid');
+        $orgHis = Storage::disk('chathis')->get($value);
+        return $orgHis;
+    }
 }

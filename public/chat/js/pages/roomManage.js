@@ -56,10 +56,10 @@ $(function () {
                     }
                     if(parseInt(data.isTestSpeak)==1){
                         testExe = 'on';
-                        testTxt = '开放';
+                        testTxt = '关闭测试帐号自动发言';
                     }else{
                         testExe = 'un';
-                        testTxt = '关闭';
+                        testTxt = '开放测试帐号自动发言';
                     }
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.recharge+","+data.bet+")'>修改</li>" +

@@ -74,6 +74,15 @@
             </div>
             <div class="inline fields">
                 <div class="six wide field">
+                    <label style="width :150px;text-align: right;" class="notEmpty">是否开放测试帐号聊天</label>
+                    <select class="ui dropdown" name="isTestSpeak">
+                        <option value="1" @if($base->isTestSpeak == "1") selected="selected" @endif>开放</option>
+                        <option value="0" @if($base->isTestSpeak != "1") selected="selected" @endif>关闭</option>
+                    </select>
+                </div>
+            </div>
+            <div class="inline fields">
+                <div class="six wide field">
                     <label style="width :150px;text-align: right;" class="notEmpty">下注最低推送额</label>
                     <input type="text" placeholder="" name="betMin" value="{{ $base->bet_min_amount }}">
                 </div>

@@ -268,6 +268,7 @@ class ChatSettingController extends Controller
         $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
         $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
         $data['is_open_auto'] = $request->input('isOpenAuto')=="1"?1:0;                      //是否展开聊天室
+        $data['isTestSpeak'] = $request->input('isTestSpeak')=="1"?1:0;                      //是否开放测试帐号聊天
         $data['bet_min_amount'] = $request->input('betMin');                        //下注最低推送额
         $data['ip_blacklist'] = $request->input('ipBlacklist');                     //IP黑名单
         $data['sa_id'] = Session::get('account_id');              //添加管理员id

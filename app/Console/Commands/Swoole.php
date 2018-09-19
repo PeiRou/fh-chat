@@ -223,7 +223,9 @@ class Swoole extends Command
                     break;
                 case 'getHisInfo':
                     //管理员查看细节
-                    return $this->getHisInfo($serv);
+                    $tmp = $this->getHisInfo($serv);
+                    echo $tmp.'===';
+                    return $tmp;
                     break;
             }
         });

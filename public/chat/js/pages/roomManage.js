@@ -55,16 +55,16 @@ $(function () {
                         txt = '恢复';
                     }
                     if(parseInt(data.isTestSpeak)==1){
-                        exe = 'on';
-                        txt = '开放';
+                        testExe = 'on';
+                        testTxt = '开放';
                     }else{
-                        exe = 'un';
-                        txt = '关闭';
+                        testExe = 'un';
+                        testTxt = '关闭';
                     }
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.recharge+","+data.bet+")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
-                        "<li onclick='openTestAccount("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
+                        "<li onclick='openTestAccount("+data.room_id+",\""+testExe+"\")'>"+testTxt+"</li>" +
                         "</ul>";
                 }}
         ],

@@ -545,7 +545,8 @@ class Swoole extends Command
         $this->setBetRech($userid);
         //获取最近2天下注&充值
         $aUsers = DB::connection('mysql::write')->table('chat_users')
-            ->select('chat_users.*','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet')
+            ->select('chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak')
+            ->join('users', 'users.id', '=', 'chat_users.users_id')
             ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
             ->where('users_id',$userid)->first();
         $chat_role = isset($aUsers->chat_role)?$aUsers->chat_role:1;
@@ -566,9 +567,11 @@ class Swoole extends Command
             'level'=> $uLv,
             'updated_at'=> date("Y-m-d H:i:s",time())
         ]);
+        //流水说话基准
         //检查是否符合平台的发言条件
+        $betSpeak = $aUsers->testFlag==2 && $aUsers->room_isTestSpeak==1?1:($aUsers->bet >= $aUsers->room_bet || $aUsers->recharge >= $aUsers->room_recharge);
         if($isnot_auto_count==0)
-            $aUsers-> chat_status = ($aUsers->bet >= $aUsers->room_bet || $aUsers->recharge >= $aUsers->room_recharge)?$aUsers-> chat_status:1;
+            $aUsers-> chat_status = $betSpeak?$aUsers-> chat_status:1;
         //检查平台是否开放聊天
         $aUsers-> chat_status = $aUsers->is_speaking==1?$aUsers-> chat_status:1;
         $aUsers->level = $uLv;

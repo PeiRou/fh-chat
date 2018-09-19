@@ -55,10 +55,10 @@ $(function () {
                         txt = '恢复';
                     }
                     if(parseInt(data.isTestSpeak)==1){
-                        testExe = 'on';
+                        testExe = 'un';
                         testTxt = '关闭测试帐号自动发言';
                     }else{
-                        testExe = 'un';
+                        testExe = 'on';
                         testTxt = '开放测试帐号自动发言';
                     }
                     return "<ul class='control-menu'>" +

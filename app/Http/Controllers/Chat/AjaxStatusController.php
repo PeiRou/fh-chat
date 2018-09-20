@@ -47,6 +47,6 @@ class AjaxStatusController extends Controller
         $value = $request->get('uuid');
         if(Storage::disk('chathis')->exists($value))
             $orgHis = Storage::disk('chathis')->delete($value);
-        return true;
+        return 'ok';
     }
 }

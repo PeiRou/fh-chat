@@ -45,7 +45,7 @@ class AjaxStatusController extends Controller
     }
     public function delHisInfo(Request $request){
         $value = $request->get('uuid');
-        $orgHis = Storage::disk('chathis')->del($value);
+        $orgHis = Storage::disk('chathis')->delete($value);
         return $orgHis;
     }
 }

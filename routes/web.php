@@ -92,5 +92,6 @@ Route::get('/status/notice/online','Chat\AjaxStatusController@online');
 Route::get('/status/notice/getOnlineStatus','Chat\AjaxStatusController@getOnlineStatus');
 //检查用户详细信息
 Route::get('/hisinfo','Chat\AjaxStatusController@getHisInfo');
+Route::get('/delhisinfo','Chat\AjaxStatusController@delHisInfo');
 
 

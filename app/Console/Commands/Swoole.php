@@ -73,6 +73,10 @@ class Swoole extends Command
         foreach ($keys as $item){
             $this->redis->del($item);
         }
+        $keys = $this->redis->keys('*','ing:');
+        foreach ($keys as $item){
+            $this->redis->del($item);
+        }
         $this->redis->exec();
     }
 
@@ -346,15 +350,15 @@ class Swoole extends Command
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $rsKeyH = 'hbN';
-        if(!$this->redis->exists($rsKeyH.$dt_idx.'ing')){
-            $this->redis->setex($rsKeyH.$dt_idx.'ing',30,'on');
+        if(!$this->redis->exists($rsKeyH.$dt_idx.'ing:')){
+            $this->redis->setex($rsKeyH.$dt_idx.'ing:',30,'on');
             //检查抢到红包消息
             error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.'==='.$amount.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
             $iRoomInfo = $this->getUsersess($dt_idx,$userId,'hongbaoNum');     //包装计划消息
             $iMsg = $amount;          //把金额提出来
             $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息
             $this->sendToAll($room_id,$msg);
-            $this->redis->del($rsKeyH.'ing');
+            $this->redis->del($rsKeyH.$dt_idx.'ing:');
         }
     }
     //检查计画任务
@@ -365,8 +369,8 @@ class Swoole extends Command
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $rsKeyH = 'pln';
-        if(!$this->redis->exists($rsKeyH.$id.'ing')) {
-            $this->redis->setex($rsKeyH.$id. 'ing', 30, 'on');
+        if(!$this->redis->exists($rsKeyH.$id.'ing:')) {
+            $this->redis->setex($rsKeyH.$id. 'ing:', 30, 'on');
             //检查计划消息
             error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . $valHis . PHP_EOL, 3, '/tmp/chat/plan.log');
             $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
@@ -377,6 +381,7 @@ class Swoole extends Command
             $iMsg .= urlencode($iMsg_back->plan_msg);
             $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
             $this->sendToAll($room_id, $msg);
+            $this->redis->del($rsKeyH.$id. 'ing:');
         }
     }
     //检查消息推送
@@ -384,7 +389,7 @@ class Swoole extends Command
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $rsKeyH = 'sendC';                          //中间的消息推送
-        $this->redis->setex($rsKeyH.'ing',10,'on');
+        $this->redis->setex($rsKeyH.'ing:',10,'on');
         $isendC = $this->updAllkey($rsKeyH,$room_id);     //中间的消息推送
         //检查消息人是否在线
         foreach ($isendC as $keyHis =>$valHis) {
@@ -397,7 +402,7 @@ class Swoole extends Command
             $msg = $this->msg(12,$valHis,$iRoomInfo);   //广播发消息
             $this->push(substr($usr,3), $msg,$room_id);
         }
-        $this->redis->del($rsKeyH.'ing');
+        $this->redis->del($rsKeyH.'ing:');
     }
     //检查消息推送
     private function chkSendR($room_id){

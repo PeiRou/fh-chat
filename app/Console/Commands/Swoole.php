@@ -457,6 +457,7 @@ class Swoole extends Command
                 $res['name'] = '系统红包';                          //名称显示
                 break;
             case 'hongbaoNum':
+//                $aHongBao = DB::table('chat_hongbao_dt')->where('chat_hongbao_dt_idx',$iSess)->first();
                 $aAllInfo = $this->getIdToUserInfo(md5($fd));
                 $res['room'] = 1;                                  //取得房间id
                 $res['name'] = $aAllInfo['name'];                  //名称显示
@@ -521,27 +522,21 @@ class Swoole extends Command
     }
     //检查其他sess状态，并删除他们
     private function chkElseLogin($iSess,$userId){
-//        $this->redis->select(1);
-//        $arryKeys = $this->redis->keys('*');
-//        try{
-//            foreach ($arryKeys as $item){
-//                if($item==$this->chatkey)
-//                    continue;
-//                $redisUser = $this->redis->get($item);
-//                $redisUser = (array)json_decode($redisUser,true);
-//                if(isset($redisUser['userId'])){
-//                    if($redisUser['userId']==$userId && $item!=$iSess){
-//                        $this->redis->multi();
-//                        $this->redis->del($redisUser['userId']);
-//                        $this->redis->exec();
-//                    }
-//                }
-//            }
-//        }catch (\Exception $e){
-//            $this->redis->multi();
-//            $this->redis->del($this->chatkey);
-//            $this->redis->exec();
-//        }
+        $this->redis->select(1);
+        $arryKeys = $this->redis->keys('*');
+        foreach ($arryKeys as $item){
+            if($item==$this->chatkey)
+                continue;
+            $redisUser = $this->redis->get($item);
+            $redisUser = (array)json_decode($redisUser,true);
+            if(isset($redisUser['userId'])){
+                if($redisUser['userId']==$userId && $item!=$iSess){
+                    $this->redis->multi();
+                    $this->redis->del($redisUser['userId']);
+                    $this->redis->exec();
+                }
+            }
+        }
     }
     //检查发言状态
     private function chkUserSpeak($userid = 0,$aUsersData){
@@ -667,6 +662,7 @@ class Swoole extends Command
      * 更新目前房客资讯
     */
     private function updUserInfo($fd,$iRoomInfo){
+        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $iRoomInfo = (array)$iRoomInfo;
         $room_key = 'usr'.$fd;               //成员房间号码

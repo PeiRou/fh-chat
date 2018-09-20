@@ -73,7 +73,7 @@ class Swoole extends Command
         foreach ($keys as $item){
             $this->redis->del($item);
         }
-        $keys = $this->redis->keys('*','ing:');
+        $keys = $this->redis->keys('*'.'ing:');
         foreach ($keys as $item){
             $this->redis->del($item);
         }

@@ -182,7 +182,8 @@ class Swoole extends Command
             $aMesgRep = addslashes ($aMesgRep);
             $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
             //消息处理违禁词
-            $aMesgRep = $this->regSpeaking($aMesgRep);
+            if(empty($iRoomInfo['level'])||$iRoomInfo['level'] != 99)
+                $aMesgRep = $this->regSpeaking($aMesgRep);
             $aMesgRep = urlencode($aMesgRep);
             $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
             //发送消息

@@ -98,6 +98,7 @@ class Swoole extends Command
      * 清空数据
      */
     private function clean(){
+        $this->redis->select(1);
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
         $files = Storage::disk('chathis')->files();
         foreach ($files as $hisKey){

@@ -12,8 +12,9 @@ class ModalController extends Controller
     public function editUserLevel($data)
     {
         $data = explode("&",$data);
+        $chatUser = DB::table('chat_users')->select('nickname')->where('users_id',$data[0])->first();
         $roles = DB::table('chat_roles')->select('name','level')->orderBy('level','asc')->get();
-        return view('modal.editUserLevel')->with('id',$data[0])->with('roles',$roles)->with('level',$data[1])->with('unauto',$data[2]);
+        return view('modal.editUserLevel')->with('id',$data[0])->with('roles',$roles)->with('level',$data[1])->with('unauto',$data[2])->with('nickname',$chatUser->nickname);
     }
     //显示修改用户角色层级-弹窗表单
     public function editRoleInfo($id)

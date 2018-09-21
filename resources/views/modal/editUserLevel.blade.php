@@ -1,5 +1,11 @@
 <form id="updUserForm" class="ui mini form" action="{{ url('/chat/action/updUserInfo') }}">
     <div class="field">
+        <label>昵称</label>
+        <div class="ui input icon">
+            <input type="text" name="nickname"  placeholder="" value="{{ $nickname }}" />
+        </div>
+    </div>
+    <div class="field">
         <label>选择角色</label>
         <div class="ui input icon">
             <select name="level">

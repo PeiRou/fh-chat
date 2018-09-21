@@ -67,13 +67,27 @@ class Swoole extends Command
      * 初始化
      */
     private function init(){
+        $this->redis->select(1);
         $this->redis->multi();
         $this->redis->del($this->chatkey);
-        $keys = $this->redis->keys('hbing'.'*');
+        $this->redis->exec();
+        //清除用户表
+        $keys = $this->redis->keys('chatusr*');
+        $this->redis->multi();
         foreach ($keys as $item){
             $this->redis->del($item);
         }
-        $keys = $this->redis->keys('*'.'ing:');
+        $this->redis->exec();
+        //清除红包ing
+        $keys = $this->redis->keys('hbing'.'*');
+        $this->redis->multi();
+        foreach ($keys as $item){
+            $this->redis->del($item);
+        }
+        $this->redis->exec();
+        //清除各种ing
+        $keys = $this->redis->keys('*'.'ing:'.'*');
+        $this->redis->multi();
         foreach ($keys as $item){
             $this->redis->del($item);
         }
@@ -101,7 +115,6 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
-            //        $this->redis = Redis::connection();
             $this->redis->select(1);
             $strParam = $request->server;
             $strParam = explode("/",$strParam['request_uri']);      //房间号码
@@ -126,7 +139,6 @@ class Swoole extends Command
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            //        $this->redis = Redis::connection();
             $this->redis->select(1);
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 $iSess = substr($request->data,6);
@@ -156,7 +168,6 @@ class Swoole extends Command
 
             //获取聊天用户数组
             $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
-
             //不广播被禁言的用户
             if($iRoomInfo['noSpeak']==1){
                 $msg = $this->msg(5,'此帐户已禁言');
@@ -257,12 +268,12 @@ class Swoole extends Command
     }
     //检查如果与聊天室服务器断线，则取消发送信息
     private function push($fd,$msg,$room_id =1){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
             $this->delAllkey($fd,'usr',$room_id);   //删除用户
-        }else
+        }else{
             $this->ws->push($fd, $msg);
+        }
     }
 
     /***
@@ -395,7 +406,7 @@ class Swoole extends Command
         foreach ($isendC as $keyHis =>$valHis) {
             $this->delAllkey($rsKeyH.'='.$keyHis);
             error_log(date('Y-m-d H:i:s',time())." 中消息推送=> ".$rsKeyH.'|'.$keyHis.'==='.$valHis.'++++'.json_encode($isendC).PHP_EOL, 3, '/tmp/chat/sendC.log');
-            $usr = $this->redis->HGET($this->chatkey,'usr:'.md5($keyHis));
+            $usr = $this->redis->get('chatusr:'.md5($keyHis));
             if(empty($usr))
                 continue;
             $iRoomInfo = $this->getUsersess($valHis,'',$rsKeyH);     //包装消息
@@ -414,7 +425,7 @@ class Swoole extends Command
         foreach ($isendR as $keyHis =>$valHis) {
             $this->delAllkey($rsKeyH.'='.$keyHis);
             error_log(date('Y-m-d H:i:s',time())." 右消息推送=> ".$rsKeyH.'|'.$keyHis.'==='.$valHis.'++++'.json_encode($isendR).PHP_EOL, 3, '/tmp/chat/sendR.log');
-            $usr = $this->redis->HGET($this->chatkey,'usr:'.md5($keyHis));
+            $usr = $this->redis->get('chatusr:'.md5($keyHis));
             if(empty($usr))
                 continue;
             $iRoomInfo = $this->getUsersess($valHis,'',$rsKeyH);     //包装计划消息
@@ -442,7 +453,6 @@ class Swoole extends Command
 
     //取得会员资讯
     private function getUsersess($iSess,$fd,$type=null){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         switch ($type){
             case 'plan':
@@ -483,7 +493,6 @@ class Swoole extends Command
                 $res = $this->getMyserf($iSess);
                 if(empty($res) || !isset($res['userId']))
                     return array();                                 //切换到聊天室库
-                $this->updUserInfo($fd,$res);
                 $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$res['userId'])->first();
                 $data = array();
                 if(empty($aUsers)){                                     //如果从未登入聊天室，则要把信息
@@ -650,10 +659,10 @@ class Swoole extends Command
     private function getUserInfo($fd){
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
-        if($this->redis->HEXISTS($this->chatkey,'usr'.$fd)){
-            $tmp = $this->redis->HGET($this->chatkey,'usr'.$fd);
+        if($this->redis->exists('chatusrfd:'.$fd)){
+            $tmp = $this->redis->get('chatusrfd:'.$fd);
             if(!$this->is_not_json($tmp))
-                return (array)json_decode($this->redis->HGET($this->chatkey,'usr'.$fd));   //如果房客存在，把用户组反序列化
+                return (array)json_decode($this->redis->get('chatusrfd:'.$fd));   //如果房客存在，把用户组反序列化
             else
                 return '';
         }else
@@ -669,13 +678,13 @@ class Swoole extends Command
     private function updUserInfo($fd,$iRoomInfo){
         //        $this->redis = Redis::connection();
         $this->redis->select(1);
-        $iRoomInfo = (array)$iRoomInfo;
-        $room_key = 'usr'.$fd;               //成员房间号码
+        $room_key = $fd;               //成员房间号码
         $this->redis->multi();
-        $this->redis->HSET($this->chatkey,'usr:'.md5($iRoomInfo['userId']),$room_key);         //成员登记他的房间号码
-        $this->redis->HSET($this->chatkey,$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));          //成员登记他的房间号码
+//        $this->redis->HSET($this->chatkey,'usr:'.md5($iRoomInfo['userId']),$room_key);         //成员登记他的房间号码
+//        $this->redis->HSET($this->chatkey,$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));          //成员登记他的房间号码
+        $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+        $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
         $this->redis->exec();
-
     }
     //注销全局存LIST
     private function delAllkey($addVal,$logo='',$room_id=1){
@@ -696,7 +705,7 @@ class Swoole extends Command
     //全局存LIST
     private function updAllkey($logo = 'usr',$iRoomID,$addId = 0,$addVal = 0,$notReturn = false){
         if(in_array($logo,array('usr')))
-            $tmpTxt = $logo;
+            $tmpTxt = 'chatusrfd:';
         else if(in_array($logo,array('sendR','sendC')))
             $tmpTxt = $logo.'=';
         else
@@ -738,13 +747,6 @@ class Swoole extends Command
             foreach ($chatList as  $item=>$value){
                 if(substr($item,0,$len)==$tmpTxt){
                     switch ($logo){
-                        case 'usr':         //获取用户
-                            $aryValue = (array)json_decode($value);
-                            if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
-                                $itemfd = substr($item,$len);
-                                $iRoomUsers[$item] = $itemfd;
-                            }
-                            break;
                         case 'sendR':       //右下角的消息推送
                         case 'sendC':       //中间的消息推送
                             $item = substr($item,$len);
@@ -757,6 +759,19 @@ class Swoole extends Command
                 }
             }
             switch ($logo){
+                case 'usr':         //获取用户
+                    $iRoomUsers = array();
+                    $this->redis->select(1);
+                    $keys = $this->redis->keys('chatusrfd:'.'*');
+                    foreach ($keys as& $value){
+                        $orgHis = $this->redis->get($value);
+                        $aryValue =  (array)json_decode($orgHis);
+                        if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
+                            $itemfd = substr($value,$len);
+                            $iRoomUsers[$itemfd] = $itemfd;
+                        }
+                    }
+                    break;
                 case 'his':         //历史消息
                     $iRoomUsers = array();
                     $files = Storage::disk('chathis')->files();
@@ -768,7 +783,7 @@ class Swoole extends Command
                     break;
             }
         }catch (\Exception $e){
-            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/err.log');
+            error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }
         if(empty($iRoomUsers)){
             error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
@@ -781,8 +796,10 @@ class Swoole extends Command
      */
     private function getIdToUserInfo($k){
         $this->redis->select(1);
-        $tmpUsr = $this->redis->HGET($this->chatkey,'usr:'.$k)?$this->redis->HGET($this->chatkey,'usr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
-        $tmpUsrInfo = empty($tmpUsr) || !$this->redis->HEXISTS($this->chatkey,$tmpUsr)?'':(array)json_decode($this->redis->HGET($this->chatkey,$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
+//        $tmpUsr = $this->redis->HGET($this->chatkey,'usr:'.$k)?$this->redis->HGET($this->chatkey,'usr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+//        $tmpUsrInfo = empty($tmpUsr) || !$this->redis->HEXISTS($this->chatkey,$tmpUsr)?'':(array)json_decode($this->redis->HGET($this->chatkey,$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
+        $tmpUsr = $this->redis->get('chatusr:'.$k)?$this->redis->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+        $tmpUsrInfo = empty($tmpUsr) || !$this->redis->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode($this->redis->get('chatusrfd:'.$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
         return $tmpUsrInfo;
     }
 

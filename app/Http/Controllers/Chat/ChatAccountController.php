@@ -61,12 +61,19 @@ class ChatAccountController extends Controller
     public function updUserInfo(Request $request){
         $userid = $request->input('id');
         $level = $request->input('level');
+        $nickname = $request->input('nickname');
         $unauto_count = $request->input('auto_count')=="on"?1:0;
         switch ($level){
             case 0;
                 return response()->json([
                     'status'=>false,
                     'msg'=>'不可选择游客角色'
+                ]);
+                break;
+            case 98;
+                return response()->json([
+                    'status'=>false,
+                    'msg'=>'不可选择计划消息角色'
                 ]);
                 break;
             case 99:    //管理员
@@ -76,13 +83,13 @@ class ChatAccountController extends Controller
                 $chat_role = 2;
                 break;
         }
-
-        DB::table('chat_users')->where('users_id',$userid)->update([
-            'chat_role'=>$chat_role,
-            'level'=>$level,
-            'isnot_auto_count'=>$unauto_count,      //是否不是自动计算层级，如果此栏位1则登陆不自动计算层级
-            'updated_at'=>date("Y-m-d H:i:s",time())
-        ]);
+        if(!empty($nickname))
+            $data['nickname'] = $nickname;
+        $data['chat_role'] = $chat_role;
+        $data['level'] = $level;
+        $data['isnot_auto_count'] = $unauto_count;       //是否不是自动计算层级，如果此栏位1则登陆不自动计算层级
+        $data['updated_at'] = date("Y-m-d H:i:s",time());
+        DB::table('chat_users')->where('users_id',$userid)->update($data);
         return response()->json(['status'=>true],200);
     }
 

@@ -746,20 +746,20 @@ class Swoole extends Command
         $len = strlen($tmpTxt);
         $iRoomUsers = array();
         try{
-            foreach ($chatList as  $item=>$value){
-                if(substr($item,0,$len)==$tmpTxt){
-                    switch ($logo){
-                        case 'sendR':       //右下角的消息推送
-                        case 'sendC':       //中间的消息推送
-                            $item = substr($item,$len);
-                            $iRoomUsers[$item] = $value;
-                            break;
-                        default:
-                            $iRoomUsers[$item] = $value;
-                            break;
-                    }
-                }
-            }
+//            foreach ($chatList as  $item=>$value){
+//                if(substr($item,0,$len)==$tmpTxt){
+//                    switch ($logo){
+//                        case 'sendR':       //右下角的消息推送
+//                        case 'sendC':       //中间的消息推送
+//                            $item = substr($item,$len);
+//                            $iRoomUsers[$item] = $value;
+//                            break;
+//                        default:
+//                            $iRoomUsers[$item] = $value;
+//                            break;
+//                    }
+//                }
+//            }
             switch ($logo){
                 case 'usr':         //获取用户
                     $iRoomUsers = array();

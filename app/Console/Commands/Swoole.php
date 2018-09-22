@@ -489,21 +489,21 @@ class Swoole extends Command
     }
     //检查其他sess状态，并删除他们
     private function chkElseLogin($iSess,$userId){
-        $this->redis->select(1);
-        $arryKeys = $this->redis->keys('*');
-        foreach ($arryKeys as $item){
-            if($item==$this->chatkey)
-                continue;
-            $redisUser = $this->redis->get($item);
-            $redisUser = (array)json_decode($redisUser,true);
-            if(isset($redisUser['userId'])){
-                if($redisUser['userId']==$userId && $item!=$iSess){
-                    $this->redis->multi();
-                    $this->redis->del($redisUser['userId']);
-                    $this->redis->exec();
-                }
-            }
-        }
+//        $this->redis->select(1);
+//        $arryKeys = $this->redis->keys('*');
+//        foreach ($arryKeys as $item){
+//            if($item==$this->chatkey)
+//                continue;
+//            $redisUser = $this->redis->get($item);
+//            $redisUser = (array)json_decode($redisUser,true);
+//            if(isset($redisUser['userId'])){
+//                if($redisUser['userId']==$userId && $item!=$iSess){
+//                    $this->redis->multi();
+//                    $this->redis->del($redisUser['userId']);
+//                    $this->redis->exec();
+//                }
+//            }
+//        }
     }
     //检查发言状态
     private function chkUserSpeak($userid = 0,$aUsersData){

@@ -73,25 +73,31 @@ class Swoole extends Command
         $this->redis->exec();
         //清除用户表
         $keys = $this->redis->keys('chatusr*');
-        $this->redis->multi();
-        foreach ($keys as $item){
-            $this->redis->del($item);
+        if(!empty($keys)){
+            $this->redis->multi();
+            foreach ($keys as $item){
+                $this->redis->del($item);
+            }
+            $this->redis->exec();
         }
-        $this->redis->exec();
         //清除红包ing
         $keys = $this->redis->keys('hbing'.'*');
-        $this->redis->multi();
-        foreach ($keys as $item){
-            $this->redis->del($item);
+        if(!empty($keys)) {
+            $this->redis->multi();
+            foreach ($keys as $item) {
+                $this->redis->del($item);
+            }
+            $this->redis->exec();
         }
-        $this->redis->exec();
         //清除各种ing
         $keys = $this->redis->keys('*'.'ing:'.'*');
-        $this->redis->multi();
-        foreach ($keys as $item){
-            $this->redis->del($item);
+        if(!empty($keys)) {
+            $this->redis->multi();
+            foreach ($keys as $item) {
+                $this->redis->del($item);
+            }
+            $this->redis->exec();
         }
-        $this->redis->exec();
     }
 
     /***

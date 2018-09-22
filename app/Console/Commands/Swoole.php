@@ -242,7 +242,7 @@ class Swoole extends Command
 
         //监听WebSocket连接关闭事件
         $this->ws->on('close', function ($ws, $fd) {
-            $this->delAllkey($fd,'usr');   //删除用户
+//            $this->delAllkey($fd,'usr');   //删除用户
         });
 
         $this->ws->start();
@@ -270,7 +270,7 @@ class Swoole extends Command
     private function push($fd,$msg,$room_id =1){
         $this->redis->select(1);
         if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
-            $this->delAllkey($fd,'usr',$room_id);   //删除用户
+//            $this->delAllkey($fd,'usr',$room_id);   //删除用户
         }else{
             $this->ws->push($fd, $msg);
         }
@@ -639,18 +639,18 @@ class Swoole extends Command
     }
     //注销全局存LIST
     private function delAllkey($addVal,$logo='',$room_id=1){
-        switch ($logo){
-            case 'usr':
-                $addVal = $logo.$addVal;
-                break;
-            case 'his':
-                $addVal = $logo.$room_id.'='.$addVal;
-                break;
-        }
-        $this->redis->select(1);
-        $this->redis->multi();
-        $this->redis->HDEL($this->chatkey,$addVal);
-        $this->redis->exec();
+//        switch ($logo){
+//            case 'usr':
+//                $addVal = $logo.$addVal;
+//                break;
+//            case 'his':
+//                $addVal = $logo.$room_id.'='.$addVal;
+//                break;
+//        }
+//        $this->redis->select(1);
+//        $this->redis->multi();
+//        $this->redis->HDEL($this->chatkey,$addVal);
+//        $this->redis->exec();
     }
 
     //全局存LIST

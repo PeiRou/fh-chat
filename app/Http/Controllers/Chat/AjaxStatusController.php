@@ -13,7 +13,6 @@ class AjaxStatusController extends Controller
 
     public function __construct()
     {
-        parent::__construct();
         $this->redis = new \Redis();
         $this->redis->connect(env('REDIS_HOST','127.0.0.0.1'), env('REDIS_PORT',6379));
         $this->redis->select(1);

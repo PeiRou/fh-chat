@@ -726,7 +726,6 @@ class Swoole extends Command
                         $orgHis = Storage::disk('chatusrfd')->get($value);
                         var_dump($orgHis);
                         $aryValue =  (array)json_decode($orgHis);
-                        echo $iRoomID.'=='.$aryValue['room'];
                         if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
                             $itemfd = substr($value,$len);
                             $iRoomUsers[$itemfd] = $itemfd;

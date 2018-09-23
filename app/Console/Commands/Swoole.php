@@ -704,7 +704,7 @@ class Swoole extends Command
         }
         if($notReturn)
             return false;
-        $chatList = $this->redis->HGETALL($this->chatkey);
+//        $chatList = $this->redis->HGETALL($this->chatkey);
 
         $len = strlen($tmpTxt);
         $iRoomUsers = array();
@@ -737,7 +737,7 @@ class Swoole extends Command
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }
         if(empty($iRoomUsers)){
-            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($chatList).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
+            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($iRoomUsers).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
             return array();
         }
         return $iRoomUsers;   //获取聊天用户数组，在反序列化回数组

@@ -98,6 +98,11 @@ class Swoole extends Command
             }
             $this->redis->exec();
         }
+
+        $files = Storage::disk('chatusrfd')->files();
+        foreach ($files as $hisKey){
+            Storage::disk('chatusrfd')->delete($hisKey);              //删除用户在文件的历史数据
+        }
     }
 
     /***
@@ -652,6 +657,7 @@ class Swoole extends Command
         $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
         $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
         $this->redis->exec();
+        Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
     }
     //注销全局存LIST
     private function delAllkey($addVal,$logo='',$room_id=1){
@@ -712,11 +718,15 @@ class Swoole extends Command
             switch ($logo){
                 case 'usr':         //获取用户
                     $iRoomUsers = array();
-                    $this->redis->select(1);
-                    $keys = $this->redis->keys('chatusrfd:'.'*');
-                    foreach ($keys as& $value){
-                        $orgHis = $this->redis->get($value);
+//                    $this->redis->select(1);
+//                    $keys = $this->redis->keys('chatusrfd:'.'*');
+                    $files = Storage::disk('chatusrfd')->files();
+                    foreach ($files as $value){
+//                        $orgHis = $this->redis->get($value);
+                        $orgHis = Storage::disk('chatusrfd')->get($value);
+                        var_dump($orgHis);
                         $aryValue =  (array)json_decode($orgHis);
+                        echo $iRoomID.'=='.$aryValue['room'];
                         if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
                             $itemfd = substr($value,$len);
                             $iRoomUsers[$itemfd] = $itemfd;

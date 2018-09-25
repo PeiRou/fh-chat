@@ -11,12 +11,13 @@ $(function () {
         ordering:false,
         processing: true,
         serverSide: true,
-        aLengthMenu: [[25]],
+        aLengthMenu: [[50]],
         ajax: {
             url:'/chat/datatables/user',
             data:function (d) {
                 d.account = $('#account').val();    //用户名/呢称
                 d.role = $('#role').val();          //角色
+                d.statusOnline = $('#statusOnline').val();      //在线状态
                 d.status = $('#status').val();      //状态
                 d.ip = $('#ip').val();              //登陆ip
             }

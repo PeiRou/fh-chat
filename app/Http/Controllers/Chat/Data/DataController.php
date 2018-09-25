@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Yajra\DataTables\Contracts\DataTable;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DataController extends Controller
 {
@@ -15,18 +16,40 @@ class DataController extends Controller
     {
         $account = $request->get('account');        //用户名/呢称
         $level = $request->get('role');             //角色
+        $statusOnline = $request->get('statusOnline');     //在线状态
         $chat_status = $request->get('status');     //状态
         $login_ip = $request->get('ip');            //登陆ip
+        $parram['account'] = $account;
+        $parram['statusOnline'] = $statusOnline;
 
         //用户表join角色表
         $users = DB::table('chat_users')
             ->join('chat_roles', 'chat_users.level', '=', 'chat_roles.level')
             ->select('users_id','username','nickname','login_ip','chat_roles.name as levelname','chat_status','recharge','bet','chat_users.level','chat_users.isnot_auto_count as unauto')
             ->where('chat_role','>=',2)
-            ->where(function ($query) use($account){        //用户名/呢称
-                if(isset($account) && $account){
-                    $query->where('username','=',$account)
-                        ->orWhere('nickname','=',$account);
+            ->where(function ($query) use($parram){        //用户名/呢称
+                if(isset($parram['account']) && $parram['account']){
+                    $query->where('username','=',$parram['account'])
+                        ->orWhere('nickname','=',$parram['account']);
+                }else if($parram['statusOnline']!=""){
+                    $files = Storage::disk('chatusrfd')->files();
+                    $manyUsers = array();
+                    foreach ($files as $usrKey){
+                        if(Storage::disk('chatusrfd')->exists($usrKey)){
+                            $arrayUsr = @(array)json_decode(Storage::disk('chatusrfd')->get($usrKey));              //删除用户在文件的历史数据
+                            $manyUsers[] = $arrayUsr['userId'];
+                        }
+                    }
+                    if(count($manyUsers)>0){
+                        switch ($parram['statusOnline']){
+                            case 0:
+                                $query->whereNotIn('users_id',$manyUsers);
+                                break;
+                            case 1:
+                                $query->whereIn('users_id',$manyUsers);
+                                break;
+                        }
+                    }
                 }
             })
             ->where(function ($query) use ($level){         //角色

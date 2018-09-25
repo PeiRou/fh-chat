@@ -18,6 +18,14 @@
                     </div>
                     <div style="line-height: 32px;">状态</div>
                     <div class="one wide field">
+                        <select class="ui dropdown" id="statusOnline" style='height:32px !important'>
+                            <option value="">全部</option>
+                            <option value="1" selected="selected">在线</option>
+                            <option value="0">离线</option>
+                        </select>
+                    </div>
+                    <div style="line-height: 32px;">状态</div>
+                    <div class="one wide field">
                         <select class="ui dropdown" id="status" style='height:32px !important'>
                             <option value="">全部</option>
                             <option value="0">正常</option>

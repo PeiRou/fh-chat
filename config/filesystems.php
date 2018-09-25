@@ -58,6 +58,11 @@ return [
             'root' => storage_path('chathis'),
         ],
 
+        'chatusr' => [
+            'driver' => 'local',
+            'root' => storage_path('chatusr'),
+        ],
+
         'chatusrfd' => [
             'driver' => 'local',
             'root' => storage_path('chatusrfd'),

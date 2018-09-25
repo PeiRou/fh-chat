@@ -10,19 +10,10 @@ use Illuminate\Support\Facades\Storage;
 
 class AjaxStatusController extends Controller
 {
-
-    public function __construct()
-    {
-        $this->redis = new \Redis();
-        $this->redis->connect(env('REDIS_HOST','127.0.0.0.1'), env('REDIS_PORT',6379));
-        $this->redis->select(1);
-    }
-
     //在线人数状态
     public function online()
     {
-        $this->redis->select(1);
-        $keys = $this->redis->keys('chatusr:'.'*');
+        $keys = Storage::disk('chatusr')->files();
         //还没检查在线状态的人数
         $onlineNum =  count($keys);
         return response()->json([
@@ -33,11 +24,10 @@ class AjaxStatusController extends Controller
     //检查此人在线状态
     public function getOnlineStatus(Request $request)
     {
-        $this->redis->select(1);
         $userid = $request->get('id');
 
         //检查在线状态
-        if($this->redis->exists('chatusr:'.md5($userid)))
+        if(Storage::disk('chatusr')->exists('chatusr:'.md5($userid)))
             $status = true;
         else
             $status = false;

@@ -99,6 +99,11 @@ class Swoole extends Command
             $this->redis->exec();
         }
 
+        $files = Storage::disk('chatusr')->files();
+        foreach ($files as $hisKey){
+            Storage::disk('chatusr')->delete($hisKey);              //删除用户在文件的历史数据
+        }
+
         $files = Storage::disk('chatusrfd')->files();
         foreach ($files as $hisKey){
             Storage::disk('chatusrfd')->delete($hisKey);              //删除用户在文件的历史数据
@@ -274,9 +279,8 @@ class Swoole extends Command
     }
     //检查如果与聊天室服务器断线，则取消发送信息
     private function push($fd,$msg,$room_id =1){
-        $this->redis->select(1);
         if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
-//            $this->delAllkey($fd,'usr',$room_id);   //删除用户
+            $this->delAllkey($fd,'usr');   //删除用户
         }else{
             $this->ws->push($fd, $msg);
         }
@@ -355,18 +359,7 @@ class Swoole extends Command
         $userId = isset($serv->post['userId'])?$serv->post['userId']:$serv->get['userId'];
         $amount = isset($serv->post['amount'])?$serv->post['amount']:$serv->get['amount'];
 
-        //        $this->redis = Redis::connection();
-        $this->redis->select(1);
         $rsKeyH = 'hbN';
-//        if(!$this->redis->exists($rsKeyH.$dt_idx.'ing:')){
-//            $this->redis->multi();
-//            $this->redis->setex($rsKeyH.$dt_idx.'ing:',30,'on');
-//            $this->redis->exec();
-//
-//            $this->redis->multi();
-//            $this->redis->del($rsKeyH.$dt_idx.'ing:');
-//            $this->redis->exec();
-//        }
 
         //检查抢到红包消息
         error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.'==='.$amount.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
@@ -380,17 +373,7 @@ class Swoole extends Command
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
 
-        $this->redis->select(1);
         $rsKeyH = 'pln';
-//        if(!$this->redis->exists($rsKeyH.$id.'ing:')) {
-//            $this->redis->multi();
-//            $this->redis->setex($rsKeyH.$id. 'ing:', 20, 'on');
-//            $this->redis->exec();
-//
-//            $this->redis->multi();
-//            $this->redis->del($rsKeyH.$id. 'ing:');
-//            $this->redis->exec();
-//        }
 
         //检查计划消息
         error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . $valHis . PHP_EOL, 3, '/tmp/chat/plan.log');
@@ -493,24 +476,7 @@ class Swoole extends Command
         }
         return $res;
     }
-    //检查其他sess状态，并删除他们
-    private function chkElseLogin($iSess,$userId){
-//        $this->redis->select(1);
-//        $arryKeys = $this->redis->keys('*');
-//        foreach ($arryKeys as $item){
-//            if($item==$this->chatkey)
-//                continue;
-//            $redisUser = $this->redis->get($item);
-//            $redisUser = (array)json_decode($redisUser,true);
-//            if(isset($redisUser['userId'])){
-//                if($redisUser['userId']==$userId && $item!=$iSess){
-//                    $this->redis->multi();
-//                    $this->redis->del($redisUser['userId']);
-//                    $this->redis->exec();
-//                }
-//            }
-//        }
-    }
+    
     //检查发言状态
     private function chkUserSpeak($userid = 0,$aUsersData){
         //重新计算最近2天下注&充值
@@ -640,14 +606,24 @@ class Swoole extends Command
         $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
         $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
         $this->redis->exec();
+        Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
         Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
     }
     //注销全局存LIST
     private function delAllkey($addVal,$logo=''){
         switch ($logo){
             case 'usr':
-                $addVal = $logo.$addVal;
-                Storage::disk('chathis')->delete('chatusrfd:'.$addVal);              //删除用户
+                $logVal ='chatusrfd:'.$addVal;
+                if(Storage::disk('chatusrfd')->exists($logVal)){
+                    $usr = (array)json_decode($this->redis->get($logVal));
+                    $usrKey = 'chatusr:'.md5($usr['userId']);
+                    Storage::disk('chatusrfd')->delete($logVal);              //删除用户
+                    if(Storage::disk('chatusr')->exists($usrKey)) {           //检查用户的fd是否存在
+                        $usrFd = Storage::disk('chatusr')->get($usrKey);
+                        if($addVal==$usrFd)
+                            Storage::disk('chatusr')->delete($usrKey);              //删除用户
+                    }
+                }
                 break;
         }
     }

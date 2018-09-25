@@ -113,7 +113,8 @@ class Swoole extends Command
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
         $files = Storage::disk('chathis')->files();
         foreach ($files as $hisKey){
-            Storage::disk('chathis')->delete($hisKey);              //删除历史
+            if(Storage::disk('chathis')->exists($hisKey))
+                Storage::disk('chathis')->delete($hisKey);              //删除历史
         }
     }
 
@@ -247,7 +248,7 @@ class Swoole extends Command
 
         //监听WebSocket连接关闭事件
         $this->ws->on('close', function ($ws, $fd) {
-//            $this->delAllkey($fd,'usr');   //删除用户
+            $this->delAllkey($fd,'usr');   //删除用户
         });
 
         $this->ws->start();
@@ -319,18 +320,7 @@ class Swoole extends Command
     }
     //检查公告异动
     private function chkNotice($room_id){
-//        $redis = Redis::connection();
-        $this->redis->select(1);
         $rsKeyH = 'notice';
-//        if(!$this->redis->exists($rsKeyH.'ing:')){
-//            $this->redis->multi();
-//            $this->redis->setex($rsKeyH.'ing:',10,'on');       //公告异动处理中
-//            $this->redis->exec();
-//
-//            $this->redis->multi();
-//            $this->redis->del($rsKeyH.'ing:');
-//            $this->redis->exec();
-//        }
 
         //检查公告异动
         error_log(date('Y-m-d H:i:s',time())." 检查公告=> ".$rsKeyH.'|'.PHP_EOL, 3, '/tmp/chat/notice.log');
@@ -341,8 +331,6 @@ class Swoole extends Command
     private function chkDelhis($room_id,$serv){
         $uuid = isset($serv->post['uuid'])?$serv->post['uuid']:$serv->get['uuid'];
 
-        $redis = Redis::connection();
-        $this->redis->select(1);
         $rsKeyH = 'delH';
         error_log(date('Y-m-d H:i:s',time())." 检查删除消息=> ".$rsKeyH.'|'.$uuid.PHP_EOL, 3, '/tmp/chat/delHis.log');
         $iRoomInfo = $this->getUsersess($uuid,'','delHis');     //包装删除信息
@@ -354,8 +342,6 @@ class Swoole extends Command
     private function chkHongbao($room_id,$serv){
         $hd_idx = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
 
-//        $redis = Redis::connection();
-        $this->redis->select(1);
         $rsKeyH = 'hb';
         error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$hd_idx.PHP_EOL, 3, '/tmp/chat/hongbao.log');
         $iRoomInfo = $this->getUsersess($hd_idx,'','hongbao');     //包装红包消息
@@ -436,7 +422,6 @@ class Swoole extends Command
 
     //取得会员资讯
     private function getUsersess($iSess,$fd,$type=null){
-        $this->redis->select(1);
         switch ($type){
             case 'plan':
                 $res = (array)json_decode($iSess);
@@ -631,7 +616,6 @@ class Swoole extends Command
 
     //取得目前房客资讯
     private function getUserInfo($fd){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         if($this->redis->exists('chatusrfd:'.$fd)){
             $tmp = $this->redis->get('chatusrfd:'.$fd);
@@ -650,7 +634,6 @@ class Swoole extends Command
      * 更新目前房客资讯
     */
     private function updUserInfo($fd,$iRoomInfo){
-        //        $this->redis = Redis::connection();
         $this->redis->select(1);
         $room_key = $fd;               //成员房间号码
         $this->redis->multi();
@@ -660,19 +643,13 @@ class Swoole extends Command
         Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
     }
     //注销全局存LIST
-    private function delAllkey($addVal,$logo='',$room_id=1){
-//        switch ($logo){
-//            case 'usr':
-//                $addVal = $logo.$addVal;
-//                break;
-//            case 'his':
-//                $addVal = $logo.$room_id.'='.$addVal;
-//                break;
-//        }
-//        $this->redis->select(1);
-//        $this->redis->multi();
-//        $this->redis->HDEL($this->chatkey,$addVal);
-//        $this->redis->exec();
+    private function delAllkey($addVal,$logo=''){
+        switch ($logo){
+            case 'usr':
+                $addVal = $logo.$addVal;
+                Storage::disk('chathis')->delete('chatusrfd:'.$addVal);              //删除用户
+                break;
+        }
     }
 
     //全局存LIST
@@ -682,7 +659,6 @@ class Swoole extends Command
         else
             $tmpTxt = $logo.$iRoomID.'=';
 
-        $this->redis->select(1);
         if(empty($iRoomID))
             return false;
         if(!empty($addId)) {
@@ -690,22 +666,17 @@ class Swoole extends Command
                 $timeIdx = $addId;
                 for($ii=0;$ii<10000;$ii++){
                     $timeIdx = $addId + $ii;
-                    if(!$this->redis->HEXISTS($this->chatkey,$tmpTxt.$timeIdx)){
+                    if(!Storage::disk('chathis')->exists($tmpTxt.$timeIdx, $addVal)){
                         if($ii>0){
                             $addId = $timeIdx;
                             $addVal = json_decode($addVal,true);
                             $addVal['time'] = $addId;
                             $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
-                            error_log(date('Y-m-d H:i:s',time())." 开始循环同时间()=> ".$ii.'--'.$addId.PHP_EOL, 3, '/tmp/chat/chkHisMsgii.log');
                         }
                         break;
                     }
                 }
                 $write = Storage::disk('chathis')->put($tmpTxt.$timeIdx, $addVal);
-            }else{
-                $this->redis->multi();
-                $this->redis->HSET($this->chatkey,$tmpTxt.$addId,$addVal);
-                $this->redis->exec();
             }
         }
         if($notReturn)
@@ -718,13 +689,9 @@ class Swoole extends Command
             switch ($logo){
                 case 'usr':         //获取用户
                     $iRoomUsers = array();
-//                    $this->redis->select(1);
-//                    $keys = $this->redis->keys('chatusrfd:'.'*');
                     $files = Storage::disk('chatusrfd')->files();
                     foreach ($files as $value){
-//                        $orgHis = $this->redis->get($value);
                         $orgHis = Storage::disk('chatusrfd')->get($value);
-                        var_dump($orgHis);
                         $aryValue =  (array)json_decode($orgHis);
                         if(isset($aryValue['room']) && $iRoomID==$aryValue['room']){
                             $itemfd = substr($value,$len);

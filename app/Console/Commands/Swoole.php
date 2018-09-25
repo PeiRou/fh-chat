@@ -455,8 +455,6 @@ class Swoole extends Command
                 if(empty($res['userId']))
                     return array();
                 $aUsers = $this->chkUserSpeak($res['userId'],$data);
-                //检查其他sess状态，并删除他们
-                $this->chkElseLogin($iSess,$res['userId']);
                 $uLv = $aUsers->level;
 
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);

@@ -613,13 +613,15 @@ class Swoole extends Command
             case 'usr':
                 $logVal ='chatusrfd:'.$addVal;
                 if(Storage::disk('chatusrfd')->exists($logVal)){
-                    $usr = (array)json_decode($this->redis->get($logVal));
-                    $usrKey = 'chatusr:'.md5($usr['userId']);
-                    Storage::disk('chatusrfd')->delete($logVal);              //删除用户
-                    if(Storage::disk('chatusr')->exists($usrKey)) {           //检查用户的fd是否存在
-                        $usrFd = Storage::disk('chatusr')->get($usrKey);
-                        if($addVal==$usrFd)
-                            Storage::disk('chatusr')->delete($usrKey);              //删除用户
+                    $usr = (array)json_decode(Storage::disk('chatusrfd')->get($logVal));
+                    if(isset($usr['userId'])){
+                        $usrKey = 'chatusr:'.md5($usr['userId']);
+                        Storage::disk('chatusrfd')->delete($logVal);              //删除用户
+                        if(Storage::disk('chatusr')->exists($usrKey)) {           //检查用户的fd是否存在
+                            $usrFd = Storage::disk('chatusr')->get($usrKey);
+                            if($addVal==$usrFd)
+                                Storage::disk('chatusr')->delete($usrKey);              //删除用户
+                        }
                     }
                 }
                 break;

@@ -401,6 +401,15 @@ class Swoole extends Command
         return $res;
     }
 
+    /**
+     * 获取昵称
+     */
+    private function getNickname($userId){
+        $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$userId)->first();
+        $name = empty($aUsers->nickname)?substr($aUsers->userName,0,2).'******'.substr($aUsers->userName,-2,3):$aUsers->nickname;
+        return $name;
+    }
+
     //取得会员资讯
     private function getUsersess($iSess,$fd,$type=null){
         switch ($type){
@@ -423,7 +432,7 @@ class Swoole extends Command
             case 'hongbaoNum':
                 $aAllInfo = $this->getIdToUserInfo(md5($fd));
                 $res['room'] = 1;                                  //取得房间id
-                $res['name'] = $aAllInfo['name'];                  //名称显示
+                $res['name'] = isset($aAllInfo['name'])?$aAllInfo['name']:@$this->getNickname($fd);                  //名称显示
                 break;
             case 'delHis':
                 $res['room'] = 1;                                  //取得房间id
@@ -440,6 +449,7 @@ class Swoole extends Command
                     $data['room_id'] = 1;           //目前一个平台只有一间房
                     $data['users_id'] = $res['userId'];
                     $data['username'] = $res['userName'];
+                    $data['nickname'] = substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3);
                     $data['updated_at']= date("Y-m-d H:i:s",time());
                     $data['created_at']= date("Y-m-d H:i:s",time());
                     $data['level'] = 1;

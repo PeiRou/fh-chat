@@ -688,10 +688,6 @@ class Swoole extends Command
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }
-        if(empty($iRoomUsers)){
-            error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息All=> ".json_encode($iRoomUsers).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
-            return array();
-        }
         return $iRoomUsers;   //获取聊天用户数组，在反序列化回数组
     }
     /**
@@ -711,13 +707,18 @@ class Swoole extends Command
 
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
         ksort($iRoomHisTxt);
-        //检查计划消息
-        error_log(date('Y-m-d H:i:s',time())." 重新整理历史讯息1=> ".$rsKeyH.'|room: '.$iRoomInfo['room'].'-'.json_encode($iRoomHisTxt).PHP_EOL, 3, '/tmp/chat/chkHisMsg.log');
+        //控制两个小时内的数据
         $timess = (int)(microtime(true)*1000*10000*10000);
+        //控制聊天室数据
+        $needDelnum = count($iRoomHisTxt)-500;
+        $needDelnum = $needDelnum > 0 ? $needDelnum : 0;
+        $ii = -1;
+        //检查计划消息
         foreach ($iRoomHisTxt as $tmpkey =>$hisMsg) {
+            $ii ++;
             $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
             $hisMsg = (array)json_decode($hisMsg);
-            if($hisMsg['time'] < ($timess-(7200*1000*10000*10000))){
+            if($hisMsg['time'] < ($timess-(7200*1000*10000*10000)) || $ii < $needDelnum){
                 Storage::disk('chathis')->delete($hisKey);              //删除历史
                 continue;
             }

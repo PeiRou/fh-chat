@@ -108,6 +108,11 @@ class Swoole extends Command
         foreach ($files as $hisKey){
             Storage::disk('chatusrfd')->delete($hisKey);              //删除用户在文件的历史数据
         }
+
+        $files = Storage::disk('hongbaoNum')->files();
+        foreach ($files as $hisKey){
+            Storage::disk('hongbaoNum')->delete($hisKey);              //删除红包数据
+        }
     }
 
     /***
@@ -361,6 +366,12 @@ class Swoole extends Command
 
         //检查抢到红包消息
         error_log(date('Y-m-d H:i:s',time())." 抢到红包消息every=> ".$rsKeyH.'|'.$dt_idx.'==='.$amount.PHP_EOL, 3, '/tmp/chat/hongbaoNum.log');
+        //红包不存在则return
+        $getHB = DB::connection('mysql::write')->table('chat_hongbao_dt')->select('chat_hongbao_dt_idx','amount')->where('chat_hongbao_dt_idx',$dt_idx)->first();
+
+        if(empty($getHB) || $amount!=$getHB->amount || Storage::disk('hongbaoNum')->exists('hongbaoNum:'.$dt_idx))
+            return false;
+        Storage::disk('hongbaoNum')->put('hongbaoNum:'.$dt_idx,$userId);
         $iRoomInfo = $this->getUsersess($dt_idx,$userId,'hongbaoNum');     //包装计划消息
         $iMsg = $amount;          //把金额提出来
         $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息

@@ -68,6 +68,11 @@ return [
             'root' => storage_path('chatusrfd'),
         ],
 
+        'hongbaoNum' => [
+            'driver' => 'local',
+            'root' => storage_path('hongbaoNum'),
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -133,7 +133,6 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
-            $this->redis->select(1);
             $strParam = $request->server;
             $strParam = explode("/",$strParam['request_uri']);      //房间号码
             $iSess = $strParam[1];
@@ -157,7 +156,6 @@ class Swoole extends Command
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            $this->redis->select(1);
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 $iSess = substr($request->data,6);
                 $request->data = "heart";
@@ -313,7 +311,7 @@ class Swoole extends Command
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess']      //服务器接收到讯息时间
         ];
         if($data['level']==98 || in_array($status,array(4,8,9))){
-            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),true);     //写入历史纪录
+            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);
         return $res;//如果房客存在，把用户组反序列化
@@ -629,7 +627,7 @@ class Swoole extends Command
     }
 
     //全局存LIST
-    private function updAllkey($logo = 'usr',$iRoomID,$addId = 0,$addVal = 0,$notReturn = false){
+    private function updAllkey($logo = 'usr',$iRoomID,$addId = 0,$addVal = 0,$type='first',$notReturn = false){
         if(in_array($logo,array('usr')))
             $tmpTxt = 'chatusrfd:';
         else
@@ -640,16 +638,18 @@ class Swoole extends Command
         if(!empty($addId)) {
             if($logo=='his'){
                 $timeIdx = $addId;
-                for($ii=0;$ii<10000;$ii++){
-                    $timeIdx = $addId + $ii;
-                    if(!Storage::disk('chathis')->exists($tmpTxt.$timeIdx, $addVal)){
-                        if($ii>0){
-                            $addId = $timeIdx;
-                            $addVal = json_decode($addVal,true);
-                            $addVal['time'] = $addId;
-                            $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
+                if($type=='first'){         //讯息若是第一次则要判断是否有并发一样的时间
+                    for($ii=0;$ii<10000;$ii++){
+                        $timeIdx = $addId + $ii;
+                        if(!Storage::disk('chathis')->exists($tmpTxt.$timeIdx, $addVal)){
+                            if($ii>0){
+                                $addId = $timeIdx;
+                                $addVal = json_decode($addVal,true);
+                                $addVal['time'] = $addId;
+                                $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
                 $write = Storage::disk('chathis')->put($tmpTxt.$timeIdx, $addVal);
@@ -702,7 +702,6 @@ class Swoole extends Command
 
     //重新整理历史讯息
     private function chkHisMsg($iRoomInfo,$fd){
-        $this->redis->select(1);
         $rsKeyH = 'his';
 
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
@@ -726,7 +725,7 @@ class Swoole extends Command
                 $aAllInfo = $this->getIdToUserInfo($hisMsg['k']);
                 if(isset($aAllInfo['img']) && !empty($aAllInfo['img']) && ($hisMsg['img'] != $aAllInfo['img'])){
                     $hisMsg['img'] = $aAllInfo['img'];
-                    $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),true);     //写入历史纪录
+                    $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),'changeImg',true);     //写入历史纪录
                 }
             }
             if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包

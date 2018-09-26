@@ -405,8 +405,8 @@ class Swoole extends Command
      * 获取昵称
      */
     private function getNickname($userId){
-        $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$userId)->first();
-        $name = empty($aUsers->nickname)?substr($aUsers->userName,0,2).'******'.substr($aUsers->userName,-2,3):$aUsers->nickname;
+        $aUsers = DB::table('chat_users')->select('users_id','username','nickname')->where('users_id',$userId)->first();
+        $name = empty($aUsers->nickname)?substr($aUsers->username,0,2).'******'.substr($aUsers->username,-2,3):$aUsers->nickname;
         return $name;
     }
 

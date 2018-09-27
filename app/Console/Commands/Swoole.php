@@ -219,6 +219,8 @@ class Swoole extends Command
                     $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
                 $this->push($val, $msg,$iRoomInfo['room']);
             }
+            //自动推送清数据
+            $this->chkHisMsg($iRoomInfo,0,false);
         });
         $this->ws->on('receive', function ($ws, $request) {
         });
@@ -722,7 +724,7 @@ class Swoole extends Command
     }
 
     //重新整理历史讯息
-    private function chkHisMsg($iRoomInfo,$fd){
+    private function chkHisMsg($iRoomInfo,$fd=0,$IsPush=true){
         $rsKeyH = 'his';
 
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
@@ -730,7 +732,7 @@ class Swoole extends Command
         //控制两个小时内的数据
         $timess = (int)(microtime(true)*1000*10000*10000);
         //控制聊天室数据
-        $needDelnum = count($iRoomHisTxt)-500;
+        $needDelnum = count($iRoomHisTxt)-100;
         $needDelnum = $needDelnum > 0 ? $needDelnum : 0;
         $ii = -1;
         //检查计划消息
@@ -738,25 +740,33 @@ class Swoole extends Command
             $ii ++;
             $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
             $hisMsg = (array)json_decode($hisMsg);
+            //清除过期或多的数据
             if($hisMsg['time'] < ($timess-(7200*1000*10000*10000)) || $ii < $needDelnum){
-                Storage::disk('chathis')->delete($hisKey);              //删除历史
+                $serv = (object) [];
+                $serv->post['uuid'] = (string)$tmpkey;
+                $this->chkDelhis($iRoomInfo['room'],$serv);
+                if(Storage::disk('chathis')->exists($hisKey))
+                    Storage::disk('chathis')->delete($hisKey);              //删除历史
                 continue;
             }
-            if(isset($hisMsg['level']) && !empty($hisMsg['level']) && $hisMsg['level'] != 98){
-                $aAllInfo = $this->getIdToUserInfo($hisMsg['k']);
-                if(isset($aAllInfo['img']) && !empty($aAllInfo['img']) && ($hisMsg['img'] != $aAllInfo['img'])){
-                    $hisMsg['img'] = $aAllInfo['img'];
-                    $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),'changeImg',true);     //写入历史纪录
+            //如果需要推送
+            if($IsPush && $fd > 0){
+                if(isset($hisMsg['level']) && !empty($hisMsg['level']) && $hisMsg['level'] != 98){
+                    $aAllInfo = $this->getIdToUserInfo($hisMsg['k']);
+                    if(isset($aAllInfo['img']) && !empty($aAllInfo['img']) && ($hisMsg['img'] != $aAllInfo['img'])){
+                        $hisMsg['img'] = $aAllInfo['img'];
+                        $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),'changeImg',true);     //写入历史纪录
+                    }
                 }
+                if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
+                    if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
+                        $hisMsg['status'] = 4;
+                    else
+                        $hisMsg['status'] = 2;
+                }
+                $msg = json_encode($hisMsg,JSON_UNESCAPED_UNICODE);
+                $this->ws->push($fd, $msg);
             }
-            if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
-                if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
-                    $hisMsg['status'] = 4;
-                else
-                    $hisMsg['status'] = 2;
-            }
-            $msg = json_encode($hisMsg,JSON_UNESCAPED_UNICODE);
-            $this->ws->push($fd, $msg);
         }
     }
 }

@@ -146,13 +146,23 @@ class Swoole extends Command
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             error_log(date('Y-m-d H:i:s',time())."|".$request->fd.PHP_EOL, 3, '/tmp/chat/open.log');
-            $msg = $this->msg(13,'');
-            $this->ws->push($request->fd, $msg);
+
+            //发送讯息给自己
+            $this->sendToSerf($request->fd,13,'');
+
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
+
+                //发送讯息给自己14
+                $this->sendToSerf($request->fd,14,'');
+
                 $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
+
+                //发送讯息给自己15
+                $this->sendToSerf($request->fd,15,'');
+
                 if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->msg(3,'登陆失效1');
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
@@ -275,6 +285,11 @@ class Swoole extends Command
         });
 
         $this->ws->start();
+    }
+    //推送给自己消息
+    private function sendToSerf($fd,$status=13,$msg){
+        $msg = $this->msg($status,$msg);
+        $this->ws->push($fd, $msg);
     }
     private function upchat($serv){
         $path = isset($serv->post['path'])?$serv->post['path']:$serv->get['path'];

@@ -147,9 +147,6 @@ class Swoole extends Command
         $this->ws->on('open', function ($ws, $request) {
             error_log(date('Y-m-d H:i:s',time())."|".$request->fd.PHP_EOL, 3, '/tmp/chat/open.log');
 
-            //发送讯息给自己
-            $this->sendToSerf($request->fd,13,'');
-
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
@@ -160,6 +157,9 @@ class Swoole extends Command
                 if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->msg(3,'登陆失效1');
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
+
+                //发送讯息给自己
+                $this->sendToSerf($request->fd,13,'');
 
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);

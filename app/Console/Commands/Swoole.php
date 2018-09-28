@@ -492,7 +492,7 @@ class Swoole extends Command
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
                 $res['room'] = $aUsers->room_id;                   //取得房间id
                 //如果没有呢称，屏蔽帐号部分字元
-                $res['name'] = empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
+                $res['name'] = !isset($aUsers->nickname)||empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
                 $res['nickname'] = $aUsers->nickname;                 //用户呢称
                 $res['level'] = $uLv;                              //用户层级
                 $res['noSpeak'] = $aUsers->chat_status;            //用户是否禁言
@@ -518,10 +518,10 @@ class Swoole extends Command
             ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
             ->where('users_id',$userid)->first();
         $chat_role = isset($aUsers->chat_role)?$aUsers->chat_role:1;
-        $recharge = isset($aUsers->recharge)?$aUsers->recharge:0;
-        $bet = isset($aUsers->bet)?$aUsers->bet:0;
+        $recharge  = isset($aUsers->recharge)?$aUsers->recharge:0;
+        $bet       = isset($aUsers->bet)?$aUsers->bet:0;
         $isnot_auto_count = isset($aUsers->isnot_auto_count)?$aUsers->isnot_auto_count:0;
-        $level = isset($aUsers->level)?$aUsers->level:1;
+        $level     = isset($aUsers->level)?$aUsers->level:1;
         if(empty($aUsers)){
             $aUsers = (object) [];
             $chat_role = isset($aUsersData['chat_role'])?$aUsersData['chat_role']:1;

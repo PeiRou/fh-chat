@@ -652,14 +652,18 @@ class Swoole extends Command
     */
     private function updUserInfo($fd,$iRoomInfo){
         sleep(1);
-        $this->redis->select(1);
-        $room_key = $fd;               //成员房间号码
-        $this->redis->multi();
-        $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
-        $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-        $this->redis->exec();
-        Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
-        Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+        try{
+            $this->redis->select(1);
+            $room_key = $fd;               //成员房间号码
+            $this->redis->multi();
+            $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+            $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+            $this->redis->exec();
+            Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+            Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+        }catch (\Exception $e){
+            error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
+        }
     }
     //注销全局存LIST
     private function delAllkey($addVal,$logo=''){

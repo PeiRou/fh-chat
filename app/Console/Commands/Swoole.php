@@ -145,6 +145,7 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
+            error_log(date('Y-m-d H:i:s',time()).PHP_EOL, 3, '/tmp/chat/open.log');
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
@@ -173,11 +174,7 @@ class Swoole extends Command
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
             if(substr($request->data,0,6)=="heart="){       //心跳检查
-                $iSess = substr($request->data,6);
-                $request->data = "heart";
-                //不广播客户端传来的心跳
-                if($request->data=='heart')
-                    return true;
+                return true;
             }else if(substr($request->data,0,6)=="token="){
                 $iSess = substr($request->data,6,40);
                 $request->data = substr($request->data,47);

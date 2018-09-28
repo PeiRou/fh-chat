@@ -146,6 +146,8 @@ class Swoole extends Command
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             error_log(date('Y-m-d H:i:s',time())."|".$request->fd.PHP_EOL, 3, '/tmp/chat/open.log');
+            $msg = $this->msg(13,'');
+            $this->ws->push($request->fd, $msg);
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
@@ -304,7 +306,7 @@ class Swoole extends Command
 
     /***
      * 组装回馈讯息
-     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送
+     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:握手
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))
@@ -328,7 +330,7 @@ class Swoole extends Command
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess']      //服务器接收到讯息时间
         ];
-        if($data['level']==98 || in_array($status,array(4,8,9))){
+        if((isset($data['level'])&&$data['level']==98) || in_array($status,array(4,8,9))){
             $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);

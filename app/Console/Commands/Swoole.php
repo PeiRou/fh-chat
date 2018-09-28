@@ -145,7 +145,7 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
-            error_log(date('Y-m-d H:i:s',time()).PHP_EOL, 3, '/tmp/chat/open.log');
+            error_log(date('Y-m-d H:i:s',time())."|".$request->fd.PHP_EOL, 3, '/tmp/chat/open.log');
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码

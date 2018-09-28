@@ -651,14 +651,15 @@ class Swoole extends Command
      * 更新目前房客资讯
     */
     private function updUserInfo($fd,$iRoomInfo){
-        sleep(1);
         try{
+            sleep(1);
             $this->redis->select(1);
             $room_key = $fd;               //成员房间号码
             $this->redis->multi();
             $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             $this->redis->exec();
+            sleep(1);
             Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
         }catch (\Exception $e){

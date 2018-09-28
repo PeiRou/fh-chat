@@ -155,20 +155,11 @@ class Swoole extends Command
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
 
-                //发送讯息给自己14
-                $this->sendToSerf($request->fd,14,'');
-
                 $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-
-                //发送讯息给自己15
-                $this->sendToSerf($request->fd,15,'');
 
                 if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->msg(3,'登陆失效1');
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
-
-                //发送讯息给自己16
-                $this->sendToSerf($request->fd,16,'');
 
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);

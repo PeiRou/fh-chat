@@ -100,19 +100,25 @@ class Swoole extends Command
         }
 
         $files = Storage::disk('chatusr')->files();
+        $arrayTmp = [];
         foreach ($files as $hisKey){
-            Storage::disk('chatusr')->delete($hisKey);              //删除用户在文件的历史数据
+            $arrayTmp[] = $hisKey;
         }
+        Storage::disk('chatusr')->delete($arrayTmp);              //删除用户在文件的历史数据
 
         $files = Storage::disk('chatusrfd')->files();
+        $arrayTmp = [];
         foreach ($files as $hisKey){
-            Storage::disk('chatusrfd')->delete($hisKey);              //删除用户在文件的历史数据
+            $arrayTmp[] = $hisKey;
         }
+        Storage::disk('chatusrfd')->delete($arrayTmp);              //删除用户在文件的历史数据
 
         $files = Storage::disk('hongbaoNum')->files();
+        $arrayTmp = [];
         foreach ($files as $hisKey){
-            Storage::disk('hongbaoNum')->delete($hisKey);              //删除红包数据
+            $arrayTmp[] = $hisKey;
         }
+        Storage::disk('hongbaoNum')->delete($arrayTmp);              //删除红包数据
     }
 
     /***
@@ -122,10 +128,11 @@ class Swoole extends Command
         $this->redis->select(1);
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
         $files = Storage::disk('chathis')->files();
+        $arrayTmp = [];
         foreach ($files as $hisKey){
-            if(Storage::disk('chathis')->exists($hisKey))
-                Storage::disk('chathis')->delete($hisKey);              //删除历史
+            $arrayTmp[] = $hisKey;
         }
+        Storage::disk('chathis')->delete($arrayTmp);              //删除历史
     }
 
     public function start(){
@@ -138,25 +145,29 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
-            $strParam = $request->server;
-            $strParam = explode("/",$strParam['request_uri']);      //房间号码
-            $iSess = $strParam[1];
-            $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-            if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
-                return $this->msg(3,'登陆失效1');
-            $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
+            try{
+                $strParam = $request->server;
+                $strParam = explode("/",$strParam['request_uri']);      //房间号码
+                $iSess = $strParam[1];
+                $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
+                if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
+                    return $this->msg(3,'登陆失效1');
+                $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
 
-            //获取聊天室公告
-            $msg = $this->getChatNotice($iRoomInfo['room']);
-            $this->ws->push($request->fd, $msg);
-            //广播登陆信息
-            $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-            $this->sendToAll( $iRoomInfo['room'], $msg);
-            //检查历史讯息
-            $this->chkHisMsg($iRoomInfo,$request->fd);
-            //回传自己的基本设置
-            $msg = $this->msg(7,'fstInit',$iRoomInfo);
-            $this->ws->push($request->fd, $msg);
+                //获取聊天室公告
+                $msg = $this->getChatNotice($iRoomInfo['room']);
+                $this->ws->push($request->fd, $msg);
+                //广播登陆信息
+                $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
+                $this->sendToAll( $iRoomInfo['room'], $msg);
+                //检查历史讯息
+                $this->chkHisMsg($iRoomInfo,$request->fd);
+                //回传自己的基本设置
+                $msg = $this->msg(7,'fstInit',$iRoomInfo);
+                $this->ws->push($request->fd, $msg);
+            }catch (\Exception $e){
+                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
+            }
         });
 
         //监听WebSocket消息事件
@@ -186,41 +197,44 @@ class Swoole extends Command
                     return $this->ws->push($request->fd, $msg);
                 }
             }
-
-            //获取聊天用户数组
-            $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
-            //不广播被禁言的用户
-            if($iRoomInfo['noSpeak']==1){
-                $msg = $this->msg(5,'此帐户已禁言');
-                return $this->ws->push($request->fd, $msg);
+            try{
+                //获取聊天用户数组
+                $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
+                //不广播被禁言的用户
+                if($iRoomInfo['noSpeak']==1){
+                    $msg = $this->msg(5,'此帐户已禁言');
+                    return $this->ws->push($request->fd, $msg);
+                }
+                //消息过滤HTML标签
+                $aMesgRep = urldecode(base64_decode($request->data));
+                $aMesgRep = trim ($aMesgRep);
+                $aMesgRep = strip_tags ($aMesgRep);
+                $aMesgRep = htmlspecialchars ($aMesgRep);
+                $aMesgRep = addslashes ($aMesgRep);
+                $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
+                //消息处理违禁词
+                if(empty($iRoomInfo['level'])||$iRoomInfo['level'] != 99)
+                    $aMesgRep = $this->regSpeaking($aMesgRep);
+                $aMesgRep = urlencode($aMesgRep);
+                $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
+                //发送消息
+                if(!is_array($iRoomInfo))
+                    $iRoomInfo = (array)$iRoomInfo;
+                $getUuid = $this->getUuid($iRoomInfo['name']);
+                $iRoomInfo['timess'] = $getUuid['timess'];
+                $iRoomInfo['uuid'] = $getUuid['uuid'];
+                foreach ($iRoomUsers as $fdId =>$val) {
+                    if($val==$request->fd)//组装消息数据
+                        $msg = $this->msg(4,$aMesgRep,$iRoomInfo);   //自己发消息
+                    else
+                        $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
+                    $this->push($val, $msg,$iRoomInfo['room']);
+                }
+                //自动推送清数据
+                $this->chkHisMsg($iRoomInfo,0,false);
+            }catch (\Exception $e){
+                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
-            //消息过滤HTML标签
-            $aMesgRep = urldecode(base64_decode($request->data));
-            $aMesgRep = trim ($aMesgRep);
-            $aMesgRep = strip_tags ($aMesgRep);
-            $aMesgRep = htmlspecialchars ($aMesgRep);
-            $aMesgRep = addslashes ($aMesgRep);
-            $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
-            //消息处理违禁词
-            if(empty($iRoomInfo['level'])||$iRoomInfo['level'] != 99)
-                $aMesgRep = $this->regSpeaking($aMesgRep);
-            $aMesgRep = urlencode($aMesgRep);
-            $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
-            //发送消息
-            if(!is_array($iRoomInfo))
-                $iRoomInfo = (array)$iRoomInfo;
-            $getUuid = $this->getUuid($iRoomInfo['name']);
-            $iRoomInfo['timess'] = $getUuid['timess'];
-            $iRoomInfo['uuid'] = $getUuid['uuid'];
-            foreach ($iRoomUsers as $fdId =>$val) {
-                if($val==$request->fd)//组装消息数据
-                    $msg = $this->msg(4,$aMesgRep,$iRoomInfo);   //自己发消息
-                else
-                    $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
-                $this->push($val, $msg,$iRoomInfo['room']);
-            }
-            //自动推送清数据
-            $this->chkHisMsg($iRoomInfo,0,false);
         });
         $this->ws->on('receive', function ($ws, $request) {
         });

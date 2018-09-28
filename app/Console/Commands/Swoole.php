@@ -523,6 +523,7 @@ class Swoole extends Command
         $isnot_auto_count = isset($aUsers->isnot_auto_count)?$aUsers->isnot_auto_count:0;
         $level = isset($aUsers->level)?$aUsers->level:1;
         if(empty($aUsers)){
+            $aUsers = (object) [];
             $chat_role = isset($aUsersData['chat_role'])?$aUsersData['chat_role']:1;
             $recharge = 0;
             $bet = 0;
@@ -541,7 +542,7 @@ class Swoole extends Command
         if($isnot_auto_count==0)
             $aUsers-> chat_status = $betSpeak?$aUsers-> chat_status:1;
         //检查平台是否开放聊天
-        $aUsers-> chat_status = $aUsers->is_speaking==1?$aUsers-> chat_status:1;
+        $aUsers->chat_status = $aUsers->is_speaking==1?$aUsers-> chat_status:1;
         $aUsers->level = $uLv;
         return $aUsers;
     }

@@ -167,6 +167,9 @@ class Swoole extends Command
                     return $this->msg(3,'登陆失效1');
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
 
+                //发送讯息给自己16
+                $this->sendToSerf($request->fd,16,'');
+
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
                 $this->ws->push($request->fd, $msg);
@@ -648,6 +651,7 @@ class Swoole extends Command
      * 更新目前房客资讯
     */
     private function updUserInfo($fd,$iRoomInfo){
+        sleep(1);
         $this->redis->select(1);
         $room_key = $fd;               //成员房间号码
         $this->redis->multi();

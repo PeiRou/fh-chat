@@ -163,6 +163,8 @@ class Swoole extends Command
                 //检查历史讯息
                 $this->chkHisMsg($iRoomInfo,$request->fd);
                 //回传自己的基本设置
+                if($iRoomInfo['setNickname']==0)
+                    $iRoomInfo['nickname'] = '';
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
                 $this->ws->push($request->fd, $msg);
             }catch (\Exception $e){
@@ -527,6 +529,9 @@ class Swoole extends Command
                 //如果没有呢称，屏蔽帐号部分字元
                 $res['name'] = !isset($aUsers->nickname)||empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
                 $res['nickname'] = $aUsers->nickname;                 //用户呢称
+                $pattern = '/(\*\*\*\*\*\*)/u';
+                $matches = preg_match($pattern, $aUsers->nickname);
+                $res['setNickname'] = $matches?0:1;
                 $res['level'] = $uLv;                              //用户层级
                 $res['noSpeak'] = $aUsers->chat_status;            //用户是否禁言
                 $res['allnoSpeak'] = $aUsers->is_speaking?0:1;            //用户是否禁言

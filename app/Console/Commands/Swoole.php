@@ -145,6 +145,7 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
+            error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
             try{
                 $strParam = $request->server;
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
@@ -692,7 +693,6 @@ class Swoole extends Command
     */
     private function updUserInfo($fd,$iRoomInfo){
         try{
-            sleep(1);
             $this->redis->select(1);
             $room_key = $fd;               //成员房间号码
             $this->redis->multi();
@@ -702,6 +702,7 @@ class Swoole extends Command
             sleep(1);
             Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+            sleep(1);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }

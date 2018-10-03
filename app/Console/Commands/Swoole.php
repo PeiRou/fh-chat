@@ -67,10 +67,6 @@ class Swoole extends Command
      * 初始化
      */
     private function init(){
-        $this->redis->select(1);
-        $this->redis->multi();
-        $this->redis->del($this->chatkey);
-        $this->redis->exec();
         //清除用户表
         $keys = $this->redis->keys('chatusr*');
         if(!empty($keys)){
@@ -693,15 +689,15 @@ class Swoole extends Command
     */
     private function updUserInfo($fd,$iRoomInfo){
         try{
-            $this->redis->select(1);
             $room_key = $fd;               //成员房间号码
+            Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+            Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+            sleep(1);
+            $this->redis->select(1);
             $this->redis->multi();
             $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             $this->redis->exec();
-            sleep(1);
-            Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
-            Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             sleep(1);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');

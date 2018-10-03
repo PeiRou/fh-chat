@@ -193,6 +193,7 @@ class Swoole extends Command
                 }
             }
             try{
+                $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
                 //获取聊天用户数组
                 $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
                 //不广播被禁言的用户
@@ -692,13 +693,13 @@ class Swoole extends Command
             $room_key = $fd;               //成员房间号码
             Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-            sleep(1);
+            usleep(250000);
             $this->redis->select(1);
             $this->redis->multi();
             $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             $this->redis->exec();
-            sleep(1);
+            usleep(250000);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }

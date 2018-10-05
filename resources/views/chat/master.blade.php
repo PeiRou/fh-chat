@@ -5,6 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') - 管理后台</title>
 
     <link rel="stylesheet" href="/vendor/Semantic/semantic.min.css">
@@ -99,6 +100,7 @@
 <script src="/chat/js/core.js"></script>
 @yield('page-js')
 <script>
+    $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}});
     var sess = "{{ Session::get('account_id') }}";
     if(sess == "")
         autoLogout();

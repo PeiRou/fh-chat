@@ -5,7 +5,6 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="_token" content="{{ csrf_token() }}"/>
     <title>@yield('title') - 管理后台</title>
 
     <link rel="stylesheet" href="/vendor/Semantic/semantic.min.css">
@@ -13,7 +12,6 @@
     <link rel="stylesheet" href="/vendor/confirm/dist/jquery-confirm.min.css">
     <link rel="stylesheet" href="/vendor/dataTables/DataTables-1.10.16/css/dataTables.semanticui.min.css">
     <link rel="stylesheet" href="/chat/css/core.css">
-    <link rel="icon" type="img/png" href="{{ asset('favicon.ico') }}">
     @yield('page-css')
     <script src="/js/jquery.min.js"></script>
     <script src="/vendor/Semantic/semantic.min.js"></script>
@@ -30,7 +28,7 @@
 </div>
 <div class="nav-top">
     <div class="nav-logo">
-        <a href="{{ url('/chat/dash') }}"><img src="/chat/images/F77logo.png"></a>
+        <a href="{{ url('/chat/dash') }}"><img src="{{ env('BACK_LOGO','') }}"></a>
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">

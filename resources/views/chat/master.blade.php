@@ -28,7 +28,7 @@
 </div>
 <div class="nav-top">
     <div class="nav-logo">
-        <a href="{{ url('/chat/dash') }}"><img src="{{ env('BACK_LOGO','') }}"></a>
+        <a href="{{ url('/chat/dash') }}"><img style="width: {{ env('BACK_LOGO_WIDTH') }}px;" src="{{ env('BACK_LOGO','') }}"></a>
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">

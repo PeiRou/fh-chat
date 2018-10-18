@@ -7,11 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="_token" content="{{ csrf_token() }}"/>
     <title>欢迎登录聊天室管理系统</title>
+
+    <link rel="shortcut icon" type="image/png" href="{{ env('ICON') }}"/>
     <script src="/js/jquery.min.js"></script>
     <script src="{{ asset('chat/js/pages/cloud.js') }}"></script>
     <script src="{{ asset('chat/js/pages/login.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('chat/css/login.css') }}">
-    <link rel="icon" type="img/png" href="{{ asset('favicon.ico') }}">
 </head>
 <body id="login">
 <div id="mainBody">

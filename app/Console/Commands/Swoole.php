@@ -279,6 +279,14 @@ class Swoole extends Command
                     //更新个人信息
                     $this->upinfo($serv);
                     break;
+                case 'getchatUser':
+                    //获得个人信息
+                    $this->getUser($serv);
+                    break;
+                case 'getchatFd':
+                    //获得个人信息fd
+                    $this->getFd($serv);
+                    break;
             }
         });
 
@@ -289,11 +297,25 @@ class Swoole extends Command
 
         $this->ws->start();
     }
+
+    //获得个人信息
+    private function getUser($serv){
+        $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
+        return empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode(Storage::disk('chatusrfd')->get('chatusrfd:'.$fd));     //从聊天室的广播号码取得每个人的聊天室信息
+    }
+
+    //获得个人信息fd
+    private function getFd($serv){
+        $k = isset($serv->post['chatusr'])?$serv->post['chatusr']:$serv->get['chatusr'];
+        return Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+    }
+
     //推送给自己消息
     private function sendToSerf($fd,$status=13,$msg,$userinfo=array()){
         $msg = $this->msg($status,$msg,$userinfo);
         $this->ws->push($fd, $msg);
     }
+
     //更新个人信息
     private function upinfo($serv){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
@@ -670,7 +692,6 @@ class Swoole extends Command
 
     //取得目前房客资讯
     private function getUserInfo($fd){
-        $this->redis->select(1);
         $logVal = 'chatusrfd:'.$fd;
         if(Storage::disk('chatusrfd')->exists($logVal)){
             $tmp = Storage::disk('chatusrfd')->get($logVal);
@@ -694,12 +715,12 @@ class Swoole extends Command
             Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             usleep(250000);
-            $this->redis->select(1);
-            $this->redis->multi();
-            $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
-            $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-            $this->redis->exec();
-            usleep(250000);
+//            $this->redis->select(1);
+//            $this->redis->multi();
+//            $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+//            $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
+//            $this->redis->exec();
+//            usleep(250000);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }
@@ -797,9 +818,12 @@ class Swoole extends Command
      * 从md5的用户ID去找到在聊天室的广播号码，在取得每个人的聊天室信息
      */
     private function getIdToUserInfo($k){
-        $this->redis->select(1);
-        $tmpUsr = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
-        $tmpUsrInfo = empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode(Storage::disk('chatusrfd')->get('chatusrfd:'.$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
+        try{
+            $tmpUsr = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+            $tmpUsrInfo = empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode(Storage::disk('chatusrfd')->get('chatusrfd:'.$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
+        }catch (\Exception $e){
+            $tmpUsrInfo = '';
+        }
         return $tmpUsrInfo;
     }
 

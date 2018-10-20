@@ -10,9 +10,9 @@
 
     <link rel="shortcut icon" type="image/png" href="{{ env('ICON') }}"/>
     <script src="/js/jquery.min.js"></script>
-    <script src="{{ asset('chat/js/pages/cloud.js') }}"></script>
-    <script src="{{ asset('chat/js/pages/login.js') }}"></script>
-    <link rel="stylesheet" href="{{ asset('chat/css/login.css') }}">
+    <script src="/chat/js/pages/cloud.js"></script>
+    <script src="/chat/js/pages/login.js"></script>
+    <link rel="stylesheet" href="/chat/css/login.css">
 </head>
 <body id="login">
 <div id="mainBody">

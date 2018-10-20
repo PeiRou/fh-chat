@@ -61,7 +61,6 @@ class Swoole extends Command
                 break;
         }
     }
-    private $chatkey = 'chatList';
 
     /***
      * 初始化
@@ -115,6 +114,12 @@ class Swoole extends Command
             $arrayTmp[] = $hisKey;
         }
         Storage::disk('hongbaoNum')->delete($arrayTmp);              //删除红包数据
+
+        //如果资料夹不存在，则创建资料夹
+        if(!file_exists(public_path().'/data'))
+            mkdir(public_path().'/data');
+        if(!file_exists(public_path().'/dataimg'))
+            mkdir(public_path().'/dataimg');
     }
 
     /***
@@ -132,12 +137,15 @@ class Swoole extends Command
     }
 
     public function start(){
-        //创建websocket服务器对象，监听0.0.0.0:9502端口
-        $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
-        $this->ws->set(array(
-            'ssl_cert_file' => __DIR__ . '/config/' .env('WS_HOST_SSL','fh').'_ssl.crt',
-            'ssl_key_file' => __DIR__ . '/config/' .env('WS_HOST_SSL','fh').'_ssl.key',
-        ));
+        //创建websocket服务器对象，监听0.0.0.0:2021端口
+        if(env('WS_HOST_SSL')!='cs'){
+            $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
+            $this->ws->set(array(
+                'ssl_cert_file' => __DIR__ . '/config/' .env('WS_HOST_SSL','fh').'_ssl.crt',
+                'ssl_key_file' => __DIR__ . '/config/' .env('WS_HOST_SSL','fh').'_ssl.key',
+            ));
+        }else
+            $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',9501));
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
@@ -149,7 +157,7 @@ class Swoole extends Command
                 $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
                 if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->msg(3,'登陆失效1');
-                $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
+                $this->updUserInfo($request->fd,$iRoomInfo,$ws);        //成员登记他的房间号码
 
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
@@ -719,12 +727,22 @@ class Swoole extends Command
     /**
      * 更新目前房客资讯
     */
-    private function updUserInfo($fd,$iRoomInfo){
+    private function updUserInfo($fd,$iRoomInfo,$ws=null){
         try{
             $room_key = $fd;               //成员房间号码
-            Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
+            $chatusr = 'chatusr:'.md5($iRoomInfo['userId']);
+            if(Storage::disk('chatusr')->exists($chatusr)){
+                usleep(25000);
+                $fds = Storage::disk('chatusr')->get($chatusr);
+                if($fd!=$fds && !empty($fds) && !empty($ws) ){
+                    Storage::disk('chatusrfd')->delete('chatusrfd:'.$fds);              //删除用户
+                    $ws->close($fds);
+                }
+                usleep(25000);
+            }
+            Storage::disk('chatusr')->put($chatusr, $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-            usleep(250000);
+            usleep(25000);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }

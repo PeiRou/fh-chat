@@ -5,11 +5,11 @@
 @section('content')
     <div class="dash-content">
         <div class="line">
-            <span class="icon1"><img src="{{ asset('chat/img/cloud.png') }}"> </span>
+            <span class="icon1"><img src="/chat/img/cloud.png"> </span>
             <span class="txt1"><b>{{ Session::get('account_name') }} 您好，欢迎使用彩票网聊天室管理系统</b></span>
         </div>
         <div class="line">
-            <span class="icon2"><img src="{{ asset('chat/img/time.png') }}"></span>
+            <span class="icon2"><img src="/chat/img/time.png"></span>
             <span class="txt2">您上次登录时间：，上次登录IP：</span>
         </div>
     </div>

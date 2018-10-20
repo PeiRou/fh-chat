@@ -302,7 +302,7 @@ class Swoole extends Command
     private function getUser($serv){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
 
-        $iRoomInfo = empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
+        $iRoomInfo = empty($fd) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
         $this->redis->select(1);
         $this->redis->multi();
         $this->redis->set('chatusrfd:'.$fd, $iRoomInfo);

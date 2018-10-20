@@ -725,12 +725,6 @@ class Swoole extends Command
             Storage::disk('chatusr')->put('chatusr:'.md5($iRoomInfo['userId']), $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             usleep(250000);
-//            $this->redis->select(1);
-//            $this->redis->multi();
-//            $this->redis->set('chatusr:'.md5($iRoomInfo['userId']), $room_key);
-//            $this->redis->set('chatusrfd:'.$room_key, json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-//            $this->redis->exec();
-//            usleep(250000);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }
@@ -846,7 +840,7 @@ class Swoole extends Command
         //控制两个小时内的数据
         $timess = (int)(microtime(true)*1000*10000*10000);
         //控制聊天室数据
-        $needDelnum = count($iRoomHisTxt)-100;
+        $needDelnum = count($iRoomHisTxt)-50;
         $needDelnum = $needDelnum > 0 ? $needDelnum : 0;
         $ii = -1;
         //检查计划消息

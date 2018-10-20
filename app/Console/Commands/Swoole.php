@@ -301,13 +301,23 @@ class Swoole extends Command
     //获得个人信息
     private function getUser($serv){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
-        return empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode(Storage::disk('chatusrfd')->get('chatusrfd:'.$fd));     //从聊天室的广播号码取得每个人的聊天室信息
+
+        $iRoomInfo = empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
+        $this->redis->select(1);
+        $this->redis->multi();
+        $this->redis->set('chatusrfd:'.$fd, $iRoomInfo);
+        $this->redis->exec();
     }
 
     //获得个人信息fd
     private function getFd($serv){
         $k = isset($serv->post['chatusr'])?$serv->post['chatusr']:$serv->get['chatusr'];
-        return Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+
+        $room_key = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
+        $this->redis->select(1);
+        $this->redis->multi();
+        $this->redis->set('chatusr:'.$k, $room_key);
+        $this->redis->exec();
     }
 
     //推送给自己消息

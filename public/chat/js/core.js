@@ -116,7 +116,7 @@ function checkOnline() {
             success:function (data) {
                 if(data.status === true){
                     $('#onlineCount').html(data.count);
-                    console.log('num:'+data.count);
+                    $('#onlineYKCount').html(data.yk_count);
                 }
             }
         })

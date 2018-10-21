@@ -34,7 +34,8 @@
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">
-            <li>当前在线人数：<b id="onlineCount">0</b></li>
+            <a href="/chat/userManage"><li>当前游客人数：<b id="onlineYKCount">0</b></li></a>
+            <a href="/chat/userManage"><li>当前会员人数：<b id="onlineCount">0</b></li></a>
             <li>修改密码</li>
             <li onclick="logout()">退出</li>
         </ul>

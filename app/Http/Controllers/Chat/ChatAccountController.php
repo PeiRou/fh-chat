@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 
 class ChatAccountController extends Controller
 {
@@ -97,8 +98,19 @@ class ChatAccountController extends Controller
     public function unSpeak($data)
     {
         $data = explode("&",$data);
-
-        DB::table('chat_users')->where('users_id',$data[0])->update([
+        $userId = $data[0];
+        $keyUser = 'chatusr:'.md5($userId);
+        $user = Storage::disk('chatusr')->exists($keyUser)?Storage::disk('chatusr')->get($keyUser):'';
+        if(!empty($user)){
+            $keyUserFd = 'chatusrfd:'.$user;
+            $userFd = Storage::disk('chatusrfd')->exists($keyUserFd)?Storage::disk('chatusrfd')->get($keyUserFd):'';
+            if(!empty($userFd)){
+                $userFd = (array)json_decode($userFd);
+                $userFd['noSpeak'] = $data[1]=="un"?1:0;
+                Storage::disk('chatusrfd')->put($keyUserFd,json_encode($userFd,JSON_UNESCAPED_UNICODE));
+            }
+        }
+        DB::table('chat_users')->where('users_id',$userId)->update([
             'chat_status'=>$data[1]=="un"?1:0,
             'updated_at'=>date("Y-m-d H:i:s",time())
         ]);

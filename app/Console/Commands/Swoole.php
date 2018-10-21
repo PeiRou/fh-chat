@@ -155,8 +155,9 @@ class Swoole extends Command
                 $strParam = explode("/",$strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
                 $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-                if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
-                    return $this->msg(3,'登陆失效1');
+                $this->sendToSerf($request->fd,14,'init');
+                if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
+                    return $this->sendToSerf($request->fd,3,'登陆失效');
                 $this->updUserInfo($request->fd,$iRoomInfo,$ws);        //成员登记他的房间号码
 
                 //获取聊天室公告
@@ -191,14 +192,10 @@ class Swoole extends Command
             if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room'])){
                 if(isset($iSess)){
                     $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-                    if(empty($iRoomInfo) || empty($iRoomInfo['room'])) {
-                        $msg = $this->msg(3, '登陆失效2');
-                        return $this->ws->push($request->fd, $msg);
-                    }
-                }else{
-                    $msg = $this->msg(3, '登陆失效3');
-                    return $this->ws->push($request->fd, $msg);
-                }
+                    if(empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))
+                        return $this->sendToSerf($request->fd,3,'登陆失效');
+                }else
+                    return $this->sendToSerf($request->fd,3,'登陆失效');
             }
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
@@ -372,7 +369,7 @@ class Swoole extends Command
 
     /***
      * 组装回馈讯息
-     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:禁止
+     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))
@@ -731,15 +728,15 @@ class Swoole extends Command
         try{
             $room_key = $fd;               //成员房间号码
             $chatusr = 'chatusr:'.md5($iRoomInfo['userId']);
-            if(Storage::disk('chatusr')->exists($chatusr)){
-                usleep(25000);
-                $fds = Storage::disk('chatusr')->get($chatusr);
-                if($fd!=$fds && !empty($fds) && !empty($ws) ){
-                    Storage::disk('chatusrfd')->delete('chatusrfd:'.$fds);              //删除用户
-                    $ws->close($fds);
-                }
-                usleep(25000);
-            }
+//            if(Storage::disk('chatusr')->exists($chatusr)){
+//                usleep(25000);
+//                $fds = Storage::disk('chatusr')->get($chatusr);
+//                if($fd!=$fds && !empty($fds) && !empty($ws) ){
+//                    Storage::disk('chatusrfd')->delete('chatusrfd:'.$fds);              //删除用户
+//                    $ws->close($fds);
+//                }
+//                usleep(25000);
+//            }
             Storage::disk('chatusr')->put($chatusr, $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             usleep(25000);

@@ -315,9 +315,6 @@ class Swoole extends Command
         if(empty($session_id))
             return "";
 
-        //字符串转十六进制函数
-        $plan = base64_encode(urlencode($plan));
-
         $aRep =array(
             'userId' => 'plans',
             'plans' => $plan,

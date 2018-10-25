@@ -291,6 +291,9 @@ class Swoole extends Command
                 case 'getchatFd':
                     //获得个人信息fd
                     $this->getFd($serv);
+                case 'setplan':
+                    //获得个人信息fd
+                    $this->setPlan($serv);
                     break;
             }
         });
@@ -301,6 +304,28 @@ class Swoole extends Command
         });
 
         $this->ws->start();
+    }
+
+    //发送计画
+    private function setPlan($serv){
+        $plan = isset($serv->post['data'])?$serv->post['data']:$serv->get['data'];
+        if(empty($plan))
+            return "";
+        $session_id = md5(time().rand(1,10));
+        if(empty($session_id))
+            return "";
+
+        //字符串转十六进制函数
+        $plan = base64_encode(urlencode($plan));
+
+        $aRep =array(
+            'userId' => 'plans',
+            'plans' => $plan,
+            'img' => '/game/images/chat/sys.png'                          //用户头像
+        );
+        $serv->post['id'] = $session_id;
+        $serv->post['pln'] = json_encode($aRep,JSON_UNESCAPED_UNICODE);
+        $this->chkPlan(1,$serv);
     }
 
     //获得个人信息

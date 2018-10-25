@@ -427,8 +427,8 @@ class Swoole extends Command
     private function chkHongbao($room_id,$serv){
         $hd_idx = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
 
-        //$rsKeyH = 'hb';
-        //error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$hd_idx.PHP_EOL, 3, '/tmp/chat/hongbao.log');
+        $rsKeyH = 'hb';
+        error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$hd_idx.PHP_EOL, 3, '/tmp/chat/hongbao.log');
         $iRoomInfo = $this->getUsersess($hd_idx,'','hongbao');     //包装红包消息
         $iMsg = (int)$hd_idx;
         $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动

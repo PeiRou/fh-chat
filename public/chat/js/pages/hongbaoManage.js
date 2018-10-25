@@ -196,6 +196,12 @@ function reHongbao(room,id) {
                         dataType:'json',
                         success:function (data) {
                             if(data.status == true){
+                                if(data.data=='nok'){
+                                    $.ajax({
+                                        url:'/dows/?type=hongbao&room='+room+'&id='+id,
+                                        type:'get'
+                                    });
+                                }
                                 $('#dtTable').DataTable().ajax.reload(null,false)
                             }
                         },

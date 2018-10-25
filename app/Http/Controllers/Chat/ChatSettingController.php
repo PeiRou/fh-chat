@@ -242,8 +242,8 @@ class ChatSettingController extends Controller
         $id = $data[1];
         $data['id'] = $id;
         $swoole = new Swoole();
-        $swoole->swooletest('hongbao',$room,$data);
-        return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$room],200);
+        $res = $swoole->swooletest('hongbao',$room,$data);
+        return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$res],200);
     }
 
     //关闭红包

@@ -308,7 +308,7 @@ class Swoole extends Command
 
     //发送计画
     private function setPlan($serv){
-        $plan = isset($serv->post['data'])?$serv->post['data']:$serv->get['data'];
+        $plan = isset($serv->post['data'])?$serv->post['data']:(isset($serv->get['data'])?$serv->get['data']:"");
         if(empty($plan))
             return "";
         $session_id = md5(time().rand(1,10));

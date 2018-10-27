@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Redis;
 
 class Swoole
 {
-    private $timeout = 10;
+    private $timeout = 5;
     public function swooletest($type,$room,$data=array())
     {
         $param['type'] = $type;

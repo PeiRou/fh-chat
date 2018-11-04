@@ -16,7 +16,7 @@ class Swoole
     private function postSwoole($param,$data=array()){
         $this->ch = curl_init();
         //设置post数据
-        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/?type=".$param['type']."&room=".$param['room']);
+        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"https://127.0.0.1:2021")."/?type=".$param['type']."&room=".$param['room']);
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
         curl_setopt($this->ch,CURLOPT_RETURNTRANSFER,1);
         curl_setopt($this->ch,CURLOPT_POST,1);

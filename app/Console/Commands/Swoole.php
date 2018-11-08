@@ -126,8 +126,13 @@ class Swoole extends Command
      * 清空数据
      */
     private function clean(){
+        $this->redis->select(2);
+        $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
+        $this->redis->select(6);
+        $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
         $this->redis->select(1);
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
+        $del = DB::table('chat_users')->where('level',0)->delete();
         $files = Storage::disk('chathis')->files();
         $arrayTmp = [];
         foreach ($files as $hisKey){
@@ -507,8 +512,9 @@ class Swoole extends Command
     }
     //取得自己的登陆信息
     private function getMyserf($iSess){
-        $this->redis->select(1);
-        $res = empty($this->redis->get($iSess))?'':(array)json_decode($this->redis->get($iSess));
+//        $this->redis->select(1);
+//        $res = empty($this->redis->get($iSess))?'':(array)json_decode($this->redis->get($iSess));
+        $res = (array)DB::table('chat_users')->select('users_id as userId')->where('sess',$iSess)->first();
         return $res;
     }
 

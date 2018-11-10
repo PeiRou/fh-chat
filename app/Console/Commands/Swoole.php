@@ -883,7 +883,7 @@ class Swoole extends Command
         //控制两个小时内的数据
         $timess = (int)(microtime(true)*1000*10000*10000);
         //控制聊天室数据
-        $needDelnum = count($iRoomHisTxt)-50;
+        $needDelnum = count($iRoomHisTxt)-80;
         $needDelnum = $needDelnum > 0 ? $needDelnum : 0;
         $ii = -1;
         //检查计划消息

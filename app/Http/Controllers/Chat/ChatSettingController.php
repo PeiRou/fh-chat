@@ -153,9 +153,10 @@ class ChatSettingController extends Controller
         else
             $data['password'] = Hash::make($data['password']);
 
-        if($sa_id>0)
+        if($sa_id>0){
+            unset($data['account']);
             $update = DB::table('chat_sa')->where('sa_id',$sa_id)->update($data);
-        else{
+        }else{
             $data['created_at'] = date("Y-m-d H:i:s",time());    //新增日期
             $update = DB::table('chat_sa')->insert($data);
         }

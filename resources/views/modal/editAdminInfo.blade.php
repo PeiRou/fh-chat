@@ -2,7 +2,7 @@
     <div class="field">
         <label>帐号</label>
         <div class="ui input icon">
-            <input type="text" name="account"  placeholder="" value="{{ $account }}" />
+            <input type="text" name="account"  placeholder="" value="{{ $account }}" @if($account!="") disabled="disabled" @endif />
         </div>
     </div>
     <div class="field">

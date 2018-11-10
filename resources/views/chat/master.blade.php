@@ -36,7 +36,7 @@
         <ul style="margin-top: 20px;">
             <a href="/chat/userManage"><li>当前游客人数：<b id="onlineYKCount">0</b></li></a>
             <a href="/chat/userManage"><li>当前会员人数：<b id="onlineCount">0</b></li></a>
-            <li>修改密码</li>
+            <a id="updPswd"><li>修改密码</li></a>
             <li onclick="logout()">退出</li>
         </ul>
         <div class="user-info">
@@ -106,6 +106,43 @@
     var sess = "{{ Session::get('account_id') }}";
     if(sess == "")
         autoLogout();
+    $('#updPswd').click(function(){
+        updAdminInfo({{ Session::get('account_id') }},'{{ Session::get('account') }}','{{ Session::get('account_name') }}');
+    });
+    //修改管理员信息
+    function updAdminInfo(id,ac,name) {
+        jc = $.confirm({
+            theme: 'material',
+            title: '修改聊天室管理员',
+            closeIcon:true,
+            boxWidth:'20%',
+            content: 'url:/chat/modal/editAdminInfo/'+id+'&'+ac+'&'+name,
+            buttons: {
+                confirm: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        var form = this.$content.find('#updUserForm').data('formValidation').validate().isValid();
+                        if(!form){
+                            return false;
+                        }
+                        return false;
+                    }
+                },
+                cancel: {
+                    text:'关闭'
+                }
+            },
+            contentLoaded: function(data, status, xhr){
+                $('.jconfirm-content').css('overflow','hidden');
+                if(xhr == 'Forbidden')
+                {
+                    this.setContent('<div class="modal-error"><span class="error403">403</span><br><span>您无权进行此操作</span></div>');
+                    $('.jconfirm-buttons').hide();
+                }
+            }
+        });
+    }
 </script>
 </body>
 </html>

@@ -120,6 +120,8 @@ class Swoole extends Command
             mkdir(public_path().'/data');
         if(!file_exists(public_path().'/dataimg'))
             mkdir(public_path().'/dataimg');
+
+        DB::table('chat_online')->truncate();           //聊天室在线记录
     }
 
     /***
@@ -335,10 +337,13 @@ class Swoole extends Command
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
 
         $iRoomInfo = empty($fd) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
-        $this->redis->select(1);
-        $this->redis->multi();
-        $this->redis->set('chatusrfd:'.$fd, $iRoomInfo);
-        $this->redis->exec();
+        DB::table('chat_online')->where('type',2)->where('k',$fd)->delete();      // type 1:chatusr 2:chatusrfd
+        $data = array();
+        $data['type'] = 2;
+        $data['k'] = $fd;
+        $data['info_data'] = $iRoomInfo;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        DB::table('chat_online')->insert($data);      // type 1:chatusr 2:chatusrfd
     }
 
     //获得个人信息fd
@@ -346,10 +351,23 @@ class Swoole extends Command
         $k = isset($serv->post['chatusr'])?$serv->post['chatusr']:$serv->get['chatusr'];
 
         $room_key = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
-        $this->redis->select(1);
-        $this->redis->multi();
-        $this->redis->set('chatusr:'.$k, $room_key);
-        $this->redis->exec();
+        DB::table('chat_online')->where('type',1)->where('k',$k)->delete();      // type 1:chatusr 2:chatusrfd
+        $data = array();
+        $data['type'] = 1;
+        $data['k'] = $k;
+        $data['info_data'] = $room_key;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        DB::table('chat_online')->insert($data);      // type 1:chatusr 2:chatusrfd
+
+        $fd = $room_key;
+        $iRoomInfo = empty($fd) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
+        DB::table('chat_online')->where('type',2)->where('k',$fd)->delete();      // type 1:chatusr 2:chatusrfd
+        $data = array();
+        $data['type'] = 2;
+        $data['k'] = $fd;
+        $data['info_data'] = $iRoomInfo;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        DB::table('chat_online')->insert($data);      // type 1:chatusr 2:chatusrfd
     }
 
     //推送给自己消息
@@ -514,7 +532,7 @@ class Swoole extends Command
     private function getMyserf($iSess){
 //        $this->redis->select(1);
 //        $res = empty($this->redis->get($iSess))?'':(array)json_decode($this->redis->get($iSess));
-        $res = (array)DB::table('chat_users')->select('users_id as userId')->where('sess',$iSess)->first();
+        $res = (array)DB::table('chat_users')->select('users_id as userId','username as userName')->where('sess',$iSess)->first();
         return $res;
     }
 
@@ -782,6 +800,10 @@ class Swoole extends Command
                     if(isset($usr['userId'])){
                         $usrKey = 'chatusr:'.md5($usr['userId']);
                         Storage::disk('chatusrfd')->delete($logVal);              //删除用户
+                        try{
+                        DB::table('chat_online')->where('type',2)->where('k',$addVal)->delete();
+                        }catch (\Exception $e){
+                        }
                         if(Storage::disk('chatusr')->exists($usrKey)) {           //检查用户的fd是否存在
                             $usrFd = Storage::disk('chatusr')->get($usrKey);
                             if($addVal==$usrFd)

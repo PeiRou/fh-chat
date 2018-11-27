@@ -56,10 +56,8 @@ class AjaxStatusController extends Controller
         return $orgHis;
     }
     public function setInfo(Request $request){
-        \Log::info(1);
         $roomid = $request->input('room');
         $type = $request->input('type');
-        \Log::info('type:'.$type);
         $swoole = new Swoole();
         $swoole->swooletest($type,$roomid,$request->all());
         return 'ok';

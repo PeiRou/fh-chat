@@ -37,6 +37,7 @@ class Swoole extends Command
         $this->redis = new \Redis();
         $this->redis->connect(env('REDIS_HOST','127.0.0.0.1'), env('REDIS_PORT',6379));
         $this->redis->select(1);
+        DB::disconnect();
     }
 
     /**
@@ -292,8 +293,8 @@ class Swoole extends Command
         });
         //接收WebSocket服务器推送功能
         $this->ws->on('request', function ($serv) {
-            $room = isset($serv->post['room'])?$serv->post['room']:$serv->get['room'];
-            $type = isset($serv->post['type'])?$serv->post['type']:$serv->get['type'];
+            $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
+            $type = isset($serv->post['type'])?$serv->post['type']:(isset($serv->get['type'])?$serv->get['type']:'');
             switch ($type){
                 case 'plan':
                     //检查计划消息
@@ -330,9 +331,16 @@ class Swoole extends Command
                 case 'getchatFd':
                     //获得个人信息fd
                     $this->getFd($serv);
+                    break;
                 case 'setplan':
-                    //获得个人信息fd
+                    //发送计划任务
                     $this->setPlan($serv);
+                    break;
+                case 'betInfo':
+                    //发送跟单
+                    $this->pushBetInfo($serv);
+                    break;
+                default:
                     break;
             }
         });
@@ -345,7 +353,7 @@ class Swoole extends Command
         $this->ws->start();
     }
 
-    //发送计画
+    //发送计划任务
     private function setPlan($serv){
         $plan = isset($serv->post['data'])?$serv->post['data']:(isset($serv->get['data'])?$serv->get['data']:"");
         if(empty($plan))
@@ -364,11 +372,36 @@ class Swoole extends Command
         $this->chkPlan(1,$serv);
     }
 
+    //发送跟单
+    private function pushBetInfo($serv){
+        $sess = isset($serv->post['sess'])?$serv->post['sess']:(isset($serv->get['sess'])?$serv->get['sess']:"");
+        $betInfo = isset($serv->post['betInfo'])?$serv->post['betInfo']:(isset($serv->get['betInfo'])?$serv->get['betInfo']:"");
+        $issueInfo = isset($serv->post['issueInfo'])?$serv->post['issueInfo']:(isset($serv->get['issueInfo'])?$serv->get['issueInfo']:"");
+        if(empty($sess) || empty($betInfo) || empty($issueInfo))
+            return "";
+        $iRoomInfo = $this->getUsersess($sess);
+        if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
+            return "";
+        $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
+        //发送消息
+        if(!is_array($iRoomInfo))
+            $iRoomInfo = (array)$iRoomInfo;
+        $getUuid = $this->getUuid($iRoomInfo['name']);
+        $iRoomInfo['timess'] = $getUuid['timess'];
+        $iRoomInfo['uuid'] = $getUuid['uuid'];
+        $iRoomInfo['dt'] = $issueInfo;
+        foreach ($iRoomUsers as $fdId =>$val) {
+            $msg = $this->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
+            $this->push($val, $msg,$iRoomInfo['room']);
+        }
+    }
+
     //获得个人信息
     private function getUser($serv){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
 
         $iRoomInfo = empty($fd) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
+
         DB::table('chat_online')->where('type',2)->where('k',$fd)->delete();      // type 1:chatusr 2:chatusrfd
         $data = array();
         $data['type'] = 2;
@@ -448,7 +481,7 @@ class Swoole extends Command
 
     /***
      * 组装回馈讯息
-     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin
+     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))
@@ -461,6 +494,7 @@ class Swoole extends Command
             'nickname' => isset($userinfo['nickname'])?$userinfo['nickname']:'',        //用户呢称
             'img' => isset($userinfo['img'])?$userinfo['img']:'',                       //用户头像
             'msg' => $msg,
+            'dt' => isset($userinfo['dt'])?$userinfo['dt']:'',
             'bg1' => isset($userinfo['bg1'])?$userinfo['bg1']:'',                       //背景色1
             'bg2' => isset($userinfo['bg2'])?$userinfo['bg2']:'',                       //背景色2
             'font' => isset($userinfo['font'])?$userinfo['font']:'',                    //字颜色
@@ -588,7 +622,7 @@ class Swoole extends Command
     }
 
     //取得会员资讯
-    private function getUsersess($iSess,$fd,$type=null){
+    private function getUsersess($iSess,$fd=0,$type=null){
         switch ($type){
             case 'plan':
                 $res = (array)json_decode($iSess);
@@ -816,15 +850,6 @@ class Swoole extends Command
         try{
             $room_key = $fd;               //成员房间号码
             $chatusr = 'chatusr:'.md5($iRoomInfo['userId']);
-//            if(Storage::disk('chatusr')->exists($chatusr)){
-//                usleep(25000);
-//                $fds = Storage::disk('chatusr')->get($chatusr);
-//                if($fd!=$fds && !empty($fds) && !empty($ws) ){
-//                    Storage::disk('chatusrfd')->delete('chatusrfd:'.$fds);              //删除用户
-//                    $ws->close($fds);
-//                }
-//                usleep(25000);
-//            }
             Storage::disk('chatusr')->put($chatusr, $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
             usleep(25000);

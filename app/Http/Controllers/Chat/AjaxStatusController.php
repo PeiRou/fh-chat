@@ -49,10 +49,17 @@ class AjaxStatusController extends Controller
             'status' => $status
         ]);
     }
+    //从uuid查会员资讯
+    public function getHisInfo(Request $request){
+        $value = $request->get('uuid');
+        $orgHis = Storage::disk('chathis')->get($value);
+        return $orgHis;
+    }
     public function setInfo(Request $request){
         \Log::info(1);
         $roomid = $request->input('room');
         $type = $request->input('type');
+        \Log::info('type:'.$type);
         $swoole = new Swoole();
         $swoole->swooletest($type,$roomid,$request->all());
         return 'ok';

@@ -14,6 +14,8 @@ class Swoole
         return $this->postSwoole($param,$data);
     }
     private function postSwoole($param,$data=array()){
+        $param['type'] = $data['type'];
+        $param['room'] = $data['room'];
         $this->ch = curl_init();
         //设置post数据
 //        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows/?type=".$param['type']."&room=".$param['room']);

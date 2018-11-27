@@ -187,11 +187,20 @@ class Swoole extends Command
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
+            echo var_dump($request->data);
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
                 $iSess = substr($request->data,6,40);
-                $request->data = substr($request->data,47);
+                $uuid = '';
+                $type = '';
+                if(substr($request->data,46,6)=="&type="){
+                    $type = substr($request->data,52,3);
+                    if(!substr($request->data,55,6)=="&uuid=")
+                        return true;
+                    $uuid = substr($request->data,61);
+                }else
+                    $request->data = substr($request->data,47);
             }
             $iRoomInfo = $this->getUserInfo($request->fd);   //取出他的房间号码
             error_log(date('Y-m-d H:i:s',time())." 发言=> ".$request->fd." => ".json_encode($request).json_encode($iRoomInfo).PHP_EOL, 3, '/tmp/chat/'.date('Ymd').'.log');        //只要连接就记下log
@@ -208,6 +217,31 @@ class Swoole extends Command
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
                 //获取聊天用户数组
                 $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
+                if($iRoomInfo['level']==99){
+                    if($uuid != '' && $type != ''){
+                        echo 'uuid:  '.$uuid.PHP_EOL;
+                        echo 'type:  '.$type.PHP_EOL;
+                        $serv = json_decode(json_encode(array()));
+                        switch ($type){
+                            case 'del':     //删除讯息
+                                $this->chkDelHis($iRoomInfo['room'],$serv,$uuid);
+                                return true;
+                            case 'ons':     //解言
+                            case 'uns':     //禁言
+                                $fd = Storage::disk('chatusr')->exists('chatusr:'.md5($uuid))?Storage::disk('chatusr')->get('chatusr:'.md5($uuid)):'';
+                                $userInfo = $this->getIdToUserInfo(md5($uuid));
+                                $userInfo['noSpeak'] = $type=='uns'?1:0;
+                                $this->upinfo($userInfo,$fd,json_encode($userInfo));
+                                $update = DB::table('chat_users')->where('users_id',$uuid)->update([
+                                    'chat_status'=>$userInfo['noSpeak'],
+                                    'updated_at'=>date("Y-m-d H:i:s",time())
+                                ]);
+                                return true;
+                            default:
+                                return true;
+                        }
+                    }
+                }
                 //不广播被禁言的用户
                 if($iRoomInfo['noSpeak']==1)
                     return $this->sendToSerf($request->fd,5,'此帐户已禁言');
@@ -235,6 +269,7 @@ class Swoole extends Command
                 //消息处理违禁词
                 if(empty($iRoomInfo['level'])||$iRoomInfo['level'] != 99)
                     $aMesgRep = $this->regSpeaking($aMesgRep);
+
                 $aMesgRep = urlencode($aMesgRep);
                 $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
                 //发送消息
@@ -377,9 +412,11 @@ class Swoole extends Command
     }
 
     //更新个人信息
-    private function upinfo($serv){
-        $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
-        $info = isset($serv->post['info'])?$serv->post['info']:$serv->get['info'];
+    private function upinfo($serv,$fd=0,$userInfo=''){
+        $fd = isset($serv->post['fd'])?$serv->post['fd']:(isset($serv->get['fd'])?$serv->get['fd']:$fd);
+        $info = isset($serv->post['info'])?$serv->post['info']:(isset($serv->get['info'])?$serv->get['info']:$userInfo);
+        if(empty($fd)||empty($info))
+            return true;
         Storage::disk('chatusrfd')->put('chatusrfd:'.$fd,$info);
     }
 
@@ -458,8 +495,12 @@ class Swoole extends Command
         $this->sendToAll($room_id, $msg);
     }
     //检查删除消息
-    private function chkDelhis($room_id,$serv){
-        $uuid = isset($serv->post['uuid'])?$serv->post['uuid']:$serv->get['uuid'];
+    private function chkDelhis($room_id,$serv,$sUuid=''){
+        $uuid = isset($serv->post['uuid'])?$serv->post['uuid']:(isset($serv->get['uuid'])?$serv->get['uuid']:$sUuid);
+        if(empty($uuid))
+            return false;
+        if(!empty($sUuid))
+            $this->delHisInfo('his'.$room_id.'='.$sUuid);
 
         $rsKeyH = 'delH';
         error_log(date('Y-m-d H:i:s',time())." 检查删除消息=> ".$rsKeyH.'|'.$uuid.PHP_EOL, 3, '/tmp/chat/delHis.log');
@@ -467,6 +508,10 @@ class Swoole extends Command
         $iMsg = $uuid;
         $msg = $this->msg(10, $iMsg, $iRoomInfo);   //删除信息
         $this->sendToAll($room_id, $msg);
+    }
+    private function delHisInfo($value){
+        if(Storage::disk('chathis')->exists($value))
+            Storage::disk('chathis')->delete($value);
     }
     //检查红包异动
     private function chkHongbao($room_id,$serv){

@@ -187,7 +187,6 @@ class Swoole extends Command
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            echo var_dump($request->data);
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -219,8 +218,6 @@ class Swoole extends Command
                 $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
                 if($iRoomInfo['level']==99){
                     if($uuid != '' && $type != ''){
-                        echo 'uuid:  '.$uuid.PHP_EOL;
-                        echo 'type:  '.$type.PHP_EOL;
                         $serv = json_decode(json_encode(array()));
                         switch ($type){
                             case 'del':     //删除讯息

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Redis;
 
 class Swoole
 {
-    private $timeout = 5;
+    private $timeout = 2;
     public function swooletest($type,$room,$data=array())
     {
         $param['type'] = $type;
@@ -16,7 +16,8 @@ class Swoole
     private function postSwoole($param,$data=array()){
         $this->ch = curl_init();
         //设置post数据
-        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows/?type=".$param['type']."&room=".$param['room']);
+//        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"http://127.0.0.1")."/dows/?type=".$param['type']."&room=".$param['room']);
+        curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021")."/?type=".$param['type']."&room=".$param['room']);
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
         curl_setopt($this->ch,CURLOPT_RETURNTRANSFER,1);
         curl_setopt($this->ch,CURLOPT_POST,1);

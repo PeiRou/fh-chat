@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
-use App\Recharges;
+use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Redis;
@@ -49,15 +49,12 @@ class AjaxStatusController extends Controller
             'status' => $status
         ]);
     }
-    public function getHisInfo(Request $request){
-        $value = $request->get('uuid');
-        $orgHis = Storage::disk('chathis')->get($value);
-        return $orgHis;
-    }
-    public function delHisInfo(Request $request){
-        $value = $request->get('uuid');
-        if(Storage::disk('chathis')->exists($value))
-            Storage::disk('chathis')->delete($value);
+    public function setInfo(Request $request){
+        \Log::info(1);
+        $roomid = $request->input('room');
+        $type = $request->input('type');
+        $swoole = new Swoole();
+        $swoole->swooletest($type,$roomid,$request->all());
         return 'ok';
     }
 }

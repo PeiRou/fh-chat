@@ -51,9 +51,19 @@ class AjaxStatusController extends Controller
     }
     //从uuid查会员资讯
     public function getHisInfo(Request $request){
-        $value = $request->get('uuid');
-        $orgHis = Storage::disk('chathis')->get($value);
-        return $orgHis;
+        $res = '';
+        try{
+            $value = $request->get('uuid');
+            $orgHis = Storage::disk('chathis')->get($value);
+            $k = (array)json_decode($orgHis);
+            $k = isset($k['k'])?$k['k']:'';
+            if(empty($k))
+                return '';
+            $fd = @Storage::disk('chatusr')->get('chatusr:'.$k);
+            $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);
+        }catch (\Exception $e){
+        }
+        return $res;
     }
     public function setInfo(Request $request){
         $roomid = $request->input('room');

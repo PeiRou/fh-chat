@@ -37,7 +37,6 @@ class Swoole extends Command
         $this->redis = new \Redis();
         $this->redis->connect(env('REDIS_HOST','127.0.0.0.1'), env('REDIS_PORT',6379));
         $this->redis->select(1);
-        DB::disconnect();
     }
 
     /**
@@ -157,6 +156,7 @@ class Swoole extends Command
 
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
+            DB::disconnect();
             error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
             try{
                 $strParam = $request->server;

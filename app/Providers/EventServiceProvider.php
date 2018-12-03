@@ -16,27 +16,6 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\Event' => [
             'App\Listeners\EventListener',
         ],
-        'App\Events\RunMssc' => [
-            'App\Listeners\RunMsscEventListener',
-        ],
-        'App\Events\RunPk10' => [
-            'App\Listeners\RunPk10EventListener',
-        ],
-        'App\Events\RunMstf' => [
-            'App\Listeners\RunMstfEventListener',
-        ],
-        'App\Events\RunMsssc' => [
-            'App\Listeners\RunMssscEventListener',
-        ],
-        'App\Events\RunCqssc' => [
-            'App\Listeners\RunCqsscEventListener',
-        ],
-        'App\Events\OpenMsscEvent' => [
-            'App\Listeners\OpenMsscEventListener',
-        ],
-        'App\Events\OpenMssscEvent' => [
-            'App\Listeners\OpenMssscEventListener',
-        ],
     ];
     /**
      * Register any events for your application.

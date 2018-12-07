@@ -580,6 +580,17 @@ class Swoole extends Command
     private function chkPlan($room_id,$serv){
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
+        $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
+        $canSend = false;//是否能发送
+
+        //判断是否可以发送
+        $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
+        $plan_send_game = explode(",",$baseSetting->plan_send_game);
+        foreach ($plan_send_game as& $key){
+            if ($game == $key) $canSend = true;
+        }
+        //如果不能发送，就退出
+        if (!$canSend) return;
 
         $rsKeyH = 'pln';
 

@@ -38,6 +38,10 @@
                     <input type="checkbox" name="planSendGameCQSSC" @if($CQSSC == "1") checked="checked" @endif>
                     <label>重庆时时彩</label>
                 </div>
+                <div class="ui checkbox">
+                    <input type="checkbox" name="planSendGameJSKS" @if($JSKS == "1") checked="checked" @endif>
+                    <label>江苏快三</label>
+                </div>
             </div>
             <div class="inline fields">
                 <div class="six wide field">

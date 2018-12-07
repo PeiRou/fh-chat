@@ -74,6 +74,8 @@ class ChatViewController extends Controller
         $plan_send_game = explode(",",$baseSetting->plan_send_game);
         $planSendGamePK10 = 0;        //北京pk10
         $planSendGameCQSSC = 0;         //重庆时时彩
+        $planSendGameJSKS = 0;         //江苏快三
+
         foreach ($plan_send_game as& $key){
             switch ($key){
                 case 50:            //北京pk10
@@ -82,8 +84,12 @@ class ChatViewController extends Controller
                 case 1:             //重庆时时彩
                     $planSendGameCQSSC = 1;
                     break;
+                case 10:             //江苏快三
+                    $planSendGameJSKS = 1;
+                    break;
+
             }
         }
-        return view('chat.baseManage')->with('base',$baseSetting)->with('PK10',$planSendGamePK10)->with('CQSSC',$planSendGameCQSSC);
+        return view('chat.baseManage')->with('base',$baseSetting)->with('PK10',$planSendGamePK10)->with('CQSSC',$planSendGameCQSSC)->with('JSKS',$planSendGameJSKS);
     }
 }

@@ -272,6 +272,7 @@ class ChatSettingController extends Controller
         $data['open_status'] = $request->input('openStatus')=="on"?1:0;              //聊天室状态
         $data['plan_send_mode'] = $request->input('planSendMode')=="1"?1:0;         //计划发布方式
         $planSendGamePK10 = $request->input('planSendGamePK10');                    //计划推送游戏-北京赛车
+        $data['plan_send_game'] = "";
         if($planSendGamePK10=="on")
             $data['plan_send_game'] = "50";
         $planSendGameCQSSC = $request->input('planSendGameCQSSC');                  //计划推送游戏-重庆时时彩

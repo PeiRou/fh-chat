@@ -312,6 +312,7 @@ class ChatSettingController extends Controller
         $redis = Redis::connection();
         $redis->select(1);                                   //切换到聊天平台
         $data['id'] = $session_id;
+        $data['game'] = 0;                                  //不分类
         $data['pln'] = json_encode($aRep,JSON_UNESCAPED_UNICODE);
         $swoole = new Swoole();
         $swoole->swooletest('plan',1,$data);

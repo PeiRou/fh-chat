@@ -581,16 +581,18 @@ class Swoole extends Command
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
-        $canSend = false;//是否能发送
 
         //判断是否可以发送
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
-        $plan_send_game = explode(",",$baseSetting->plan_send_game);
-        foreach ($plan_send_game as& $key){
-            if ($game == $key) $canSend = true;
+        if($game!=0){
+            //判断时间内不开启计画 低于此时间不开启
+            if(time() < strtotime(date('Y-m-d '.$baseSetting->send_starttime)) && (time() > strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
+            //判断符合的彩种才发送
+            $plan_send_game = explode(",",$baseSetting->plan_send_game);
+            foreach ($plan_send_game as& $key){
+                if ($game == $key) return;
+            }
         }
-        //如果不能发送，就退出
-        if (!$canSend) return;
 
         $rsKeyH = 'pln';
 
@@ -600,8 +602,7 @@ class Swoole extends Command
         $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
         unset($iRoomInfo['plans']);
         //计画消息组合底部固定信息
-        $iMsg_back = DB::table('chat_base')->select('plan_msg')->first();
-        $iMsg .= urlencode($iMsg_back->plan_msg);
+        $iMsg .= urlencode($baseSetting->plan_msg);
         $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
         $this->sendToAll($room_id, $msg);
     }

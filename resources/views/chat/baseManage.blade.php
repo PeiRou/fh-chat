@@ -34,13 +34,13 @@
                     <input type="checkbox" name="planSendGamePK10" @if($PK10 == "1") checked="checked" @endif>
                     <label>北京赛车&nbsp;</label>
                 </div>
-                <div class="ui checkbox">
+                <div class="ui checkbox"style="margin-right: 5px">
                     <input type="checkbox" name="planSendGameCQSSC" @if($CQSSC == "1") checked="checked" @endif>
-                    <label>重庆时时彩</label>
+                    <label>重庆时时彩&nbsp;</label>
                 </div>
-                <div class="ui checkbox">
+                <div class="ui checkbox"style="margin-right: 5px">
                     <input type="checkbox" name="planSendGameJSKS" @if($JSKS == "1") checked="checked" @endif>
-                    <label>江苏快三</label>
+                    <label>江苏快三&nbsp;</label>
                 </div>
             </div>
             <div class="inline fields">

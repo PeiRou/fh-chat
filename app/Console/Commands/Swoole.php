@@ -581,7 +581,8 @@ class Swoole extends Command
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
-        \Log::info(json_encode($serv));
+        $canSend = false;//是否能发送
+
         //判断是否可以发送
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
         if($game!=0){
@@ -590,8 +591,10 @@ class Swoole extends Command
             //判断符合的彩种才发送
             $plan_send_game = explode(",",$baseSetting->plan_send_game);
             foreach ($plan_send_game as& $key){
-                if ($game == $key) return;
+                if ($game == $key) $canSend = true;
             }
+            //如果不能发送，就退出
+            if (!$canSend) return;
         }
 
         $rsKeyH = 'pln';

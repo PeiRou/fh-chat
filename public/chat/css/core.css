@@ -721,3 +721,8 @@ i {
     height: 16px;
     background: url(/chat/images/leftico01.png) no-repeat center;
 }
+.dash_link{
+    display: block;
+    padding: 1px 10px;
+    color: #a2a2a2;
+}

@@ -67,12 +67,12 @@ class AjaxStatusController extends Controller
     }
     public function setInfo(Request $request){
         try{
-        $roomid = $request->input('room');
-        $type = $request->input('type');
-        $swoole = new Swoole();
-        $swoole->swooletest($type,$roomid,$request->all());
+            $roomid = $request->input('room');
+            $type = $request->input('type');
+            $swoole = new Swoole();
+            $swoole->swooletest($type,$roomid,$request->all());
         }catch (\Exception $e){
-            Log::info(__CLASS__ . '->' . __FUNCTION__ . ' Line:' . $e->getLine() . ' ' . $e->getMessage());
+            \Log::info(__CLASS__ . '->' . __FUNCTION__ . ' Line:' . $e->getLine() . ' ' . $e->getMessage());
         }
         return 'ok';
     }

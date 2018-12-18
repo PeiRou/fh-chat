@@ -295,6 +295,7 @@ class Swoole extends Command
         $this->ws->on('request', function ($serv) {
             $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
             $type = isset($serv->post['type'])?$serv->post['type']:(isset($serv->get['type'])?$serv->get['type']:'');
+            \Log::info($type);
             switch ($type){
                 case 'plan':
                     //检查计划消息

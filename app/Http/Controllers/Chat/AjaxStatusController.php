@@ -66,9 +66,14 @@ class AjaxStatusController extends Controller
         return $res;
     }
     public function setInfo(Request $request){
+        $roomid = $request->input('room');
+        $type = $request->input('type');
+        $else = $request->input('else');
+        if(!empty($else)){
+            $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$else);
+            return $res;
+        }
         try{
-            $roomid = $request->input('room');
-            $type = $request->input('type');
             $swoole = new Swoole();
             $swoole->swooletest($type,$roomid,$request->all());
         }catch (\Exception $e){

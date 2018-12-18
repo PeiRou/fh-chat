@@ -18,6 +18,7 @@ class Swoole
         $param['room'] = isset($param['room'])?$param['room']:$data['room'];
         $this->ch = curl_init();
         //设置post数据
+        \Log::info(env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021")."/?type=".$param['type']."&room=".$param['room']);
         curl_setopt($this->ch,CURLOPT_URL,env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021")."/?type=".$param['type']."&room=".$param['room']);
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
         curl_setopt($this->ch,CURLOPT_RETURNTRANSFER,1);

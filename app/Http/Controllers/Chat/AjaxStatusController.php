@@ -72,7 +72,9 @@ class AjaxStatusController extends Controller
         if($type=='getInfo'){
             $fd = @Storage::disk('chatusr')->get('chatusr:'.$else);
             $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);
-            return $res;
+            $res = (array)json_decode($res);
+            $res['fd'] = $fd;
+            return json_encode($res);
         }else if(!empty($else)){
             $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$else);
             return $res;

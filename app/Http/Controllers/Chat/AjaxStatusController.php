@@ -69,7 +69,11 @@ class AjaxStatusController extends Controller
         $roomid = $request->input('room');
         $type = $request->input('type');
         $else = $request->input('else');
-        if(!empty($else)){
+        if($type=='getInfo'){
+            $fd = @Storage::disk('chatusr')->get('chatusr:'.$else);
+            $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);
+            return $res;
+        }else if(!empty($else)){
             $res = @Storage::disk('chatusrfd')->get('chatusrfd:'.$else);
             return $res;
         }

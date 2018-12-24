@@ -494,7 +494,7 @@ class Swoole extends Command
             'fd' => isset($userinfo['name'])?$userinfo['name']:'',
             'nickname' => isset($userinfo['nickname'])?$userinfo['nickname']:'',        //用户呢称
             'img' => isset($userinfo['img'])?$userinfo['img']:'',                       //用户头像
-            'msg' => is_array($msg)?$msg:(string)$msg,
+            'msg' => $msg,
             'dt' => isset($userinfo['dt'])?$userinfo['dt']:'',
             'bg1' => isset($userinfo['bg1'])?$userinfo['bg1']:'',                       //背景色1
             'bg2' => isset($userinfo['bg2'])?$userinfo['bg2']:'',                       //背景色2

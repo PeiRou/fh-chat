@@ -494,7 +494,7 @@ class Swoole extends Command
             'fd' => isset($userinfo['name'])?$userinfo['name']:'',
             'nickname' => isset($userinfo['nickname'])?$userinfo['nickname']:'',        //用户呢称
             'img' => isset($userinfo['img'])?$userinfo['img']:'',                       //用户头像
-            'msg' => $msg,
+            'msg' => is_array($msg)?$msg:(string)$msg,
             'dt' => isset($userinfo['dt'])?$userinfo['dt']:'',
             'bg1' => isset($userinfo['bg1'])?$userinfo['bg1']:'',                       //背景色1
             'bg2' => isset($userinfo['bg2'])?$userinfo['bg2']:'',                       //背景色2
@@ -552,7 +552,7 @@ class Swoole extends Command
         $rsKeyH = 'hb';
         error_log(date('Y-m-d H:i:s',time())." 红包异动=> ".$rsKeyH.'|'.$hd_idx.PHP_EOL, 3, '/tmp/chat/hongbao.log');
         $iRoomInfo = $this->getUsersess($hd_idx,'','hongbao');     //包装红包消息
-        $iMsg = (string)$hd_idx;
+        $iMsg = (int)$hd_idx;
         $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动
         $this->sendToAll($room_id,$msg);
     }

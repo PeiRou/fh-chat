@@ -502,7 +502,7 @@ class Swoole extends Command
             'level' => isset($userinfo['level'])?$userinfo['level']:'',                 //角色
             'k' => isset($userinfo['userId'])?md5($userinfo['userId']):'',              //用户id
             'nS' => isset($userinfo['noSpeak'])?(string)$userinfo['noSpeak']:'',                //是否能发言
-            'anS' => isset($userinfo['allnoSpeak'])?$userinfo['allnoSpeak']:'',        //是否全局不能发言
+            'anS' => isset($userinfo['allnoSpeak'])?(string)$userinfo['allnoSpeak']:'',        //是否全局不能发言
             'uuid' => isset($userinfo['uuid'])?(string)$userinfo['uuid']:(string)$getUuid['uuid'],        //发言的唯一标实
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess']      //服务器接收到讯息时间

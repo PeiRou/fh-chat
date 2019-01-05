@@ -23,6 +23,15 @@ $(function () {
             $('#dvOpenStatusOn').hide();
         }
     });
+    $('#bet_push_status').change(function () {
+        if($(this).prop( "checked" )==true){
+            $('#bet_push_statusOn').show();
+            $('#bet_push_statusUn').hide();
+        }else{
+            $('#bet_push_statusUn').show();
+            $('#bet_push_statusOn').hide();
+        }
+    });
     if($('#planSendMode').val()==0){
         $('#dspPlan').show();
     }

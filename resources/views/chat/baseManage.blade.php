@@ -16,6 +16,17 @@
                 <div id="dvOpenStatusOn" class="green" @if($base->open_status != "1")style="display: none"@endif>开启中</div>
                 <div id="dvOpenStatusUn" class="red" @if($base->open_status == "1")style="display: none"@endif>关闭中</div>
             </div>
+
+            <div class="inline fields">
+                <label style="width :119px;text-align: right;">是否开启推送跟单</label>
+                <div class="ui toggle checkbox">
+                    <input type="checkbox" id="bet_push_status" name="bet_push_status" @if($base->bet_push_status == "1") checked="checked" @endif>
+                    <label></label>
+                </div>
+                <div id="bet_push_statusOn" class="green" @if($base->bet_push_status != "1")style="display: none"@endif>开启中</div>
+                <div id="bet_push_statusUn" class="red" @if($base->bet_push_status == "1")style="display: none"@endif>关闭中</div>
+            </div>
+
             <div class="inline fields">
                 <div class="six wide field">
                     <label style="width :150px;text-align: right;" class="notEmpty">计划发布方式</label>

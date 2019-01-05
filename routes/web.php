@@ -91,7 +91,7 @@ Route::get('/status/notice/online','Chat\AjaxStatusController@online');
 //检查在线状态
 Route::get('/status/notice/getOnlineStatus','Chat\AjaxStatusController@getOnlineStatus');
 //前台操作中转接口
-Route::post('/chat/setInfo','Chat\AjaxStatusController@setInfo');
+Route::any('/chat/setInfo','Chat\AjaxStatusController@setInfo');
 Route::get('/hisinfo','Chat\AjaxStatusController@getHisInfo');
 //Route::get('/delhisinfo','Chat\AjaxStatusController@delHisInfo');
 

@@ -11,13 +11,15 @@
 |
 */
 
-Route::get('/','Chat\ChatViewController@AdminLogin')->name('chat.login');
 
-//获取验证码
-Route::group(['prefix' => 'web','namespace'=>'Home'],function (){
-    Route::get('getCaptcha','CaptchaController@getCaptcha');
-});
 Route::group(['middleware' => ['check-ip']], function () {
+    Route::get('/','Chat\ChatViewController@AdminLogin')->name('chat.login');
+    //获取验证码
+    Route::group(['prefix' => 'web','namespace'=>'Home'],function (){
+        Route::get('getCaptcha','CaptchaController@getCaptcha');
+    });
+
+
     Route::group(['middleware' => ['check-login']], function () {
     //ajax
         Route::post('/chat/action/updUserInfo', 'Chat\ChatAccountController@updUserInfo');               //修改聊天室用户信息

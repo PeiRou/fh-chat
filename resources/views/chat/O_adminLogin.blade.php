@@ -39,8 +39,7 @@
             <li><input id="userName" type="text" class="loginuser" value="" onclick="javascript:this.value=''" /></li>
             <li><input id="userPwd" type="password" class="loginpwd" value="" onclick="javascript:this.value=''" /></li>
             <li>
-                <input type="text" placeholder="验证码" id="cap" required class="logincode">
-                <i class="yzm"> <img class="captcha" height="40px" width="150px" alt="点击更换" src="{{ $captcha->inline() }}"  /></i>
+                <input type="text" placeholder="OTP随机码" id="otp" required class="logincode">
             </li>
             <li>
                 <input id="loginBtn" type="button" class="loginbtn" value="登录" onclick="login();" />

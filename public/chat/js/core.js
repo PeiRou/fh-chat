@@ -108,15 +108,32 @@ function Cmodal(title,boxWidth,url,needValidate,valiForm) {
 
 //获取当前在线人数 onlineCount
 function checkOnline() {
-    setInterval(function () {
+    var times = setInterval(function () {
         $.ajax({
-            url:'/status/notice/online',
+            url:'/api/status/notice/online',
             type:'get',
             dataType:'json',
             success:function (data) {
                 if(data.status === true){
                     $('#onlineCount').html(data.count);
                     $('#onlineYKCount').html(data.yk_count);
+                    $('#onlineAdmin').html(data.onlineAdmin);
+                }else{
+                    clearInterval(times)
+                    $.alert({
+                        icon: 'error',
+                        type:'red',
+                        title: '错误提示',
+                        content: 'error',
+                        buttons: {
+                            ok: {
+                                text: '好的',
+                                action: function () {
+                                    window.location.href = '/';
+                                }
+                            }
+                        }
+                    });
                 }
             }
         })

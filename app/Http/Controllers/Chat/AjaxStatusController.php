@@ -28,10 +28,19 @@ class AjaxStatusController extends Controller
                 }
             }
         }
+        $redis = Redis::connection();
+        $redis->select(8);           //后台
+        $keys = $redis->keys('us_'.ChatAccountController::TOKENPREFIX.'*');
+        $onlineAdminCount = count($keys);
+        foreach ($keys as $v){
+            if($v == 'us_'.ChatAccountController::TOKENPREFIX.md5(1) || $v == 'us_'.ChatAccountController::TOKENPREFIX.md5(request()->adminInfo->sa_id))
+                $onlineAdminCount --;
+        }
         return response()->json([
             'status' => true,
             'count' => $onlineNum,
-            'yk_count' => $onlineYKNum
+            'yk_count' => $onlineYKNum,
+            'onlineAdmin' => $onlineAdminCount,
         ]);
     }
     //检查此人在线状态

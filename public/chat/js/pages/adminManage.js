@@ -22,8 +22,10 @@ $(function () {
                     var delEnabel = '';
                     if(data.sa_id=="1")
                         delEnabel = "disabled";
+                    var google = data.account == 'admin' ? '' : "<li onclick='google("+data.sa_id+")'> Google双重验证</li>";
                     return "<ul class='control-menu'>" +
                         "<li onclick='updAdminInfo("+data.sa_id+",\""+data.account+"\",\""+data.name+"\")'>修改</li>" +
+                        google +
                         "<li class='"+delEnabel+"' onclick='del("+data.sa_id+",\"delAdminInfo\")'>删除</li>" +
                         "</ul>";
                 }},
@@ -77,6 +79,11 @@ function updAdminInfo(id,ac,name) {
             }
         }
     });
+}
+
+function google(id) {
+    var url = '/chat/modal/googleSubAccount/'+id;
+    Cmodal('Google双重验证','22%',url,false,'');
 }
 
 //新增管理员信息

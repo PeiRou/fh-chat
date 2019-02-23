@@ -52,6 +52,10 @@ class Handler extends ExceptionHandler
 //        if ($exception && $exception->getStatusCode()) {
 //            return response()->view('errors.'.$exception->getStatusCode(), [],$exception->getStatusCode());
 //        }
+        if($exception instanceof ApiException) {
+            $getMessage = $exception->getMessage();
+            return response()->json(json_decode($getMessage) ?? $getMessage, $exception->getCode());
+        }
         if ($exception instanceof \Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException) {
             return response()->json([
                 'status' => 'error',

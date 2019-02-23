@@ -289,6 +289,18 @@ if(!function_exists('userBatchUpdate')){
     }
 }
 
+//接口抛出异常
+if(!function_exists('ThrowOut')){
+    function ThrowOut($code, $message = '', $data = [], $httpCode = 200)
+    {
+        $data = [
+            'code' => $code,
+            'msg' => $message,
+            'data' => (object)$data,
+        ];
+        throw new \App\Exceptions\ApiException($data,$httpCode);
+    }
+}
 /**
  * 获取cdn下的真实ip
  */
@@ -315,6 +327,26 @@ if(!function_exists('realIp')){
         }
 
         return ($ip ? $ip : $_SERVER['REMOTE_ADDR']);
+    }
+}
+
+//记录日志 可以指定文件夹
+if(!function_exists('writeLog')) {
+    function writeLog($path = '', ...$args)
+    {
+        if(isset($args[0]) && (is_array($args[0]) || is_object($args[0])))
+            $args[0] = json_encode($args[0], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if(isset($args[1]))
+            $args[1] = (array)$args[1];
+
+        try {
+            $log = new \Monolog\Logger('before');
+            $log->pushHandler(new \Monolog\Handler\StreamHandler(storage_path('logs/' . $path . '/' . date('Y-m-d').'.log'), \Monolog\Logger::DEBUG));
+            $log->info(...$args);
+        } catch (\Exception $e) {
+            \Log::info('日志记录失败：' . $e->getMessage());
+        }
+
     }
 }
 

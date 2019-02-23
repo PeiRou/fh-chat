@@ -7,7 +7,7 @@ $.ajaxSetup({
 function login() {
     var userName = $("#userName").val();
     var userPwd = $("#userPwd").val();
-    var captcha = $('#cap').val();
+    var otp = $('#otp').val();
 
     if(!userName) {
         alert("请输入用户名");
@@ -19,8 +19,8 @@ function login() {
         return false;
     }
 
-    if(!captcha) {
-        alert("请输入验证码");
+    if(!otp) {
+        alert("请输入OTP随机码");
         return false;
     }
 
@@ -31,7 +31,7 @@ function login() {
             account: userName,
             pwdtext: userPwd,
             password: userPwd,
-            captcha: captcha
+            otp: otp
         },
         dataType: 'json',
         success: function(result) {

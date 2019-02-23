@@ -16,9 +16,10 @@ class ChatViewController extends Controller
         return view('chat.O_adminLogin',compact('captcha'));
     }
     //控制台
-    public function Dash()
+    public function Dash(Request $request)
     {
-        return view('chat.dash');
+        $accountInfo = DB::table('chat_sa')->where('sa_id', $request->sa_id)->first();
+        return view('chat.dash', compact('accountInfo'));
     }
     //会员管理
     public function userManage()

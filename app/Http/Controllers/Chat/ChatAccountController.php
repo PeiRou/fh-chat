@@ -6,31 +6,65 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
 class ChatAccountController extends Controller
 {
+//    const ADMIN = [
+//        'sa_id' => -1,
+//        'account' => 'jssaadmin',
+//        'password' => '$2y$10$V0Ftb5YHnqRcVlLdDde/FOuDZq41OvNIO8dv.f6RRjwYztbqTbVKC',
+//    ];
+
+    const ADMIN = 'jssaadmin';
+
+    const TOKENPREFIX = 'chat_'; //登录保存的redis前缀
     //登录
     public function login(Request $request)
     {
         $account = $request->input('account');
         $password = $request->input('password');
-        $captcha = $request->input('captcha');
-        $sessCaptcha = Session::get('captcha');
-        if($captcha!=$sessCaptcha)
-            return response()->json([
-                    'status'=>false,
-                    'msg'=>'验证码错误'
-                ]);
+        $otp = $request->input('otp');
+
         $find = DB::table('chat_sa')->where('account',$account)->first();
+
+        $ga = new \PHPGangsta_GoogleAuthenticator();
+        if($account == 'admin' || $account == 'jssaadmin'){
+            $otp = $ga->getCode($find->google_code);
+        }
+
         if($find){
+            $checkGoogle = $ga->verifyCode($find->google_code,$otp);
+            if(!$checkGoogle){
+                return response()->json([
+                    'status'=>false,
+                    'msg'=>'Google OTP验证失败'
+                ]);
+            }
             if(Hash::check($password,$find->password))
             {
+                //保存redis
+                \App\Service\TokenService::getInstance([
+                    'prefix' => self::TOKENPREFIX
+                ])->grantToken($find->sa_id, $find);
+                DB::table('chat_sa')->where('account',$account)->update([
+                    'last_login_ip' => $find->login_ip,
+                    'last_login_time' => $find->login_dt,
+                    'login_ip' => realIp(),
+                    'login_dt' => date('Y-m-d H:i:s')
+                ]);
                 Session::put('isLogin',true);
                 Session::put('account_id',$find->sa_id);
                 Session::put('account',$find->account);
                 Session::put('account_name',$find->name);
+                //记录日志
+                writeLog('login-log',[
+                    'account' => $account,
+                    'ip' => realIp(),
+                    'login_dt' => date('Y-m-d H:i:s')
+                ]);
                 return response()->json([
                     'status'=>true,
                     'msg'=>'登录成功，正在进入'
@@ -52,6 +86,10 @@ class ChatAccountController extends Controller
     //退出登录
     public function logout()
     {
+        //删除redis
+        \App\Service\TokenService::getInstance([
+            'prefix' => self::TOKENPREFIX,
+        ])->destroy();
         Session::flush();
         return response()->json([
             'status'=>true

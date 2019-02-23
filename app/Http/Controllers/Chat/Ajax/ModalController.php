@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Ajax;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class ModalController extends Controller
 {
@@ -93,5 +94,21 @@ class ModalController extends Controller
     public function editLevelInfo($id){
         $level = DB::table('chat_level')->select('id','recharge_min','bet_min')->where('id','=',$id)->first();
         return view('modal.editLevelInfo')->with('id',$level->id)->with('recharge_min',$level->recharge_min)->with('bet_min',$level->bet_min);
+    }
+
+    //子账号google验证码
+    public function googleSubAccount($id)
+    {
+        $get = DB::table('chat_sa')->where('sa_id',$id)->first();
+        $account = $get->account;
+        if('jssaadmin' !== Session::get('account') && 'admin' !== Session::get('account') && $account !== Session::get('account')){
+            die('您没有权限修改别人的');
+//            return abort('503');
+        }
+        $subAccountId = $get->sa_id;
+        $google_code = $get->google_code;
+        $ga = new \PHPGangsta_GoogleAuthenticator();
+        $qrCodeUrl = $ga->getQRCodeGoogleUrl('chat_'.$account,$google_code,null,['chs'=>'300x300']);
+        return view('modal.member.subAccountGoogleCode',compact('qrCodeUrl','subAccountId','account','google_code'));
     }
 }

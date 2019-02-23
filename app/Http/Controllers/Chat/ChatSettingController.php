@@ -157,6 +157,9 @@ class ChatSettingController extends Controller
             unset($data['account']);
             $update = DB::table('chat_sa')->where('sa_id',$sa_id)->update($data);
         }else{
+            $ga = new \PHPGangsta_GoogleAuthenticator();
+            $googleCode = $ga->createSecret();
+            $data['google_code'] = $googleCode;
             $data['created_at'] = date("Y-m-d H:i:s",time());    //新增日期
             $update = DB::table('chat_sa')->insert($data);
         }
@@ -341,6 +344,34 @@ class ChatSettingController extends Controller
             return response()->json(['status'=>true],200);
         }else{
             return response()->json(['status'=>false,'msg'=>'修改层级失败'],200);
+        }
+    }
+
+    //刷新google账号
+    public function changeGoogleCode(Request $request)
+    {
+        $id = $request->get('id');
+        $ga = new \PHPGangsta_GoogleAuthenticator();
+        $secret = $ga->createSecret();
+        $update = DB::table('chat_sa')->where('sa_id',$id)
+            ->update([
+                'google_code'=>$secret
+            ]);
+        if($update == 1){
+            $find = DB::table('chat_sa')->where('sa_id',$id)->first();
+            $qrCodeUrl = $ga->getQRCodeGoogleUrl('chat_'.$find->account,$secret);
+            return response()->json([
+                'status'=>true,
+                'msg'=>[
+                    'qrCodeUrl'=>$qrCodeUrl,
+                    'code'=>$secret
+                ]
+            ]);
+        } else {
+            return response()->json([
+                'status'=>false,
+                'msg'=>'暂时无法更新，请稍后重试'
+            ]);
         }
     }
 }

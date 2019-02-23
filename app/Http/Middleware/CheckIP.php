@@ -18,7 +18,8 @@ class CheckIP
     {
         $str = str_replace('/','\\/',env('URLWHITELIST'));
         $str1 = str_replace('/','\\/',env('URLWHITELIST1'));
-
+        if(empty($str) && empty($str1))
+            return abort('503');
         if(!preg_match("/".$str."/", $request->url()) && !preg_match("/".$str1."/", $request->url())){
             return abort('503');
         }

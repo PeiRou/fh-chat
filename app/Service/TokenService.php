@@ -82,6 +82,7 @@ class TokenService
             $usKey = 'us_'.$this->prefix.md5($data->uId);
             $this->redis::del($usKey);
         }
+        Session::flush();
     }
     private function getId(){
         return Session::getId();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat\Data;
 
+use App\Http\Controllers\Chat\ChatAccountController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Yajra\DataTables\Contracts\DataTable;
@@ -114,14 +115,12 @@ class DataController extends Controller
         return DataTables::of($users)
             ->editColumn('control',function ($data) use($request){
                 $str = "<ul class='control-menu'>";
-                if($data->account == 'admin' || $data->account == $request->user->account){
+                if($request->user->account == 'admin' || $request->user->account == ChatAccountController::ADMIN || $data->account == $request->user->account){
                     $str .= "<li onclick='updAdminInfo(".$data->sa_id.",\"".$data->account."\",\"".$data->name."\")'>修改</li>";
-                    $data->account !== 'admin' && $str .= "<li class='' onclick='del(".$data->sa_id.",\"delAdminInfo\")'>删除</li>";
+                    $str .= "<li class='' onclick='del(".$data->sa_id.",\"delAdminInfo\")'>删除</li>";
                 }
-
                 if($data->account !== 'admin')
-                $str .= "<li onclick='google(".$data->sa_id.")'> Google双重验证</li>";
-                if($data->sa_id=="1")
+                    $str .= "<li onclick='google(".$data->sa_id.")'> Google双重验证</li>";
                 $str .= "</ul>";
                 return $str;
             })

@@ -14,7 +14,7 @@ class ChatAccountController extends Controller
 {
     const ADMIN = 'jssaadmin'; //管理员账号
 
-    const ADMINPASSWORD = '$2y$10$V0Ftb5YHnqRcVlLdDde/FOuDZq41OvNIO8dv.f6RRjwYztbqTbVKC';//管理员密码
+    const ADMINPASSWORD = '$2y$10$3zfkve/wr8/qcs43HXrZvOUHGA9IY8eyVyq35qPr0HWMOm5VKhaVG';//管理员密码
 
     const TOKENPREFIX = 'chat_'; //登录保存的redis前缀
     //登录

@@ -108,10 +108,24 @@ class DataController extends Controller
             ->make(true);
     }
     //管理员管理-表格数据
-    public function adminManage()
+    public function adminManage(Request $request)
     {
         $users = DB::table('chat_sa')->where('account','<>',\App\Http\Controllers\Chat\ChatAccountController::ADMIN)->get();
         return DataTables::of($users)
+            ->editColumn('control',function ($data) use($request){
+                $str = "<ul class='control-menu'>";
+                if($data->account == 'admin' || $data->account == $request->user->account){
+                    $str .= "<li onclick='updAdminInfo(".$data->sa_id.",\"".$data->account."\",\"".$data->name."\")'>修改</li>";
+                    $data->account !== 'admin' && $str .= "<li class='' onclick='del(".$data->sa_id.",\"delAdminInfo\")'>删除</li>";
+                }
+
+                if($data->account !== 'admin')
+                $str .= "<li onclick='google(".$data->sa_id.")'> Google双重验证</li>";
+                if($data->sa_id=="1")
+                $str .= "</ul>";
+                return $str;
+            })
+            ->rawColumns(['control'])
             ->make(true);
     }
     //违禁词管理-表格数据

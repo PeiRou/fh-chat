@@ -43,6 +43,7 @@ class TokenService
         $data = (object)[];
         $data->key = $token;
         $data->uId = $id;
+        $data->ip = realIp();
         $this->redis::select($this->table);
         $this->redis::setex('us_'.$this->prefix.md5($id), $this->timeOut, $token); //保存用户现在登录的token
         $this->redis::setex('usd_'.$this->prefix.$token, $this->timeOut, json_encode($data));//保存用户数据
@@ -60,7 +61,7 @@ class TokenService
             return $this->ThrowOut('登录失效');
         if(empty($token = $this->redis::get('us_'.$this->prefix.md5($data->uId))))
             return $this->ThrowOut('用户信息失效');
-        if($data->key !== $token){
+        if($data->key !== $token || $data->ip !== realIp()){
             $this->redis::del('usd_'.$this->prefix.$data->key);
             return $this->ThrowOut('用户已在其它地方登录');
         }

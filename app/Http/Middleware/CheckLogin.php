@@ -42,5 +42,6 @@ class CheckLogin
     //绑定需要的参数
     private function bind($request){
         $request->adminInfo = DB::table('chat_sa')->where('account',\App\Http\Controllers\Chat\ChatAccountController::ADMIN)->first();
+        $request->user = DB::table('chat_sa')->where('sa_id',$request->sa_id)->first();
     }
 }

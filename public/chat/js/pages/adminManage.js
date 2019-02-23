@@ -19,15 +19,16 @@ $(function () {
             {data:'name'},                 // 名称
             {data:'created_at'},           // 添加时间
             {data:function(data){                //操作
-                    var delEnabel = '';
-                    if(data.sa_id=="1")
-                        delEnabel = "disabled";
-                    var google = data.account == 'admin' ? '' : "<li onclick='google("+data.sa_id+")'> Google双重验证</li>";
-                    return "<ul class='control-menu'>" +
-                        "<li onclick='updAdminInfo("+data.sa_id+",\""+data.account+"\",\""+data.name+"\")'>修改</li>" +
-                        google +
-                        "<li class='"+delEnabel+"' onclick='del("+data.sa_id+",\"delAdminInfo\")'>删除</li>" +
-                        "</ul>";
+                return data.control;
+                    // var delEnabel = '';
+                    // if(data.sa_id=="1")
+                    //     delEnabel = "disabled";
+                    // var google = data.account == 'admin' ? '' : "<li onclick='google("+data.sa_id+")'> Google双重验证</li>";
+                    // return "<ul class='control-menu'>" +
+                    //     "<li onclick='updAdminInfo("+data.sa_id+",\""+data.account+"\",\""+data.name+"\")'>修改</li>" +
+                    //     google +
+                    //     "<li class='"+delEnabel+"' onclick='del("+data.sa_id+",\"delAdminInfo\")'>删除</li>" +
+                    //     "</ul>";
                 }},
         ],
         language: {

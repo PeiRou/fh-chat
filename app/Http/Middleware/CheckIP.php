@@ -20,9 +20,10 @@ class CheckIP
         $str1 = str_replace('/','\\/',env('URLWHITELIST1'));
         if(empty($str) && empty($str1))
             return $this->destroy();
-        if(!preg_match("/".$str."/", $request->url()) && !preg_match("/".$str1."/", $request->url())){
-            return $this->destroy();
-        }
+        $return = false;
+        if(!empty($str) && preg_match("/".$str."/", $request->url())) $return = true;
+        if(!empty($str1) && preg_match("/".$str1."/", $request->url())) $return = true;
+        if(!$return) return $this->destroy();
 
         $ip = realIp();
         $ipList = Whitelist::getWhiteIpList();

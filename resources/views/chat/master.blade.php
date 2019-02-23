@@ -34,7 +34,7 @@
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">
-            <a href="/chat/userManage"><li>当前在线管理员：<b id="onlineAdmin">0</b></li></a>
+            <a href="/chat/adminManage"><li>当前在线管理员：<b id="onlineAdmin">0</b></li></a>
             <a href="/chat/userManage"><li>当前游客人数：<b id="onlineYKCount">0</b></li></a>
             <a href="/chat/userManage"><li>当前会员人数：<b id="onlineCount">0</b></li></a>
             <a id="updPswd"><li>修改密码</li></a>

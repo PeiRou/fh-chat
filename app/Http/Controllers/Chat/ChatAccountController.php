@@ -12,15 +12,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ChatAccountController extends Controller
 {
-//    const ADMIN = [
-//        'sa_id' => -1,
-//        'account' => 'jssaadmin',
-//        'password' => '$2y$10$V0Ftb5YHnqRcVlLdDde/FOuDZq41OvNIO8dv.f6RRjwYztbqTbVKC',
-//    ];
+    const ADMIN = 'jssaadmin'; //管理员账号
 
-    const ADMIN = 'jssaadmin';
-
-    const ADMINPASSWORD = '$2y$10$V0Ftb5YHnqRcVlLdDde/FOuDZq41OvNIO8dv.f6RRjwYztbqTbVKC';
+    const ADMINPASSWORD = '$2y$10$V0Ftb5YHnqRcVlLdDde/FOuDZq41OvNIO8dv.f6RRjwYztbqTbVKC';//管理员密码
 
     const TOKENPREFIX = 'chat_'; //登录保存的redis前缀
     //登录
@@ -59,10 +53,7 @@ class ChatAccountController extends Controller
                     'login_ip' => realIp(),
                     'login_dt' => date('Y-m-d H:i:s')
                 ]);
-                Session::put('isLogin',true);
-                Session::put('account_id',$find->sa_id);
-                Session::put('account',$find->account);
-                Session::put('account_name',$find->name);
+                $this->saveSession($find);
                 //记录日志
                 writeLog('login-log',[
                     'account' => $account,
@@ -85,6 +76,14 @@ class ChatAccountController extends Controller
                 'msg'=>'账号不存在，请核实'
             ]);
         }
+    }
+
+    public function saveSession($user)
+    {
+        Session::put('isLogin',true);
+        Session::put('account_id',$user->sa_id);
+        Session::put('account',$user->account);
+        Session::put('account_name',$user->name);
     }
 
     //退出登录

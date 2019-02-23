@@ -11,13 +11,14 @@
 |
 */
 
-
 Route::group(['middleware' => ['check-ip']], function () {
     Route::get('/','Chat\ChatViewController@AdminLogin')->name('chat.login');
     //获取验证码
     Route::group(['prefix' => 'web','namespace'=>'Home'],function (){
         Route::get('getCaptcha','CaptchaController@getCaptcha');
     });
+    //聊天室登入
+    Route::post('/chat/admin/login', 'Chat\ChatAccountController@login');
 
 
     Route::group(['middleware' => ['check-login']], function () {
@@ -90,8 +91,6 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/status/notice/getOnlineStatus', 'Chat\AjaxStatusController@getOnlineStatus');
     });
 
-    //聊天室登入
-    Route::post('/chat/admin/login', 'Chat\ChatAccountController@login');
 });
 
 //error

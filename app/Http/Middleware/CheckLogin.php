@@ -23,7 +23,7 @@ class CheckLogin
             'return' => false //验证失败是否返回 true就不返回错误直接抛出api异常 false的话返回false
         ]);
         //如果路由文件用的是aApi就需要设置验证失败直接抛出api异常 不然就跳转页面
-        if(preg_match("/^[api][\/]{0,1}.*/", $request->route()->uri)){
+        if(preg_match("/^[api\/]{1}.*/", $request->route()->uri)){
             $TokenService->setVal('return', 1); //设置单个配置 验证失败直接抛出api异常
             $request->sa_id = $TokenService->checkToken($request->token ?? '', 1);
         }else{
@@ -34,7 +34,7 @@ class CheckLogin
         }
         $this->bind($request);
         //没有session更新session
-//        if(empty(Session::get('account_id'))) app('\App\Http\Controllers\AGENT\AgentAccountController')->saveSession($request->user);
+        if(empty(Session::get('account_id'))) app(\App\Http\Controllers\Chat\ChatAccountController::class)->saveSession($request->user);
 
         return $next($request);
     }

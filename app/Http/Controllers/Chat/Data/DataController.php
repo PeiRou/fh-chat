@@ -111,7 +111,7 @@ class DataController extends Controller
     //管理员管理-表格数据
     public function adminManage(Request $request)
     {
-        $users = DB::table('chat_sa')->where('account','<>',\App\Http\Controllers\Chat\ChatAccountController::ADMIN)->get();
+        $users = DB::table('chat_sa')->where('account','<>',ChatAccountController::ADMIN)->get();
         return DataTables::of($users)
             ->editColumn('control',function ($data) use($request){
                 $str = "<ul class='control-menu'>";

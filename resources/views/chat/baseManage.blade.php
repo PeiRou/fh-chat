@@ -53,6 +53,14 @@
                     <input type="checkbox" name="planSendGameJSKS" @if($JSKS == "1") checked="checked" @endif>
                     <label>江苏快三&nbsp;</label>
                 </div>
+                <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" name="planSendGameKSSC" @if($KSSC == "1") checked="checked" @endif>
+                    <label>快速赛车&nbsp;</label>
+                </div>
+                <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" name="planSendGameKSFT" @if($KSFT == "1") checked="checked" @endif>
+                    <label>快速飞艇&nbsp;</label>
+                </div>
             </div>
             <div class="inline fields">
                 <div class="six wide field">

@@ -76,6 +76,9 @@ class ChatViewController extends Controller
         $planSendGamePK10 = 0;        //北京pk10
         $planSendGameCQSSC = 0;         //重庆时时彩
         $planSendGameJSKS = 0;         //江苏快三
+        $planSendGameMSSC = 0;         //秒速赛车
+        $planSendGameKSSC = 0;         //快速赛车
+        $planSendGameKSFT = 0;         //快速飞艇
 
         foreach ($plan_send_game as& $key){
             switch ($key){
@@ -88,9 +91,25 @@ class ChatViewController extends Controller
                 case 10:             //江苏快三
                     $planSendGameJSKS = 1;
                     break;
+                case 80:             //秒速赛车
+                    $planSendGameMSSC = 1;
+                    break;
+                case 801:             //快速赛车
+                    $planSendGameKSSC = 1;
+                    break;
+                case 802:             //快速飞艇
+                    $planSendGameKSFT = 1;
+                    break;
 
             }
         }
-        return view('chat.baseManage')->with('base',$baseSetting)->with('PK10',$planSendGamePK10)->with('CQSSC',$planSendGameCQSSC)->with('JSKS',$planSendGameJSKS);
+        return view('chat.baseManage')
+            ->with('base',$baseSetting)
+            ->with('PK10',$planSendGamePK10)
+            ->with('CQSSC',$planSendGameCQSSC)
+            ->with('JSKS',$planSendGameJSKS)
+            ->with('MSSC',$planSendGameMSSC)
+            ->with('KSSC',$planSendGameKSSC)
+            ->with('KSFT',$planSendGameKSFT);
     }
 }

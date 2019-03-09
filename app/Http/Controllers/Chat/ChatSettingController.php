@@ -279,15 +279,17 @@ class ChatSettingController extends Controller
         $data['plan_send_game'] = "";
         if($planSendGamePK10=="on")
             $data['plan_send_game'] = "50";
-        $planSendGameCQSSC = $request->input('planSendGameCQSSC');                  //计划推送游戏-重庆时时彩
-        if($planSendGameCQSSC=="on")
+        $planSendGame = $request->input('planSendGameCQSSC');                  //计划推送游戏-重庆时时彩
+        if($planSendGame=="on")
             $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."1";
-        $planSendGameJSKS = $request->input('planSendGameJSKS');                  //计划推送游戏-重庆时时彩
-        if($planSendGameJSKS=="on")                                                //计划推送游戏-江苏快三
+        $planSendGame = $request->input('planSendGameJSKS');                    //计划推送游戏-江苏快三
+        if($planSendGame=="on")
             $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."10";
-        if($planSendGameJSKS=="on")                                                //计划推送游戏-快速赛车
+        $planSendGame = $request->input('planSendGameKSSC');                    //计划推送游戏-快速赛车
+        if($planSendGame=="on")
             $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."801";
-        if($planSendGameJSKS=="on")                                                //计划推送游戏-快速飞艇
+        $planSendGame = $request->input('planSendGameKSFT');                    //计划推送游戏-快速飞艇
+        if($planSendGame=="on")
             $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."802";
         $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
         $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)

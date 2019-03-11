@@ -234,22 +234,32 @@ class ChatSettingController extends Controller
 
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
-            $this->saveRedEnvelopeRedis($data['hongbao_total_amount'],$data['hongbao_total_num'],$data['hongbao_total_amount']/$data['hongbao_total_num']*4,$data['hongbao_total_amount']/$data['hongbao_total_num']*0.2);
-            return $this->reHongbao($data['room_id'].'&'.$id);
+            return $this->reHongbao($data['room_id'].'&'.$id,$data);
         }else
             return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
     }
 
     //重发红包
-    public function reHongbao($data){
-        Redis::select(1);
+    public function reHongbao($data,$hbdt=array()){
         $data = explode("&",$data);
         $room = $data[0];
         $id = $data[1];
-        $data['id'] = $id;
-        $swoole = new Swoole();
-        $res = $swoole->swooletest('hongbao',$room,$data);
-        return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$res],200);
+        if(count($hbdt)==0){
+            $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num')->where('chat_hongbao_idx',$id)->first();
+        }
+        //将红包算好数量，放到redis红包里，供人读取
+        $hb_amount = $hbdt['hongbao_remain_amount'];      //要发的金额
+        $hb_num = $hbdt['hongbao_remain_num'];           //要发的数量
+        if($this->saveRedEnvelopeRedis($hb_amount,$hb_num,$id)){
+            Redis::select(1);
+            $data['id'] = $id;
+            $swoole = new Swoole();
+            $res = $swoole->swooletest('hongbao',$room,$data);
+            return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$res],200);
+        }else{
+            DB::table('chat_hongbao')->where('chat_hongbao_idx',$id)->update(array('hongbao_status'=>2));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+            return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
+        }
     }
 
     /**
@@ -259,29 +269,46 @@ class ChatSettingController extends Controller
      * @param $max
      * @param $min
      */
-    public function saveRedEnvelopeRedis($total, $num, $max, $min){
-        #总共要发的红包金额，留出一个最大值;
-        $total = $total - $max;
-        $reward = new Reward();
-        $result_merge = $reward->splitReward($total, $num, $max - 0.01, $min);
-        sort($result_merge);
-        $result_merge[1] = $result_merge[1] + $result_merge[0];
-        $result_merge[0] = $max * 100;
+    public function saveRedEnvelopeRedis($total,$num,$id){
+        if($total<=0 || $num<=0)
+            return 0;
         $redWardArray = [];
-        $add = 0;
-        foreach ($result_merge as $v) {
-            $redWardArray[] = floor($v) / 100;
-            $add += floor($v) / 100;
+        $remain_amount = $total;
+        $remain_num = $num;
+        for($ii=1;$ii<=$num;$ii++){
+            $tmp = $remain_amount / $remain_num * 100 * 2;
+            $rand = round( rand(1,$tmp)/100,3);
+            $randAddSubtract = rand(0,1);
+            if($randAddSubtract)
+                $rand = +$rand;
+            else
+                $rand = -$rand;
+            if($ii == $num) {
+                $takeHongBao = $remain_amount;
+            }else{
+                $tmpAvg = $remain_amount  / $remain_num;
+                $takeHongBao = $tmpAvg+$rand;
+                if($takeHongBao<=0)             //如果是负的
+                    $takeHongBao += $tmpAvg;
+                if($takeHongBao >= $remain_amount)
+                    $takeHongBao = $tmpAvg;
+                $takeHongBao = round($takeHongBao,2);
+            }
+            $redWardArray[] = $takeHongBao;
+            $remain_amount -= $takeHongBao;
         }
         shuffle($redWardArray);
-        var_dump($redWardArray,$add);die();
-//        return $result_merge;
-
+        shuffle($redWardArray);
         $redis = Redis::connection();
-        $redis->select(1);
+        $redis->select(9);      //聊天室红包
+        if(!$redis->exists('hb_'.$id)){
+            foreach ($redWardArray as $v){
+                echo $v.PHP_EOL;
+                $redis->SADD('hb_'.$id,$v);
+            }
+        }
+        return 1;
     }
-
-
 
     //关闭红包
     public function closeHongbao($data){

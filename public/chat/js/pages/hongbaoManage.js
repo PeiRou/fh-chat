@@ -202,8 +202,9 @@ function reHongbao(room,id) {
                                         type:'get'
                                     });
                                 }
-                                $('#dtTable').DataTable().ajax.reload(null,false)
-                            }
+                            }else
+                                Calert(data.msg,'red')
+                            $('#dtTable').DataTable().ajax.reload(null,false)
                         },
                         error:function (e) {
                             if(e.status == 403)

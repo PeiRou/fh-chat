@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Http\Controllers\Common\Reward;
 use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -233,6 +234,7 @@ class ChatSettingController extends Controller
 
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
+            $this->saveRedEnvelopeRedis($data['hongbao_total_amount'],$data['hongbao_total_num'],$data['hongbao_total_amount']/$data['hongbao_total_num']*4,$data['hongbao_total_amount']/$data['hongbao_total_num']*0.2);
             return $this->reHongbao($data['room_id'].'&'.$id);
         }else
             return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
@@ -249,6 +251,37 @@ class ChatSettingController extends Controller
         $res = $swoole->swooletest('hongbao',$room,$data);
         return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$res],200);
     }
+
+    /**
+     * 红包分割并存入redis
+     * @param $rewardMoney
+     * @param $rewardNum
+     * @param $max
+     * @param $min
+     */
+    public function saveRedEnvelopeRedis($total, $num, $max, $min){
+        #总共要发的红包金额，留出一个最大值;
+        $total = $total - $max;
+        $reward = new Reward();
+        $result_merge = $reward->splitReward($total, $num, $max - 0.01, $min);
+        sort($result_merge);
+        $result_merge[1] = $result_merge[1] + $result_merge[0];
+        $result_merge[0] = $max * 100;
+        $redWardArray = [];
+        $add = 0;
+        foreach ($result_merge as $v) {
+            $redWardArray[] = floor($v) / 100;
+            $add += floor($v) / 100;
+        }
+        shuffle($redWardArray);
+        var_dump($redWardArray,$add);die();
+//        return $result_merge;
+
+        $redis = Redis::connection();
+        $redis->select(1);
+    }
+
+
 
     //关闭红包
     public function closeHongbao($data){

@@ -292,8 +292,8 @@ class ChatSettingController extends Controller
                     $takeHongBao += $tmpAvg;
                 if($takeHongBao >= $remain_amount)
                     $takeHongBao = $tmpAvg;
-                $takeHongBao = round($takeHongBao,2);
             }
+            $takeHongBao = round($takeHongBao,2);
             $redWardArray[] = $takeHongBao;
             $remain_amount -= $takeHongBao;
         }
@@ -301,9 +301,10 @@ class ChatSettingController extends Controller
         shuffle($redWardArray);
         $redis = Redis::connection();
         $redis->select(9);      //聊天室红包
+        $redis->del('hb_'.$id);
         if(!$redis->exists('hb_'.$id)){
-            foreach ($redWardArray as $v){
-                $redis->SADD('hb_'.$id,$v);
+            foreach ($redWardArray as $k => $v){
+                $redis->SADD('hb_'.$id,$k.'-'.$v);
             }
         }
         return 1;

@@ -301,11 +301,13 @@ class ChatSettingController extends Controller
         shuffle($redWardArray);
         $redis = Redis::connection();
         $redis->select(9);      //聊天室红包
-        $redis->del('hb_'.$id);
         if(!$redis->exists('hb_'.$id)){
+            $sum = 0;
             foreach ($redWardArray as $k => $v){
                 $redis->SADD('hb_'.$id,$k.'-'.$v);
+                $sum += $v;
             }
+            \Log::info($sum);
         }
         return 1;
     }

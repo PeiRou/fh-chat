@@ -303,7 +303,6 @@ class ChatSettingController extends Controller
         $redis->select(9);      //聊天室红包
         if(!$redis->exists('hb_'.$id)){
             foreach ($redWardArray as $v){
-                echo $v.PHP_EOL;
                 $redis->SADD('hb_'.$id,$v);
             }
         }

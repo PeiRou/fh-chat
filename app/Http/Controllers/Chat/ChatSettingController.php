@@ -313,8 +313,9 @@ class ChatSettingController extends Controller
     public function closeHongbao($data){
         $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:疯抢中 2:已抢完 3:已关闭
         if($upd==1) {
-            Redis::select(1);
-            Redis::del('hbing'.$data);
+            $redis = Redis::connection();
+            $redis->select(1);
+            $redis->del('hbing'.$data);
             return response()->json(['status' => true], 200);
         }else
             return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);

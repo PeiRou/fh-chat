@@ -582,7 +582,14 @@ class Swoole extends Command
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
+        $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:$serv->get['plantype'];
         $canSend = false;//是否能发送
+
+        //判断统一杀率计画是否与
+        if($plantype=='guan'){
+            $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',0)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画
+            if(empty($res)) return;
+        }
 
         //判断是否可以发送
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();

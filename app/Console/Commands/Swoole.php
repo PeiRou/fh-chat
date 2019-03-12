@@ -582,7 +582,7 @@ class Swoole extends Command
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
-        $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:$serv->get['plantype'];
+        $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:(isset($serv->get['plantype'])?$serv->get['plantype']:'');
         $canSend = false;//是否能发送
 
         //判断统一杀率计画是否与

@@ -354,6 +354,9 @@ class ChatSettingController extends Controller
         $planSendGame = $request->input('planSendGameKSFT');                    //计划推送游戏-快速飞艇
         if($planSendGame=="on")
             $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."802";
+        $planSendGame = $request->input('planSendGameKSSSC');                    //计划推送游戏-快速时时彩
+        if($planSendGame=="on")
+            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."803";
         $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
         $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
         $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)

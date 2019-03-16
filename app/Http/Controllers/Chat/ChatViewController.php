@@ -79,6 +79,7 @@ class ChatViewController extends Controller
         $planSendGameMSSC = 0;         //秒速赛车
         $planSendGameKSSC = 0;         //快速赛车
         $planSendGameKSFT = 0;         //快速飞艇
+        $planSendGameKSSSC = 0;         //快速时时彩
 
         foreach ($plan_send_game as& $key){
             switch ($key){
@@ -100,6 +101,9 @@ class ChatViewController extends Controller
                 case 802:             //快速飞艇
                     $planSendGameKSFT = 1;
                     break;
+                case 803:             //快速时时彩
+                    $planSendGameKSSSC = 1;
+                    break;
 
             }
         }
@@ -110,6 +114,7 @@ class ChatViewController extends Controller
             ->with('JSKS',$planSendGameJSKS)
             ->with('MSSC',$planSendGameMSSC)
             ->with('KSSC',$planSendGameKSSC)
-            ->with('KSFT',$planSendGameKSFT);
+            ->with('KSFT',$planSendGameKSFT)
+            ->with('KSSSC',$planSendGameKSSSC);
     }
 }

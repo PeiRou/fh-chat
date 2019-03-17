@@ -68,6 +68,11 @@ return [
             'root' => storage_path('chatusrfd'),
         ],
 
+        'chatlogintime' => [
+            'driver' => 'local',
+            'root' => storage_path('chatlogintime'),
+        ],
+
         'hongbaoNum' => [
             'driver' => 'local',
             'root' => storage_path('hongbaoNum'),

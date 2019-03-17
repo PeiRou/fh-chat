@@ -158,22 +158,25 @@ class Swoole extends Command
         $this->ws->on('open', function ($ws, $request) {
             DB::disconnect();
             error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
-            try{
+            try {
                 $strParam = $request->server;
-                $strParam = explode("/",$strParam['request_uri']);      //房间号码
+                $strParam = explode("/", $strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
-                $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-                $this->sendToSerf($request->fd,14,'init');
-                if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
-                    return $this->sendToSerf($request->fd,3,'登陆失效');
-                $this->updUserInfo($request->fd,$iRoomInfo,$ws);        //成员登记他的房间号码
+                $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
+                $this->sendToSerf($request->fd, 14, 'init');
+                if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
+                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+                $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
 
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
                 $this->ws->push($request->fd, $msg);
-                //广播登陆信息
-                $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-                $this->sendToAll( $iRoomInfo['room'], $msg);
+                //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
+                if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
+                    Storage::disk('chatlogintime')->put(md5($iRoomInfo['userId']),time()+10800);
+                    $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
+                    $this->sendToAll($iRoomInfo['room'], $msg);
+                }
                 //检查历史讯息
                 $this->chkHisMsg($iRoomInfo,$request->fd);
                 //回传自己的基本设置

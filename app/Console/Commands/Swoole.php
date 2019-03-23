@@ -909,6 +909,7 @@ class Swoole extends Command
                 }
                 break;
         }
+        DB::disconnect();
     }
 
     //全局存LIST

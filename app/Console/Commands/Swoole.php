@@ -187,12 +187,10 @@ class Swoole extends Command
             }catch (\Exception $e){
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
-            DB::disconnect();
         });
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            DB::disconnect();
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -293,7 +291,6 @@ class Swoole extends Command
             }catch (\Exception $e){
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
-            DB::disconnect();
         });
         $this->ws->on('receive', function ($ws, $request) {
         });
@@ -909,7 +906,6 @@ class Swoole extends Command
                 }
                 break;
         }
-        DB::disconnect();
     }
 
     //全局存LIST

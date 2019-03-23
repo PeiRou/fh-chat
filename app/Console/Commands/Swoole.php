@@ -187,6 +187,7 @@ class Swoole extends Command
             }catch (\Exception $e){
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
+            DB::disconnect();
         });
 
         //监听WebSocket消息事件

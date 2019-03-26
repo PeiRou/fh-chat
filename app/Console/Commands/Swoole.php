@@ -794,7 +794,18 @@ class Swoole extends Command
         if(empty($userid))
             return false;
         //重新计算最近2天下注
-        $aUserBet = DB::table('bet')->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('bet_money');
+//        $aUserBet_his = DB::table('bet_his')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())]);
+//        $aUserBet = DB::table('bet')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->union($aUserBet_his)->first();
+        $aUserBet = DB::select("select sum(bet_money) from bet where user_id = :user_id1 and created_at between :cr_start1 and :cr_end1 union select sum(bet_money) from bet_his where user_id = :user_id2 and created_at between :cr_start2 and :cr_end2",
+            [
+                'user_id1'=>$userid,
+                'user_id2'=>$userid,
+                'cr_start1'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+                'cr_end1'=>date("Y-m-d H:i:s"),
+                'cr_start2'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+                'cr_end2'=>date("Y-m-d H:i:s")
+            ]);
+        $aUserBet = @$aUserBet[0]->aggregate;
         //重新计算最近2天充值
         $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
         DB::table('chat_users')->where('users_id',$userid)->update([

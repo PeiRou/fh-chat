@@ -794,7 +794,7 @@ class Swoole extends Command
         if(empty($userid))
             return false;
         //重新计算最近2天下注
-        $aUserBet = DB::table('bet')->join('bet_his', 'bet.bet_id', '=', 'bet_his.bet_id')->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('bet_money');
+        $aUserBet = DB::table('bet')->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('bet_money');
         //重新计算最近2天充值
         $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
         DB::table('chat_users')->where('users_id',$userid)->update([

@@ -86,6 +86,9 @@ class ChatSettingController extends Controller
             'is_speaking'=>$data[1]=="un"?0:1,
             'updated_at'=>date("Y-m-d H:i:s",time())
         ]);
+        $redis = Redis::connection();
+        $redis->select(1);
+        $redis->set('speak',$data[1]=="un"?"un":"on");
         return response()->json(['status'=>true],200);
     }
 

@@ -247,7 +247,7 @@ class Swoole extends Command
                     $redis = Redis::connection();
                     $redis->select(1);
                     if(!$redis->exists('speak') || $redis->get('speak')=='un')
-                        return $this->sendToSerf($request->fd,5,'此帐户已禁言');
+                        return $this->sendToSerf($request->fd,5,'当前聊天室处于禁言状态！');
                 }
                 //不广播被禁言的用户
                 if($iRoomInfo['noSpeak']==1)

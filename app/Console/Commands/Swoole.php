@@ -246,7 +246,7 @@ class Swoole extends Command
                     //如果全局禁言
                     $redis = Redis::connection();
                     $redis->select(1);
-                    if(!$redis->exists('speak') || $redis->get('speak')=='un')
+                    if($redis->exists('speak') && $redis->get('speak')=='un')
                         return $this->sendToSerf($request->fd,5,'当前聊天室处于禁言状态！');
                 }
                 //不广播被禁言的用户

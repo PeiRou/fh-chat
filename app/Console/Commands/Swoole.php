@@ -487,10 +487,15 @@ class Swoole extends Command
     }
     //检查如果与聊天室服务器断线，则取消发送信息
     private function push($fd,$msg,$room_id =1){
-        if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
+        try{
+            if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
+                $this->delAllkey($fd,'usr');   //删除用户
+            }else{
+                $this->ws->push($fd, $msg);
+            }
+        }catch (\Throwable $e){
             $this->delAllkey($fd,'usr');   //删除用户
-        }else{
-            $this->ws->push($fd, $msg);
+            writeLog('error', $e->getMessage());
         }
     }
 
@@ -1058,7 +1063,12 @@ class Swoole extends Command
                             $hisMsg['status'] = 2;
                     }
                     $msg = json_encode($hisMsg,JSON_UNESCAPED_UNICODE);
-                    $this->ws->push($fd, $msg);
+                    if(!$this->ws->connection_info($fd)) {
+                        $this->delAllkey($fd,'usr');   //删除用户
+                    }else{
+                        $this->ws->push($fd, $msg);
+                    }
+
                 }
             }
         }catch (\Exception $e){

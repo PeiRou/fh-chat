@@ -153,7 +153,6 @@ class Swoole extends Command
             ));
         }else
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',9501));
-
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             DB::disconnect();
@@ -187,6 +186,12 @@ class Swoole extends Command
             }catch (\Exception $e){
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
+        });
+
+        $this->ws->on('workerStart', function($ws){
+            \swoole_process::signal(SIGPIPE, function($signo) {
+                \swoole_process::signal(SIGPIPE, null);
+            });
         });
 
         //监听WebSocket消息事件

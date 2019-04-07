@@ -153,7 +153,6 @@ class Swoole extends Command
             ));
         }else
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',9501));
-
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             DB::disconnect();
@@ -187,6 +186,12 @@ class Swoole extends Command
             }catch (\Exception $e){
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
+        });
+
+        $this->ws->on('workerStart', function($ws){
+            \swoole_process::signal(SIGPIPE, function($signo) {
+                \swoole_process::signal(SIGPIPE, null);
+            });
         });
 
         //监听WebSocket消息事件
@@ -242,6 +247,12 @@ class Swoole extends Command
                                 return true;
                         }
                     }
+                }else{
+                    //如果全局禁言
+                    $redis = Redis::connection();
+                    $redis->select(1);
+                    if($redis->exists('speak') && $redis->get('speak')=='un')
+                        return $this->sendToSerf($request->fd,5,'当前聊天室处于禁言状态！');
                 }
                 //不广播被禁言的用户
                 if($iRoomInfo['noSpeak']==1)
@@ -476,10 +487,15 @@ class Swoole extends Command
     }
     //检查如果与聊天室服务器断线，则取消发送信息
     private function push($fd,$msg,$room_id =1){
-        if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
+        try{
+            if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
+                $this->delAllkey($fd,'usr');   //删除用户
+            }else{
+                $this->ws->push($fd, $msg);
+            }
+        }catch (\Throwable $e){
             $this->delAllkey($fd,'usr');   //删除用户
-        }else{
-            $this->ws->push($fd, $msg);
+            writeLog('error', $e->getMessage());
         }
     }
 
@@ -784,7 +800,11 @@ class Swoole extends Command
         if($isnot_auto_count==0)
             $aUsers-> chat_status = $betSpeak?$aUsers-> chat_status:1;
         //检查平台是否开放聊天
-        $aUsers->chat_status = $aUsers->is_speaking==1?$aUsers-> chat_status:1;
+        $aUsers->chat_status = $aUsers->is_speaking==1?$aUsers->chat_status:1;
+        if($uLv==99){   //管理员不受限制
+            $aUsers->is_speaking = 1;
+            $aUsers->chat_status = 0;
+        }
         $aUsers->level = $uLv;
         return $aUsers;
     }
@@ -794,7 +814,18 @@ class Swoole extends Command
         if(empty($userid))
             return false;
         //重新计算最近2天下注
-        $aUserBet = DB::table('bet')->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('bet_money');
+//        $aUserBet_his = DB::table('bet_his')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())]);
+//        $aUserBet = DB::table('bet')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->union($aUserBet_his)->first();
+        $aUserBet = DB::select("select sum(bet_money) as bet_money_all from bet where user_id = :user_id1 and created_at between :cr_start1 and :cr_end1 union select sum(bet_money) as bet_money_all from bet_his where user_id = :user_id2 and created_at between :cr_start2 and :cr_end2",
+            [
+                'user_id1'=>$userid,
+                'user_id2'=>$userid,
+                'cr_start1'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+                'cr_end1'=>date("Y-m-d H:i:s"),
+                'cr_start2'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+                'cr_end2'=>date("Y-m-d H:i:s")
+            ]);
+        $aUserBet = @$aUserBet[0]->bet_money_all;
         //重新计算最近2天充值
         $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
         DB::table('chat_users')->where('users_id',$userid)->update([
@@ -1032,7 +1063,12 @@ class Swoole extends Command
                             $hisMsg['status'] = 2;
                     }
                     $msg = json_encode($hisMsg,JSON_UNESCAPED_UNICODE);
-                    $this->ws->push($fd, $msg);
+                    if(!$this->ws->connection_info($fd)) {
+                        $this->delAllkey($fd,'usr');   //删除用户
+                    }else{
+                        $this->ws->push($fd, $msg);
+                    }
+
                 }
             }
         }catch (\Exception $e){

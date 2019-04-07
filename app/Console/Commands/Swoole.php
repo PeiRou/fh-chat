@@ -476,6 +476,12 @@ class Swoole extends Command
         if(!file_exists($docUrl))                   //如果资料夹不存在，则创建资料夹
             mkdir($docUrl);
 
+        $limit = strpos($img,';base64,');
+        $timgtype = '.'.substr($img,11,$limit-11);
+        if(!in_array(trim($timgtype, '.'), [
+            'png', 'jpeg', 'bmp', 'jpg'
+        ])) return false;
+
         \File::put(public_path(). $imageName, base64_decode($img));
     }
     //发消息给所有人

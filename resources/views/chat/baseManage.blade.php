@@ -54,6 +54,14 @@
                     <label>江苏快三&nbsp;</label>
                 </div>
                 <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" name="planSendGameXYFT" @if($XYFT == "1") checked="checked" @endif>
+                    <label>幸运飞艇&nbsp;</label>
+                </div>
+                <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" name="planSendGamePCDD" @if($PCDD == "1") checked="checked" @endif>
+                    <label>PC蛋蛋&nbsp;</label>
+                </div>
+                <div class="ui checkbox"style="margin-right: 5px">
                     <input type="checkbox" name="planSendGameKSSC" @if($KSSC == "1") checked="checked" @endif>
                     <label>快速赛车&nbsp;</label>
                 </div>

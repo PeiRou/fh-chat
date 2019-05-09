@@ -76,6 +76,8 @@ class ChatViewController extends Controller
         $planSendGamePK10 = 0;        //北京pk10
         $planSendGameCQSSC = 0;         //重庆时时彩
         $planSendGameJSKS = 0;         //江苏快三
+        $planSendGameXYFT = 0;         //幸运飞艇
+        $planSendGamePCDD = 0;         //PC蛋蛋
         $planSendGameMSSC = 0;         //秒速赛车
         $planSendGameKSSC = 0;         //快速赛车
         $planSendGameKSFT = 0;         //快速飞艇
@@ -91,6 +93,12 @@ class ChatViewController extends Controller
                     break;
                 case 10:             //江苏快三
                     $planSendGameJSKS = 1;
+                    break;
+                case 55:             //幸运飞艇
+                    $planSendGameXYFT = 1;
+                    break;
+                case 66:             //PC蛋蛋
+                    $planSendGamePCDD = 1;
                     break;
                 case 80:             //秒速赛车
                     $planSendGameMSSC = 1;
@@ -112,6 +120,8 @@ class ChatViewController extends Controller
             ->with('PK10',$planSendGamePK10)
             ->with('CQSSC',$planSendGameCQSSC)
             ->with('JSKS',$planSendGameJSKS)
+            ->with('XYFT',$planSendGameXYFT)
+            ->with('PCDD',$planSendGamePCDD)
             ->with('MSSC',$planSendGameMSSC)
             ->with('KSSC',$planSendGameKSSC)
             ->with('KSFT',$planSendGameKSFT)

@@ -29,6 +29,7 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/delRoleInfo/{id}', 'Chat\ChatSettingController@delRoleInfo');          //删除角色管理
         Route::post('/chat/action/updRoomInfo', 'Chat\ChatSettingController@updRoomInfo');               //修改房间信息
         Route::post('/chat/action/unSpeakRoom/{id}', 'Chat\ChatSettingController@unSpeakRoom');          //禁言房间
+        Route::post('/chat/action/openAutoRoom/{id}', 'Chat\ChatSettingController@openAutoRoom');        //是否开启快速加入
         Route::post('/chat/action/onTestSpeakRoom/{id}', 'Chat\ChatSettingController@onTestSpeakRoom');    //开放测试帐号聊天
         Route::post('/chat/action/updNoteInfo', 'Chat\ChatSettingController@updNoteInfo');               //修改聊天室公告
         Route::post('/chat/action/delNoteInfo/{id}', 'Chat\ChatSettingController@delNoteInfo');          //删除聊天室公告
@@ -56,6 +57,8 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('chat/modal/addHongbao', 'Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
         Route::get('chat/modal/manualPlan', 'Chat\Ajax\ModalController@manualPlan');                //显示手动发送计画任务-弹窗表单
         Route::get('/chat/modal/googleSubAccount/{id}', 'Chat\Ajax\ModalController@googleSubAccount');  //子账号google验证码
+        Route::get('/chat/modal/getRoomType', 'Chat\Ajax\ModalController@getRoomType');                   //获取房间类型
+        Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                   //取得计画任务彩种
 
     //datatable
         Route::get('/chat/datatables/user', 'Chat\Data\DataController@userManage');          // 会员管理-表格数据

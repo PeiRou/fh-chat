@@ -6,6 +6,36 @@
         </div>
     </div>
     <div class="field">
+        <label>房间类型</label>
+        <div class="ui input icon">
+            @if($roomType == 1)
+                <input type="text" name=""  placeholder="" value="{{$roomTypes[1]}}" disabled="disabled"/>
+            @else
+            <select name="roomType">
+                    @foreach($roomTypes as $item => $itemname)
+                        @if($item == $roomType)
+                            <option  value="{{ $item }}" selected="selected">{{ $itemname }}</option>
+                        @elseif($item != 1)
+                            <option  value="{{ $item }}">{{ $itemname }}</option>
+                        @endif
+                    @endforeach
+            </select>
+            @endif
+        </div>
+    </div>
+    <div class="inline field">
+        <label>计划推送游戏</label>
+        <br>
+        <div class="ui input icon">
+            @foreach($lotterys as $item => $itemname)
+                <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
+                    <label>{{$itemname}}&nbsp;</label>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    <div class="field">
         <label>充值要求</label>
         <div class="ui input icon">
             <input type="text" name="rech"  placeholder="" value="{{ $rech }}"/>
@@ -17,7 +47,6 @@
             <input type="text" name="bet"  placeholder="" value="{{ $bet }}"/>
         </div>
     </div>
-
     <input type="hidden" value="{{ $id }}" name="id">
 </form>
 

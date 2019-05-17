@@ -92,6 +92,18 @@ class ChatSettingController extends Controller
         return response()->json(['status'=>true],200);
     }
 
+    //是否开启快速加入
+    public function openAutoRoom($data)
+    {
+        $data = explode("&",$data);
+
+        DB::table('chat_room')->where('room_id',$data[0])->update([
+            'is_auto'=>$data[1]=="un"?0:1,
+            'updated_at'=>date("Y-m-d H:i:s",time())
+        ]);
+        return response()->json(['status'=>true],200);
+    }
+
     //开放测试帐号聊天
     public function onTestSpeakRoom($data)
     {

@@ -9,6 +9,30 @@ use Illuminate\Support\Facades\Session;
 
 class ModalController extends Controller
 {
+    private $lottery = array(
+        '50'=>'北京赛车',
+        '1'=>'重庆时时彩',
+        '10'=>'江苏快三',
+        '55'=>'幸运飞艇',
+        '66'=>'PC蛋蛋',
+        '801'=>'快速赛车',
+        '802'=>'快速飞艇',
+        '803'=>'快速时时彩');
+
+    private $roomType = array(
+        '1'=>'平台聊天室',
+        '2'=>'多人聊天室',
+//        '3'=>'1对1'
+    );
+
+    //取得计画任务彩种
+    public function getLottery(){
+        return json_encode($this->lottery);
+    }
+    //获取房间类型
+    public function getRoomType(){
+        return json_encode($this->roomType);
+    }
     //显示修改聊天室用户信息-弹窗表单
     public function editUserLevel($data)
     {
@@ -42,7 +66,8 @@ class ModalController extends Controller
     public function editRoomLimit($data)
     {
         $data = explode("&",$data);
-        return view('modal.editRoomLimit')->with('id',$data[0])->with('name',$data[1])->with('rech',$data[2])->with('bet',$data[3]);
+        $games = isset($data[5])?array_flip(explode(",",$data[5])):array();
+        return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType);
     }
     //显示修改聊天室公告-弹窗表单
     public function editNoteInfo($data)

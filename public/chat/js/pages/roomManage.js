@@ -4,6 +4,22 @@
 $(function () {
     $('#menu-roomManage').addClass('active');
 
+    var lottery;
+    var roomType;
+    $.ajax({
+        url :'/chat/modal/getLottery',
+        type: 'GET',
+        success: function(result) {
+            lottery = jQuery.parseJSON(result);
+        }
+    });
+    $.ajax({
+        url :'/chat/modal/getRoomType',
+        type: 'GET',
+        success: function(result) {
+            roomType = jQuery.parseJSON(result);
+        }
+    });
     dataTable = $('#dtTable').DataTable({
         searching: false,
         ordering:false,     //禁止排序
@@ -17,16 +33,11 @@ $(function () {
         columns: [
             {data:'room_name'},              //房间名称
             {data:function(data){            //房间类型
-                    var repTxt = "";
-                    switch(parseInt(data.roomtype)){
-                        case 1:
-                            repTxt = "平台聊天室";
-                            break;
-                    }
-                return '<font color="blue">'+repTxt+'</font>';
+                return '<font color="blue">'+roomType[data.roomtype]+'</font>';
                 }},
-            {data:function(){                //在线人数
-                return 0
+            {data:function(data){                //在线人数
+                var sa = data.chat_sas==""?0:(data.chat_sas.split(",")).length;
+                return " 0 / 0 / "+sa+" ";
                 }},
             {data:function(data){              //是否禁言 is_speaking
                 if(data.is_speaking=="1") {
@@ -40,11 +51,33 @@ $(function () {
                 }
                 return '<span class="status-'+clsName+'"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
                 }},
+            {data:function(data){              //是否开启快速加入 is_auto
+                if(data.is_auto=="1") {
+                    txt = '开启';
+                    fontcolor = '&#xe652;';
+                    clsName = 1;      //绿色
+                }else {
+                    txt = '关闭';
+                    fontcolor = '&#xe672;';
+                    clsName = 3;      //红色
+                }
+                return '<span class="status-'+clsName+'"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
+                }},
             {data:function(data){              //发言条件
                 return '充值量不少于'+data.recharge +';打码量不少于'+data.bet;
                 }},
-            {data:function () {              //创建时间
-                return "";
+            {data:function (data) {              //计划推送游戏
+                var games = data.planSendGame.split(",");
+                var repTxt = [];
+                if(data.planSendGame!=""){
+                    $.each(games, function (index, value) {
+                        repTxt.push(lottery[value]);
+                    });
+                }
+                return repTxt.join(',');
+                }},
+            {data:function (data) {              //创建时间
+                return data.updated_at;
                 }},
             {data: function (data) {
                     if(parseInt(data.is_speaking)==1){
@@ -61,9 +94,18 @@ $(function () {
                         testExe = 'on';
                         testTxt = '开放测试帐号自动发言';
                     }
+                    if(parseInt(data.is_auto)==1){
+                        autoexe = 'un';
+                        autotxt = '关闭快速加入';
+                    }else{
+                        autoexe = 'on';
+                        autotxt = '开启快速加入';
+                    }
                     return "<ul class='control-menu'>" +
-                        "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.recharge+","+data.bet+")'>修改</li>" +
+                        "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.roomtype+","+data.recharge+","+data.bet+",\""+data.planSendGame+"\")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
+                        "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>" +
+                        "<li onclick='invUser("+data.room_id+")'>管理用户</li>" +
                         "<li onclick='openTestAccount("+data.room_id+",\""+testExe+"\")'>"+testTxt+"</li>" +
                         "</ul>";
                 }}
@@ -85,14 +127,13 @@ $(function () {
 });
 
 //修改房间发言条件
-function updRoomInfo(id,name,rech,bet) {
+function updRoomInfo(id,name,type,rech,bet,games) {
     jc = $.confirm({
         theme: 'material',
         title: '修改房间信息',
         closeIcon:true,
-        boxWidth:'20%',
-        content: 'url:/chat/modal/editRoomLimit/'+id+'&'+name+'&'+rech+'&'+bet,
-
+        boxWidth:'60%',
+        content: 'url:/chat/modal/editRoomLimit/'+id+'&'+name+'&'+type+'&'+rech+'&'+bet+'&'+games,
         buttons: {
             confirm: {
                 text: '确定提交',
@@ -164,6 +205,49 @@ function unSpeakRoom(id,status) {
 }
 
 //执行禁言
+function openAutoRoom(id,status) {
+    if(status=="on"){
+        txt = '开启';
+    }else{
+        txt = '关闭';
+    }
+    jc = $.confirm({
+        title: '提示',
+        theme: 'material',
+        type: 'red',
+        boxWidth:'25%',
+        content: '确定要对房间'+txt+'快速加入吗？',
+        buttons: {
+            confirm: {
+                text:'确定',
+                btnClass: 'btn-red',
+                action: function(){
+                    $.ajax({
+                        url:'/chat/action/openAutoRoom/'+id+'&'+status,
+                        type:'post',
+                        dataType:'json',
+                        success:function (data) {
+                            if(data.status == true){
+                                $('#dtTable').DataTable().ajax.reload(null,false)
+                            }
+                        },
+                        error:function (e) {
+                            if(e.status == 403)
+                            {
+                                Calert('您没有此项权限！无法继续！','red')
+                            }
+                        }
+                    });
+                }
+            },
+            cancel:{
+                text:'取消'
+            }
+        }
+    });
+}
+
+//执行禁言
 function openTestAccount(id,status) {
     if(status=="on"){
         txt = '开放';
@@ -201,6 +285,41 @@ function openTestAccount(id,status) {
             },
             cancel:{
                 text:'取消'
+            }
+        }
+    });
+}
+
+//新增房间信息
+function addRoom() {
+    jc = $.confirm({
+        theme: 'material',
+        title: '添加房间',
+        closeIcon:true,
+        boxWidth:'60%',
+        content: 'url:/chat/modal/editRoomLimit/0',
+        buttons: {
+            confirm: {
+                text: '提交',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var form = this.$content.find('#updUserForm').data('formValidation').validate().isValid();
+                    if(!form){
+                        return false;
+                    }
+                    return false;
+                }
+            },
+            cancel: {
+                text:'关闭'
+            }
+        },
+        contentLoaded: function(data, status, xhr){
+            $('.jconfirm-content').css('overflow','hidden');
+            if(xhr == 'Forbidden')
+            {
+                this.setContent('<div class="modal-error"><span class="error403">403</span><br><span>您无权进行此操作</span></div>');
+                $('.jconfirm-buttons').hide();
             }
         }
     });

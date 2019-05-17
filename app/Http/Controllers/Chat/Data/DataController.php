@@ -95,7 +95,7 @@ class DataController extends Controller
     //房间管理-表格数据
     public function roomManage()
     {
-        $users = DB::table('chat_room')->get();
+        $users = DB::table('chat_room')->whereIn('roomtype',[1,2])->get();
         return DataTables::of($users)
             ->make(true);
     }

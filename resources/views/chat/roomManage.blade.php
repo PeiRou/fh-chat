@@ -11,6 +11,9 @@
         .layui-layer-msg, .layui-laydate{
             z-index: 999999999999!important;
         }
+        .pointer{
+            cursor:pointer;
+        }
     </style>
     <div class="table-content">
         <table id="dtTable" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">

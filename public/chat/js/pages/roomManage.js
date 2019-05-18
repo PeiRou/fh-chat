@@ -73,7 +73,7 @@ $(function () {
                     fontcolor = '&#xe672;';
                     clsName = 3;      //红色
                 }
-                return '<span class="status-'+clsName+'" onclick="is_open('+data.room_id+','+data.is_open+')"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
+                return '<span class="status-'+clsName+' pointer" onclick="is_open('+data.room_id+','+data.is_open+')"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
                 }},
             {data:function(data){              //发言条件
                 return '充值量不少于'+data.recharge +';打码量不少于'+data.bet;
@@ -407,6 +407,7 @@ function invAdmin(id)
         },
     });
 }
+//进入房间
 function addthis(id, user_id)
 {
     $.ajax({

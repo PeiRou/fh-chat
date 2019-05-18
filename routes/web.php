@@ -31,7 +31,8 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/addRoomUser', 'Chat\ChatSettingController@addRoomUser');               //添加房间会员
         Route::post('/chat/action/addRoomAdmin', 'Chat\ChatSettingController@addRoomAdmin');               //添加房间管理员
         Route::post('/chat/action/deleteUser', 'Chat\ChatSettingController@deleteUser');                 //踢掉房间会员
-        Route::post('/chat/action/delAdmin', 'Chat\ChatSettingController@delAdmin');                 //删除管理
+        Route::post('/chat/action/delAdmin', 'Chat\ChatSettingController@delAdmin');                     //删除管理
+        Route::post('/chat/action/delRoom', 'Chat\ChatSettingController@delRoom');                     //删除房间
         Route::post('/chat/action/unSpeakRoom/{id}', 'Chat\ChatSettingController@unSpeakRoom');          //禁言房间
         Route::post('/chat/action/openAutoRoom/{id}', 'Chat\ChatSettingController@openAutoRoom');        //是否开启快速加入
         Route::post('/chat/action/onTestSpeakRoom/{id}', 'Chat\ChatSettingController@onTestSpeakRoom');    //开放测试帐号聊天

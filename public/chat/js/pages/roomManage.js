@@ -113,12 +113,21 @@ $(function () {
                         autoexe = 'on';
                         autotxt = '开启快速加入';
                     }
+                    var invUser = '';
+                    if(data.room_id !== '1'){
+                        invUser = "<li onclick='invUser("+data.room_id+")'>管理用户</li>";
+                    }
+                    var delRoom = '';
+                    if(data.room_id !== '1' && data.room_id !== '2' && data.room_id !== '3'){
+                        delRoom = "<li onclick='delRoom("+data.room_id+")'>删除</li>";
+                    }
+
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.roomtype+","+data.recharge+","+data.bet+",\""+data.planSendGame+"\")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
                         "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>" +
-                        "<li onclick='invUser("+data.room_id+")'>管理用户</li>" +
-                        "<li onclick='invAdmin("+data.room_id+")'>管理管理</li>" +
+                        invUser + delRoom +
+                        "<li onclick='invAdmin("+data.room_id+")'>管理设置</li>" +
                         "<li onclick='openTestAccount("+data.room_id+",\""+testExe+"\")'>"+testTxt+"</li>" +
                         "</ul>";
                 }}
@@ -372,12 +381,12 @@ function invUser(id)
         },
     });
 }
-//管理管理
+//管理设置
 function invAdmin(id)
 {
     jc = $.confirm({
         theme: 'material',
-        title: '管理管理',
+        title: '管理设置',
         closeIcon:true,
         boxWidth:'60%',
         content: 'url:/chat/modal/editRoomAdmins/'+id,
@@ -510,7 +519,6 @@ function is_open(roomId, is_open){
         },
     })
 }
-
 //踢出房间
 function deleteUser(roomId, user_id){
     var data = {
@@ -559,6 +567,34 @@ function delAdmin(roomId, user_id){
             layer.close(lading);
             if(e.status == true){
                 $('#admins').DataTable().ajax.reload()
+                $('#dtTable').DataTable().ajax.reload()
+            }else{
+                layer.msg(e.msg);
+            }
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
+}
+//删除房间
+function delRoom(roomId){
+    var data = {
+        roomId:roomId,
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/delRoom',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            if(e.status == true){
                 $('#dtTable').DataTable().ajax.reload()
             }else{
                 layer.msg(e.msg);

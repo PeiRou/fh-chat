@@ -19,7 +19,7 @@ class Base extends Model
     {
         try {
             if (empty($update)) {
-                throw new \Exception("数据不能为空");
+                return false;
             }
             $tableName = $table; // 表名
             $firstRow  = current($update);

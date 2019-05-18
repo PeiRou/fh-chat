@@ -10,6 +10,46 @@ class ChatRoom extends Base
     protected $table = 'chat_room';
 
     /**
+     * 删除房间
+     * @param $roomId
+     */
+    public static function delRoom($roomId)
+    {
+        try{
+            DB::beginTransaction();
+            # 删除所有在这个房间的用户映射
+            self::delUserRoom($roomId);
+            # 删除房间所有人
+            $model = ChatRoomDt::where('id', $roomId);
+            $model->delete();
+            self::where('room_id', $roomId)->delete();
+            DB::commit();
+            return true;
+        }catch (\Throwable $e){
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * 删除所有在这个房间的用户映射
+     */
+    public static function delUserRoom($roomId)
+    {
+        # 找出所有在这个房间的用户映射
+        $arr = ChatUsers::whereRaw('FIND_IN_SET("'.$roomId.'",rooms)')->pluck('rooms', 'users_id');
+        $data = [];
+        foreach ($arr as $k=>$v){
+            $data[] = [
+                'users_id' => $k,
+                'rooms' => trim(implode(',', array_unique(array_diff($users = explode(',', $v), [$roomId]))), ',')
+            ];
+        }
+        # 组成数组一次性修改所有的房间
+        return self::batchUpdate($data, 'users_id', 'chat_users');
+    }
+
+    /**
      * 加入房间
      * @param $roomId 房间id
      * @param array $param where数组
@@ -27,7 +67,7 @@ class ChatRoom extends Base
             $rooms = explode(',', $user->rooms);
             array_push($rooms, $roomId);
             $uModel->update([
-                'rooms' => trim(implode(',', $rooms), ',')
+                'rooms' => trim(implode(',', array_unique($rooms)), ',')
             ]);
 
             # 加入房间
@@ -66,14 +106,10 @@ class ChatRoom extends Base
             $rooms = explode(',', $user->rooms);
             $rooms = array_diff($rooms, [$roomId]);
             $uModel->update([
-                'rooms' => trim(implode(',', $rooms), ',')
+                'rooms' => trim(implode(',', array_unique($rooms)), ',')
             ]);
 
             # 退出房间
-            $data = [
-                'id' => $roomId,
-                'user_id' => $user->users_id,
-            ];
             ChatRoomDt::where('id', $roomId)->where('user_id', $user->users_id)->delete();
             DB::commit();
             return true;
@@ -145,6 +181,5 @@ class ChatRoom extends Base
         # 组成数组一次性修改所有的房间
         return self::batchUpdate($data, 'room_id', 'chat_room');
     }
-
 
 }

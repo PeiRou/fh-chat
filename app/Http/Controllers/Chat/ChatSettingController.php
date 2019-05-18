@@ -552,5 +552,28 @@ class ChatSettingController extends Controller
             'msg'=> 'error'
         ]);
     }
+    //删除房间
+    public function delRoom(Request $request)
+    {
+        if(!($request->roomId = (int)$request->roomId)){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'参数错误'
+            ]);
+        }
+        try{
+            ChatRoom::delRoom($request->roomId);
+            return response()->json([
+                'status'=>true,
+            ]);
+        }catch (\Throwable $e){
+            writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+            return response()->json([
+                'status'=>false,
+                'msg'=> 'error'
+            ]);
+        }
+
+    }
 
 }

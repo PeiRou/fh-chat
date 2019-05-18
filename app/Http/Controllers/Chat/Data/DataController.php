@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Chat\Data;
 
 use App\Http\Controllers\Chat\ChatAccountController;
+use App\Model\ChatRoom;
+use App\Model\ChatUsers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Yajra\DataTables\Contracts\DataTable;
@@ -247,5 +249,82 @@ class DataController extends Controller
                 return $length;
             })
             ->make(true);
+    }
+
+    //
+    public function roomUsers(Request $request, $id)
+    {
+        $model = DB::table('chat_room_dt')->where(function($sql) use($request){
+
+        });
+        $model->where('id', $id);
+        if(isset($request->start, $request->length))
+            $model->skip($request->start)->take($request->length);
+        $resCount = $model->count();
+
+        $res = $model->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($res)
+            ->editColumn('control',function ($res)use($id){
+                return '<ul class="control-menu"><li onclick="deleteUser('.$id.','.$res->user_id.')">删除</li></ul>';
+            })
+            ->setTotalRecords($resCount)
+            ->rawColumns(['control'])
+            ->skipPaging()
+            ->make();
+    }
+
+    public function roomSearchUsers(Request $request, $id)
+    {
+        //查找已经在的
+        $request->user_list = DB::table('chat_room_dt')->where('id', $id)->pluck('user_id')->toArray();
+        extract(ChatUsers::SearchUsers($request));
+
+        return DataTables::of($res)
+            ->editColumn('control',function ($res)use($id){
+                return '<ul class="control-menu"><li onclick="addthis('.$id.','.$res->users_id.')">添加</li></ul>';
+            })
+            ->setTotalRecords($resCount)
+            ->rawColumns(['control'])
+            ->skipPaging()
+            ->make();
+    }
+    public function roomSearchAdmins(Request $request, $id)
+    {
+        //查找已经在的
+        $request->user_list = explode(',', DB::table('chat_room')->where('room_id', $id)->value('chat_sas') ?? '');
+        $request->level = 99;
+        extract(ChatUsers::SearchUsers($request));
+
+        return DataTables::of($res)
+            ->editColumn('control',function ($res)use($id){
+                return '<ul class="control-menu"><li onclick="addthisAdmin('.$id.','.$res->users_id.')">添加</li></ul>';
+            })
+            ->setTotalRecords($resCount)
+            ->rawColumns(['control'])
+            ->skipPaging()
+            ->make();
+    }
+
+    //管理管理 - 表格数据
+    public function roomAdmins(Request $request, $id)
+    {
+        $admins = ChatRoom::where('room_id', $id)->value('chat_sas');
+
+        $model = DB::table('chat_users')
+            ->select('username as user_name', 'users_id')
+            ->whereIn('users_id', explode(',', $admins));
+        if(isset($request->start, $request->length))
+            $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
+        $resCount = $model->count();
+        $res = $model->orderBy('created_at', 'desc')->get();
+        return DataTables::of($res)
+            ->editColumn('control',function ($res)use($id){
+                return '<ul class="control-menu"><li onclick="delAdmin('.$id.','.$res->users_id.')">删除</li></ul>';
+            })
+            ->setTotalRecords($resCount)
+            ->rawColumns(['control'])
+            ->skipPaging()
+            ->make();
     }
 }

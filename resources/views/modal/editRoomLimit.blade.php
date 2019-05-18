@@ -29,7 +29,7 @@
         <div class="ui input icon">
             @foreach($lotterys as $item => $itemname)
                 <div class="ui checkbox"style="margin-right: 5px">
-                    <input type="checkbox" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
+                    <input type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
                     <label>{{$itemname}}&nbsp;</label>
                 </div>
             @endforeach

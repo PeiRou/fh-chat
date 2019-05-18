@@ -63,6 +63,18 @@ $(function () {
                 }
                 return '<span class="status-'+clsName+'"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
                 }},
+            {data:function(data){              //是否关闭
+                if(data.is_open=="1") {
+                    txt = '开启';
+                    fontcolor = '&#xe652;';
+                    clsName = 1;      //绿色
+                }else {
+                    txt = '关闭';
+                    fontcolor = '&#xe672;';
+                    clsName = 3;      //红色
+                }
+                return '<span class="status-'+clsName+'" onclick="is_open('+data.room_id+','+data.is_open+')"><i class="iconfont">'+fontcolor+'</i> '+txt+'</span>';
+                }},
             {data:function(data){              //发言条件
                 return '充值量不少于'+data.recharge +';打码量不少于'+data.bet;
                 }},
@@ -106,6 +118,7 @@ $(function () {
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
                         "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>" +
                         "<li onclick='invUser("+data.room_id+")'>管理用户</li>" +
+                        "<li onclick='invAdmin("+data.room_id+")'>管理管理</li>" +
                         "<li onclick='openTestAccount("+data.room_id+",\""+testExe+"\")'>"+testTxt+"</li>" +
                         "</ul>";
                 }}
@@ -323,4 +336,236 @@ function addRoom() {
             }
         }
     });
+}
+//管理用户
+function invUser(id)
+{
+    jc = $.confirm({
+        theme: 'material',
+        title: '管理用户',
+        closeIcon:true,
+        boxWidth:'60%',
+        content: 'url:/chat/modal/editRoomUsers/'+id,
+        buttons: {
+            add: {
+                text:'添加',
+                btnClass: 'btn-blue',
+                action: function () {
+                    jcadd = $.confirm({
+                        theme: 'material',
+                        title: '搜索用户',
+                        closeIcon:true,
+                        boxWidth:'40%',
+                        content: 'url:/chat/modal/editRoomSearchUsers/'+id,
+                        buttons: {
+                            cancel: {
+                                text:'关闭'
+                            },
+                        },
+                    });
+                    return false;
+                }
+            },
+            cancel: {
+                text:'关闭'
+            },
+        },
+    });
+}
+//管理管理
+function invAdmin(id)
+{
+    jc = $.confirm({
+        theme: 'material',
+        title: '管理管理',
+        closeIcon:true,
+        boxWidth:'60%',
+        content: 'url:/chat/modal/editRoomAdmins/'+id,
+        buttons: {
+            add: {
+                text:'添加',
+                btnClass: 'btn-blue',
+                action: function () {
+                    jcadd = $.confirm({
+                        theme: 'material',
+                        title: '搜索管理',
+                        closeIcon:true,
+                        boxWidth:'40%',
+                        content: 'url:/chat/modal/editRoomSearchAdmins/'+id,
+                        buttons: {
+                            cancel: {
+                                text:'关闭'
+                            },
+                        },
+                    });
+                    return false;
+                }
+            },
+            cancel: {
+                text:'关闭'
+            },
+        },
+    });
+}
+function addthis(id, user_id)
+{
+    $.ajax({
+        url:'/chat/action/addRoomUser',
+        type:'post',
+        data:{
+            user_id:user_id,
+            id:id
+        },
+        dataType:'json',
+        success:function (data) {
+            if(data.status == true){
+                $('#users').DataTable().ajax.reload()
+                $('#sarchUsers').DataTable().ajax.reload()
+            }else{
+                $.alert({
+                    icon: 'warning sign icon',
+                    type: 'red',
+                    title: '提示',
+                    content: data.msg,
+                    boxWidth: '20%',
+                    buttons: {
+                        ok: {
+                            text:'确定',
+                        }
+                    }
+                });
+            }
+        },
+        error:function (e) {
+            if(e.status == 403)
+            {
+                Calert('您没有此项权限！无法继续！','red')
+            }
+        }
+    });
+}
+//添加管理
+function addthisAdmin(roomId, user_id)
+{
+    $.ajax({
+        url:'/chat/action/addRoomAdmin',
+        type:'post',
+        data:{
+            user_id:user_id,
+            roomId:roomId
+        },
+        dataType:'json',
+        success:function (data) {
+            if(data.status == true){
+                $('#admins').DataTable().ajax.reload()
+                $('#sarchAdmins').DataTable().ajax.reload()
+                $('#dtTable').DataTable().ajax.reload(null,false)
+            }else{
+                $.alert({
+                    icon: 'warning sign icon',
+                    type: 'red',
+                    title: '提示',
+                    content: data.msg,
+                    boxWidth: '20%',
+                    buttons: {
+                        ok: {
+                            text:'确定',
+                        }
+                    }
+                });
+            }
+        },
+        error:function (e) {
+            if(e.status == 403)
+            {
+                Calert('您没有此项权限！无法继续！','red')
+            }
+        }
+    });
+}
+//是否开关
+function is_open(roomId, is_open){
+    var data = {
+        id:roomId,
+        is_open:is_open
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/updRoomInfo',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            if(e.status == true)
+                $('#dtTable').DataTable().ajax.reload(null,false)
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
+}
+
+//踢出房间
+function deleteUser(roomId, user_id){
+    var data = {
+        roomId:roomId,
+        user_id:user_id
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/deleteUser',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            if(e.status == true){
+                $('#users').DataTable().ajax.reload()
+            }else{
+                layer.msg(e.msg);
+            }
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
+}
+//删除管理
+function delAdmin(roomId, user_id){
+    var data = {
+        roomId:roomId,
+        user_id:user_id
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/delAdmin',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            if(e.status == true){
+                $('#admins').DataTable().ajax.reload()
+                $('#dtTable').DataTable().ajax.reload()
+            }else{
+                layer.msg(e.msg);
+            }
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
 }

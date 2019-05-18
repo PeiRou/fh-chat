@@ -1,28 +1,30 @@
-<div style="padding: 0 30px 0 0">
-    <table id="users" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
+<div style="padding: 0 30px 0 0; min-height: 80vh;">
+    <table id="sarchUsers" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
         <thead>
         </thead>
     </table>
 </div>
 <script>
+    $('#sarchUsers').parent().parent().parent('.jconfirm-content').css({"overflow":"initial"});
     $(function(){
-        $('#users').DataTable({
-            searching: false,
+        $('#sarchUsers').DataTable({
+            searching: true,
             ordering:false,     //禁止排序
             bLengthChange: false,
+            "paging": false, // 禁止分页
             processing: true,
             serverSide: true,
             ajax: {
-                url :'/chat/datatables/roomUsers/{{ request()->id }}',
+                url :'/chat/datatables/roomSearchUsers/{{ request()->id }}',
                 data:{}
             },
             columns: [
-                {data:'user_name', title:'账号'},              //房间名称
-                {data:'control', title:'操作'},
+                {data:'username', title:'账号'},              //房间名称
+                {data:'control', title:'操作',"searchable": false,width:'15%'},
             ],
             language: {
                 "zeroRecords": "暂无数据",
-                "info": "当前显示第 _PAGE_ 页，共 _PAGES_ 页",
+                "info": "",
                 "infoEmpty": "没有记录",
                 "loadingRecords": "请稍后...",
                 "processing":     "读取中...",

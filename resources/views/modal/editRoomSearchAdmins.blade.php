@@ -1,13 +1,13 @@
 <div style="padding: 0 30px 0 0; min-height: 80vh;">
-    <table id="sarchUsers" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
+    <table id="sarchAdmins" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
         <thead>
         </thead>
     </table>
 </div>
 <script>
-    $('#sarchUsers').parent().parent().parent('.jconfirm-content').css({"overflow":"initial"});
+    $('#sarchAdmins').parent().parent().parent('.jconfirm-content').css({"overflow":"initial"});
     $(function(){
-        $('#sarchUsers').DataTable({
+        $('#sarchAdmins').DataTable({
             searching: true,
             ordering:false,     //禁止排序
             bLengthChange: false,
@@ -15,7 +15,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url :'/chat/datatables/roomSearchUsers/{{ request()->id }}',
+                url :'/chat/datatables/roomSearchAdmins/{{ request()->id }}',
                 data:{}
             },
             columns: [

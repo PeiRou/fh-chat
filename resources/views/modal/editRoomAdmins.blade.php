@@ -1,5 +1,5 @@
 <div style="padding: 0 30px 0 0">
-    <table id="users" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
+    <table id="admins" class="ui small table" cellspacing="0" width="100%" style="table-layout:fixed">
         <thead>
         </thead>
     </table>
@@ -7,14 +7,14 @@
 <script>
     var users;
     $(function(){
-        users = $('#users').DataTable({
+        users = $('#admins').DataTable({
             searching: false,
             ordering:false,     //禁止排序
             bLengthChange: false,
             processing: true,
             serverSide: true,
             ajax: {
-                url :'/chat/datatables/roomUsers/{{ request()->id }}',
+                url :'/chat/datatables/roomAdmins/{{ request()->id }}',
                 data:{}
             },
             columns: [

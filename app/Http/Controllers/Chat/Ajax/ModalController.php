@@ -136,4 +136,21 @@ class ModalController extends Controller
         $qrCodeUrl = $ga->getQRCodeGoogleUrl('chat_'.$account,$google_code,null,['chs'=>'300x300']);
         return view('modal.member.subAccountGoogleCode',compact('qrCodeUrl','subAccountId','account','google_code'));
     }
+
+    public function editRoomUsers()
+    {
+        return view('modal.editRoomUsers');
+    }
+    public function editRoomSearchUsers()
+    {
+        return view('modal.editRoomSearchUsers');
+    }
+    public function editRoomAdmins()
+    {
+        return view('modal.editRoomAdmins');
+    }
+    public function editRoomSearchAdmins()
+    {
+        return view('modal.editRoomSearchAdmins');
+    }
 }

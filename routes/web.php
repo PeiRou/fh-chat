@@ -28,6 +28,10 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/updRoleInfo', 'Chat\ChatSettingController@updRoleInfo');               //修改角色管理
         Route::post('/chat/action/delRoleInfo/{id}', 'Chat\ChatSettingController@delRoleInfo');          //删除角色管理
         Route::post('/chat/action/updRoomInfo', 'Chat\ChatSettingController@updRoomInfo');               //修改房间信息
+        Route::post('/chat/action/addRoomUser', 'Chat\ChatSettingController@addRoomUser');               //添加房间会员
+        Route::post('/chat/action/addRoomAdmin', 'Chat\ChatSettingController@addRoomAdmin');               //添加房间管理员
+        Route::post('/chat/action/deleteUser', 'Chat\ChatSettingController@deleteUser');                 //踢掉房间会员
+        Route::post('/chat/action/delAdmin', 'Chat\ChatSettingController@delAdmin');                 //删除管理
         Route::post('/chat/action/unSpeakRoom/{id}', 'Chat\ChatSettingController@unSpeakRoom');          //禁言房间
         Route::post('/chat/action/openAutoRoom/{id}', 'Chat\ChatSettingController@openAutoRoom');        //是否开启快速加入
         Route::post('/chat/action/onTestSpeakRoom/{id}', 'Chat\ChatSettingController@onTestSpeakRoom');    //开放测试帐号聊天
@@ -50,6 +54,10 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/modal/editUserLevel/{id}', 'Chat\Ajax\ModalController@editUserLevel');         //显示修改聊天室用户信息-弹窗表单
         Route::get('/chat/modal/editRoleInfo/{id}', 'Chat\Ajax\ModalController@editRoleInfo');           //显示修改用户角色层级-弹窗表单
         Route::get('chat/modal/editRoomLimit/{id}', 'Chat\Ajax\ModalController@editRoomLimit');          //显示修改房间信息-弹窗表单
+        Route::get('chat/modal/editRoomUsers/{id}', 'Chat\Ajax\ModalController@editRoomUsers');          //显示管理用户-弹窗表单
+        Route::get('chat/modal/editRoomAdmins/{id}', 'Chat\Ajax\ModalController@editRoomAdmins');          //显示管理管理-弹窗表单
+        Route::get('chat/modal/editRoomSearchUsers/{id}', 'Chat\Ajax\ModalController@editRoomSearchUsers'); //显示管理用户-弹窗表单
+        Route::get('chat/modal/editRoomSearchAdmins/{id}', 'Chat\Ajax\ModalController@editRoomSearchAdmins'); //显示管理-弹窗表单
         Route::get('chat/modal/editNoteInfo/{id}', 'Chat\Ajax\ModalController@editNoteInfo');            //显示修改聊天室公告-弹窗表单
         Route::get('chat/modal/editLevelInfo/{id}', 'Chat\Ajax\ModalController@editLevelInfo');            //显示修改层级信息-弹窗表单
         Route::get('chat/modal/editAdminInfo/{id}', 'Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
@@ -64,6 +72,10 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/datatables/user', 'Chat\Data\DataController@userManage');          // 会员管理-表格数据
         Route::get('/chat/datatables/role', 'Chat\Data\DataController@roleManage');          // 角色管理-表格数据
         Route::get('/chat/datatables/room', 'Chat\Data\DataController@roomManage');          // 房间管理-表格数据
+        Route::get('/chat/datatables/roomUsers/{id}', 'Chat\Data\DataController@roomUsers');          // 管理用户-表格数据
+        Route::get('/chat/datatables/roomAdmins/{id}', 'Chat\Data\DataController@roomAdmins');          // 管理管理-表格数据
+        Route::get('/chat/datatables/roomSearchUsers/{id}', 'Chat\Data\DataController@roomSearchUsers');// 添加用户-表格数据
+        Route::get('/chat/datatables/roomSearchAdmins/{id}', 'Chat\Data\DataController@roomSearchAdmins');// 添加用户-表格数据
         Route::get('/chat/datatables/note', 'Chat\Data\DataController@noteManage');          // 公告管理-表格数据
         Route::get('/chat/datatables/level', 'Chat\Data\DataController@levelManage');        // 层级管理-表格数据
         Route::get('/chat/datatables/admin', 'Chat\Data\DataController@adminManage');        // 管理员管理-表格数据

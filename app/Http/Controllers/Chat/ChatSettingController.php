@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Common\Reward;
+use App\Model\ChatRoom;
 use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -66,12 +67,18 @@ class ChatSettingController extends Controller
     //修改房间信息
     public function updRoomInfo(Request $request){
         $roomid = $request->input('id');
-        $data['room_name'] = $request->input('roomName');                //房间名称
-        $data['recharge'] = $request->input('rech');              //充值要求
-        $data['bet'] = $request->input('bet');                //打码要求
-
-        $update = DB::table('chat_room')->where('room_id',$roomid)->update($data);
-        if($update==1)
+        $data = [];
+        $request->input('roomName') && $data['room_name'] = $request->input('roomName');                //房间名称
+        $request->input('rech') && $data['recharge'] = $request->input('rech');              //充值要求
+        $request->input('bet') && $data['bet'] = $request->input('bet');                //打码要求
+        isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
+        !is_null($request->is_open) && $data['is_open'] = $request->is_open == 1 ? 0 : 1;
+        if($roomid == 0){
+            $u = DB::table('chat_room')->insert($data);
+        }else{
+            $u = DB::table('chat_room')->where('room_id',$roomid)->update($data);
+        }
+        if($u==1)
             return response()->json(['status'=>true],200);
         else
             return response()->json(['status'=>false,'msg'=>'修改房间信息失败'],200);
@@ -467,4 +474,83 @@ class ChatSettingController extends Controller
             ]);
         }
     }
+    //房间家人
+    public function addRoomUser(Request $request)
+    {
+        if(!($request->id = (int)$request->id) || !($request->user_id = (int)$request->user_id)){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'参数错误'
+            ]);
+        }
+
+        if(ChatRoom::inRoom($request->id, [
+            'user_id' => $request->user_id
+        ]))
+            return response()->json([
+                'status'=>true,
+            ]);
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+    //房间踢人
+    public function deleteUser(Request $request)
+    {
+        if(!($request->roomId = (int)$request->roomId) || !($request->user_id = (int)$request->user_id)){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'参数错误'
+            ]);
+        }
+
+        if(ChatRoom::outRoom($request->roomId, [
+            'user_id' => $request->user_id
+        ]))
+            return response()->json([
+                'status'=>true,
+            ]);
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+    //删除管理
+    public function delAdmin(Request $request)
+    {
+        if(!($request->roomId = (int)$request->roomId) || !($request->user_id = (int)$request->user_id)){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'参数错误'
+            ]);
+        }
+        if(ChatRoom::outAdmin($request->roomId, $request->user_id))
+            return response()->json([
+                'status'=>true,
+            ]);
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+    //添加管理
+    public function addRoomAdmin(Request $request)
+    {
+        if(!($request->roomId = (int)$request->roomId) || !($request->user_id = (int)$request->user_id)){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'参数错误'
+            ]);
+        }
+        if(ChatRoom::inAdmin($request->roomId, $request->user_id))
+            return response()->json([
+                'status'=>true,
+            ]);
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+
 }

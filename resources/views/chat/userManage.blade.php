@@ -14,6 +14,9 @@
                     <div class="one wide field">
                         <select class="ui dropdown" id="role" style='height:32px !important'>
                             <option value="">所有会员</option>
+                            @foreach(\App\Model\ChatRoles::getList() as $item)
+                                <option  value="{{ $item->level }}" >{{ $item->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div style="line-height: 32px;">状态</div>

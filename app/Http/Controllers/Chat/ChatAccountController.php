@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Model\ChatRoom;
+use App\Model\ChatUsers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +133,20 @@ class ChatAccountController extends Controller
         $data['level'] = $level;
         $data['isnot_auto_count'] = $unauto_count;       //是否不是自动计算层级，如果此栏位1则登陆不自动计算层级
         $data['updated_at'] = date("Y-m-d H:i:s",time());
-        DB::table('chat_users')->where('users_id',$userid)->update($data);
+        $model = ChatUsers::where('users_id',$userid);
+        # 如果层级不是99 并且之前是99 将所有房间的管理权限都删掉
+        if($data['level'] !== 99){
+            if($model->value('level') == 99){
+                try{
+                    ChatRoom::outAdminAll($userid);
+                }catch (\Throwable $e){
+                    writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+                    return response()->json(['status'=>false,'msg'=>'房间管理权限撤销失败'],200);
+                }
+            }
+        }
+
+        $model->update($data);
         return response()->json(['status'=>true],200);
     }
 

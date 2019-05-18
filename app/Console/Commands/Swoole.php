@@ -162,6 +162,8 @@ class Swoole extends Command
                 $strParam = explode("/", $strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
+                $iRoomInfo['rooms'] = $rooms = explode(',',$iRoomInfo['rooms']);
+                $iRoomInfo['rooms'] = array_values(array_diff(array_merge($iRoomInfo['rooms'], ['1']), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
                 $this->sendToSerf($request->fd, 14, 'init');
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
@@ -170,14 +172,22 @@ class Swoole extends Command
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
                 $this->ws->push($request->fd, $msg);
-                //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
-                if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
-                    Storage::disk('chatlogintime')->put(md5($iRoomInfo['userId']),time()+10800);
-                    $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-                    $this->sendToAll($iRoomInfo['room'], $msg);
+                foreach ($rooms as $room){
+                    //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
+                    if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
+                        Storage::disk('chatlogintime')->put(md5($iRoomInfo['userId']),time()+10800);
+                            $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
+                            $this->sendToAll($room, $msg);
+                    }
                 }
                 //检查历史讯息
-                $this->chkHisMsg($iRoomInfo,$request->fd);
+//                $this->chkHisMsg($iRoomInfo,$request->fd);
+                //房间列表
+                $room_list = DB::table('chat_room')->select('room_id', 'room_name')
+                    ->where('is_open', 1)
+                    ->whereIn('room_id', $iRoomInfo['rooms'])->get();
+                $msg = $this->msg(16,json_encode($room_list),$iRoomInfo);
+                $this->ws->push($request->fd, $msg);
                 //回传自己的基本设置
                 if($iRoomInfo['setNickname']==0)
                     $iRoomInfo['nickname'] = '';
@@ -501,7 +511,7 @@ class Swoole extends Command
 
     /***
      * 组装回馈讯息
-     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单
+     * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单 16:房间列表
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))
@@ -616,25 +626,36 @@ class Swoole extends Command
             //判断时间内不开启计画 低于此时间不开启
             if(time() < strtotime(date('Y-m-d '.$baseSetting->send_starttime)) && (time() > strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
             //判断符合的彩种才发送
-            $plan_send_game = explode(",",$baseSetting->plan_send_game);
-            foreach ($plan_send_game as& $key){
-                if ($game == $key) $canSend = true;
-            }
+//            $plan_send_game = explode(",",$baseSetting->plan_send_game);
+//            foreach ($plan_send_game as& $key){
+//                if ($game == $key) $canSend = true;
+//            }
             //如果不能发送，就退出
-            if (!$canSend) return;
+//            if (!$canSend) return;
         }
 
         $rsKeyH = 'pln';
 
-        //检查计划消息
-        error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . $valHis . PHP_EOL, 3, '/tmp/chat/plan.log');
-        $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
-        $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
-        unset($iRoomInfo['plans']);
-        //计画消息组合底部固定信息
-        $iMsg .= urlencode($baseSetting->plan_msg);
-        $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
-        $this->sendToAll($room_id, $msg);
+        # 拿所有要推送的房间
+        $key = 'planSendGame'.$game;
+        if(!$rooms = cache($key)){
+            $rooms = DB::table('chat_room')->select('room_id')->whereRaw('FIND_IN_SET("'.$game.'",planSendGame)')->get();
+            cache([$key=>$rooms], 1); # 缓存
+        }
+        $valHis = json_decode($valHis, 1);
+        foreach ($rooms as $v){
+            $valHis['room']= $v->room_id;
+
+            //检查计划消息
+            error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
+            $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
+            $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
+            unset($iRoomInfo['plans']);
+            //计画消息组合底部固定信息
+            $iMsg .= urlencode($baseSetting->plan_msg);
+            $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
+            $this->sendToAll($valHis['room'], $msg);
+        }
     }
     //取得聊天室公告
     private function getChatNotice($room = 1){
@@ -667,8 +688,8 @@ class Swoole extends Command
     private function getUsersess($iSess,$fd=0,$type=null){
         switch ($type){
             case 'plan':
-                $res = (array)json_decode($iSess);
-                $res['room'] = 1;                                  //取得房间id
+                $res = $iSess;
+                $res['room'] = $res['room'] ?? 1;                                  //取得房间id
                 $res['name'] = '计划任务';                          //名称显示
                 $res['level'] = 98;                                //用户层级
                 $res['noSpeak'] = 1;                               //用户是否禁言
@@ -725,6 +746,7 @@ class Swoole extends Command
 
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
                 $res['room'] = $aUsers->room_id;                   //取得房间id
+                $res['rooms'] = $aUsers->rooms;                   //取得房间id
                 //如果没有呢称，屏蔽帐号部分字元
                 $res['name'] = !isset($aUsers->nickname)||empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
                 $res['nickname'] = $aUsers->nickname;                 //用户呢称

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Common\Reward;
 use App\Model\ChatRoom;
+use App\Repository\ChatRoomRepository;
 use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -486,10 +487,15 @@ class ChatSettingController extends Controller
 
         if(ChatRoom::inRoom($request->id, [
             'user_id' => $request->user_id
-        ]))
+        ])){
+            # 清会员在线数据
+            ChatRoomRepository::clearUserInfo($request->user_id);
+
             return response()->json([
                 'status'=>true,
             ]);
+        }
+
         return response()->json([
             'status'=>false,
             'msg'=> 'error'
@@ -507,10 +513,15 @@ class ChatSettingController extends Controller
 
         if(ChatRoom::outRoom($request->roomId, [
             'user_id' => $request->user_id
-        ]))
+        ])){
+            # 清会员在线数据
+            ChatRoomRepository::clearUserInfo($request->user_id);
+
             return response()->json([
                 'status'=>true,
             ]);
+        }
+
         return response()->json([
             'status'=>false,
             'msg'=> 'error'

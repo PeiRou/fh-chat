@@ -395,6 +395,8 @@ class ChatSettingController extends Controller
         $data['sa_id'] = Session::get('account_id');              //添加管理员id
         $data['account'] = Session::get('account');               //添加管理员
         $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
+        $data['guan_msg'] = $request->guan_msg;      //更新日期
+
 
         $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
 

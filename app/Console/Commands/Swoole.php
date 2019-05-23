@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Model\ChatRoom;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
@@ -165,13 +166,12 @@ class Swoole extends Command
                 if(empty($iSess))
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
-                $iRoomInfo['rooms'] = $rooms = explode(',',$iRoomInfo['rooms']);
-                $iRoomInfo['rooms'] = array_values(array_diff(array_unique(array_merge($iRoomInfo['rooms'], ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
+                $rooms = $iRoomInfo['rooms'];
+//                $iRoomInfo['rooms'] = array_values(array_diff(array_unique(array_merge($iRoomInfo['rooms'], ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
                 $this->sendToSerf($request->fd, 14, 'init');
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
-
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
                 $this->ws->push($request->fd, $msg);
@@ -185,6 +185,8 @@ class Swoole extends Command
                 }
                 //检查历史讯息
 //                $this->chkHisMsg($iRoomInfo,$request->fd);
+                if(!env('ISROOMS', false))
+                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
                 //房间列表
                 $room_list = DB::table('chat_room')->select('room_id', 'room_name')
                     ->where('is_open', 1)
@@ -209,7 +211,6 @@ class Swoole extends Command
 
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            var_dump($request->data);
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -228,6 +229,7 @@ class Swoole extends Command
                 }else
                     $request->data = substr($request->data,47);
             }
+
             $iRoomInfo = $this->getUserInfo($request->fd);   //取出他的房间号码
             error_log(date('Y-m-d H:i:s',time())." 发言=> ".$request->fd." => ".json_encode($request).json_encode($iRoomInfo).PHP_EOL, 3, '/tmp/chat/'.date('Ymd').'.log');        //只要连接就记下log
             //登陆失效
@@ -242,7 +244,7 @@ class Swoole extends Command
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
                 if(isset($roomId) && $roomId > 0 && $type == 'inr'){
-                    return $this->inRoom($roomId ?? 1, $request->fd, $iRoomInfo);
+                    return $this->inRoom($roomId ?? 1, $request->fd, $iRoomInfo, $iSess);
                 }
                 //获取聊天用户数组
                 $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
@@ -321,8 +323,8 @@ class Swoole extends Command
                 //自动推送清数据
                 $this->chkHisMsg($iRoomInfo,0,false);
             }catch (\Exception $e){
-                echo $e->getMessage().PHP_EOL;
-                echo $e->getTraceAsString();
+//                echo $e->getMessage().PHP_EOL;
+//                echo $e->getTraceAsString();
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
@@ -392,16 +394,16 @@ class Swoole extends Command
     }
 
     //进入房间
-    private function inRoom($roomId, $fd, $iRoomInfo)
+    private function inRoom($roomId, $fd, $iRoomInfo, $iSess)
     {
         try{
             # 房间信息
             $roomInfo = $rooms = DB::table('chat_room')->where('room_id', $roomId)->first();
-            if(!$roomInfo || $roomInfo->is_open !== 1)
+            if((!$roomInfo || $roomInfo->is_open !== 1) && $roomId !== 1)
                 throw new \Exception('房间暂未开启', 203);
-            if(array_search((string)$roomId, $iRoomInfo['rooms']) === false){# 不在房间
+            if(array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false){# 不在房间
                 # 是否可以快速加入
-                if($roomInfo->is_auto){
+                if($roomInfo->is_auto || $roomId == 1){
                     if(!$this->addRoom($roomId, $iRoomInfo, $fd))
                         throw new \Exception('加入房间失败', 203);
 
@@ -409,11 +411,31 @@ class Swoole extends Command
                     throw new \Exception('您不在当前房间中', 203);
                 }
             }
-            //进入房间
+            # 进入房间
             $this->joinRoom($roomId, $fd, $iRoomInfo);
+            # 从sess取出会员资讯 切换聊天室后需要更新下用户各种权限信息
+            $iRoomInfo = $this->getUsersess($iSess,$fd);
+            # 更新目前房客资讯
+            $this->updUserInfo($fd,$iRoomInfo);
+            $msg = $this->msg(7,'fstInit',$iRoomInfo);
+            $this->ws->push($fd, $msg);
+            # 历史讯息
+            $this->chkHisMsg($iRoomInfo,$fd);
+            # 如果进入的房间是2把快速进入的房间列表显示出来
+            if($roomId == 2){
+                $data = [];
+                # 欢迎语
+                $data['guan_msg'] = DB::table('chat_base')->value('guan_msg');
+                # 房间列表及信息
+                $data['rooms'] = DB::table('chat_room')
+                    ->select('room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak')
+                    ->where('is_open', 1)->get();
+                $msg = $this->msg(19,json_encode($data),$iRoomInfo);
+                $this->push($fd, $msg,$iRoomInfo['room']);
+            }
         }catch (\Throwable $e){
             if($e->getCode() == 203){
-                $msg = $this->msg(17,$e->getMessage(),$iRoomInfo);   //别人发消息
+                $msg = $this->msg(17,$e->getMessage(),$iRoomInfo);
                 $this->push($fd, $msg,$iRoomInfo['room']);
             }else{
                 throw $e;
@@ -560,6 +582,7 @@ class Swoole extends Command
      * 组装回馈讯息
      * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息
      * 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单 16:房间列表 17:没有权限
+     * 18:加入房间成功
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))
@@ -582,8 +605,9 @@ class Swoole extends Command
             'anS' => isset($userinfo['allnoSpeak'])?(string)$userinfo['allnoSpeak']:'',        //是否全局不能发言
             'uuid' => isset($userinfo['uuid'])?(string)$userinfo['uuid']:(string)$getUuid['uuid'],        //发言的唯一标实
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
-            'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess']      //服务器接收到讯息时间
+            'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess'],      //服务器接收到讯息时间
         ];
+        isset($userinfo['room']) && $data['roomId'] = $userinfo['room'];
         if((isset($data['level'])&&$data['level']==98) || in_array($status,array(4,8,9))){
             $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
         }
@@ -795,6 +819,7 @@ class Swoole extends Command
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
                 $res['room'] = $aUsers->room_id;                   //取得房间id
                 $res['rooms'] = $aUsers->rooms;                   //取得房间id
+                $res['rooms'] = array_values(array_diff(array_unique(array_merge(explode(',', $res['rooms']), ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
                 //如果没有呢称，屏蔽帐号部分字元
                 $res['name'] = !isset($aUsers->nickname)||empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
                 $res['nickname'] = $aUsers->nickname;                 //用户呢称
@@ -1068,7 +1093,7 @@ class Swoole extends Command
                     $iRoomUsers = array();
                     $files = Storage::disk('chathis')->files();
                     foreach ($files as $value){
-                        if(Storage::disk('chathis')->exists($value)&&substr($value,strlen($tmpTxt))==$tmpTxt){
+                        if(Storage::disk('chathis')->exists($value)&&substr($value,0,strlen($tmpTxt))==$tmpTxt){
                             $orgHis = Storage::disk('chathis')->get($value);
                             $aryHis =  (array)json_decode($orgHis);
                             $iRoomUsers[$aryHis['time']] = $orgHis;
@@ -1159,6 +1184,7 @@ class Swoole extends Command
         array_push($iRoomInfo['rooms'], $roomId);
         $iRoomInfo['rooms'] = array_unique($iRoomInfo['rooms']);
         $this->updUserInfo($fd,$iRoomInfo);
+
         return true;
     }
 
@@ -1175,12 +1201,11 @@ class Swoole extends Command
         $this->setFdRoomIdMap($fd, $roomId);
         # 设置 user_id => RoomId 映射
         $this->setUserIdRoomIdMap($iRoomInfo['userId'], $roomId);
-        # 更新目前房客资讯
-        $iRoomInfo['room'] = $roomId;
-        $this->updUserInfo($fd,$iRoomInfo);
+        # 修改数据库表房间
+        DB::table('chat_users')->where('users_id', $iRoomInfo['userId'])->update(['room_id' => $roomId]);
         # 广播
-        $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-        $this->sendToAll($roomId, $msg);
+//        $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
+//        $this->sendToAll($roomId, $msg);
     }
 
     //离开房间 - 只是更换房间 不退出房间
@@ -1196,8 +1221,8 @@ class Swoole extends Command
         $iRoomInfo['room'] = $roomId;
         $this->updUserInfo($fd,$iRoomInfo);
         # 广播
-        $msg = $this->msg(3, '退出聊天室', $iRoomInfo);   //进入聊天室
-        $this->sendToAll($roomId, $msg);
+//        $msg = $this->msg(3, '退出聊天室', $iRoomInfo);   //进入聊天室
+//        $this->sendToAll($roomId, $msg);
     }
 
     //关闭链接

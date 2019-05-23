@@ -188,7 +188,7 @@ class Swoole extends Command
                 if(!env('ISROOMS', false))
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
                 //房间列表
-                $room_list = DB::table('chat_room')->select('room_id', 'room_name')
+                $room_list = DB::table('chat_room')->select('room_id', 'room_name','head_img')
                     ->where('is_open', 1)
                     ->whereIn('room_id', $iRoomInfo['rooms'])->get();
                 $msg = $this->msg(16,json_encode($room_list),$iRoomInfo);

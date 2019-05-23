@@ -67,7 +67,8 @@ class ModalController extends Controller
     {
         $data = explode("&",$data);
         $games = isset($data[5])?array_flip(explode(",",$data[5])):array();
-        return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType);
+        $roomInfo = DB::table('chat_room')->where('room_id', @$data[0])->first();
+        return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType);
     }
     //显示修改聊天室公告-弹窗表单
     public function editNoteInfo($data)

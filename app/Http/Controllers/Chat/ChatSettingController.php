@@ -73,6 +73,24 @@ class ChatSettingController extends Controller
         $request->input('rech') && $data['recharge'] = $request->input('rech');              //充值要求
         $request->input('bet') && $data['bet'] = $request->input('bet');                //打码要求
         isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
+
+        if(isset($request->head_img)){
+            $image = $request->head_img;    //接收base64的图
+            $limit = strpos($image,'base64,');
+            $image = substr($image,$limit+7);
+            $image = str_replace(' ', '+', $image);
+            $path = "/roomImg/";
+            $imageName = $path.md5($roomid).".jpg";                       //MD5图片名称
+
+            $arr = array();
+            $arr['path'] = $path;
+            $arr['imgName'] = $imageName;
+            $arr['img'] = $image;
+            $swoole = new Swoole();
+            if($swoole->swooletest('upchat',$roomid,$arr) == 'ok')
+                $data['head_img'] = "/upchat".$imageName."?t=".time().rand(111,22222);
+        }
+
         !is_null($request->is_open) && $data['is_open'] = $request->is_open == 1 ? 0 : 1;
         if($roomid == 0){
             $u = DB::table('chat_room')->insert($data);

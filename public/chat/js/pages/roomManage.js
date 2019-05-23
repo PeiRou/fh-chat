@@ -121,7 +121,6 @@ $(function () {
                     if(data.room_id !== '1' && data.room_id !== '2' && data.room_id !== '3'){
                         delRoom = "<li onclick='delRoom("+data.room_id+")'>删除</li>";
                     }
-
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.roomtype+","+data.recharge+","+data.bet+",\""+data.planSendGame+"\")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +

@@ -148,7 +148,7 @@ class Swoole extends Command
     public function start(){
         //创建websocket服务器对象，监听0.0.0.0:2021端口
         if(env('WS_HOST_SSL')!='cs'){
-            $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
+            $this->ws = new \swoole_websocket_server(env('WS_HOST_SSL',"0.0.0.0"), env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
             $this->ws->set(array(
                 'ssl_cert_file' => __DIR__ . '/config/wx-chat-ssl/' .env('WS_HOST_SSL','fh').'_ssl.crt',
                 'ssl_key_file' => __DIR__ . '/config/wx-chat-ssl/' .env('WS_HOST_SSL','fh').'_ssl.key',

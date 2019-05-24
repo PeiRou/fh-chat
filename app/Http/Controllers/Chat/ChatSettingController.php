@@ -70,6 +70,7 @@ class ChatSettingController extends Controller
         $roomid = $request->input('id');
         $data = [];
         $request->input('roomName') && $data['room_name'] = $request->input('roomName');                //房间名称
+        $request->input('roomType') && $data['roomType'] = $request->input('roomType');                //房间类型
         $request->input('rech') && $data['recharge'] = $request->input('rech');              //充值要求
         $request->input('bet') && $data['bet'] = $request->input('bet');                //打码要求
         isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);

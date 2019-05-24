@@ -430,7 +430,7 @@ class Swoole extends Command
                 $data['rooms'] = DB::table('chat_room')
                     ->select('room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak')
                     ->where('is_open', 1)
-                    ->where('roomtype', 1)
+                    ->where('roomtype', 2)
                     ->where('is_auto', 1)->get();
                 $msg = $this->msg(19,json_encode($data),$iRoomInfo);
                 $this->push($fd, $msg,$iRoomInfo['room']);

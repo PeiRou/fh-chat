@@ -188,11 +188,7 @@ class Swoole extends Command
                 if(!env('ISROOMS', false))
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
                 //房间列表
-                $room_list = DB::table('chat_room')->select('room_id', 'room_name','head_img')
-                    ->where('is_open', 1)
-                    ->whereIn('room_id', $iRoomInfo['rooms'])->get();
-                $msg = $this->msg(16,json_encode($room_list),$iRoomInfo);
-                $this->ws->push($request->fd, $msg);
+                $this->getRoomList($request->fd,$iRoomInfo);
                 //回传自己的基本设置
                 if($iRoomInfo['setNickname']==0)
                     $iRoomInfo['nickname'] = '';
@@ -435,6 +431,8 @@ class Swoole extends Command
                 $msg = $this->msg(19,json_encode($data),$iRoomInfo);
                 $this->push($fd, $msg,$iRoomInfo['room']);
             }
+            # 获取房间列表
+            $this->getRoomList($fd,$iRoomInfo);
         }catch (\Throwable $e){
             if($e->getCode() == 203){
                 $msg = $this->msg(17,$e->getMessage(),$iRoomInfo);
@@ -446,8 +444,14 @@ class Swoole extends Command
         }
     }
 
-
-
+    //获取房间列表
+    private function getRoomList($fd,$iRoomInfo){
+        $room_list = DB::table('chat_room')->select('room_id', 'room_name','head_img')
+            ->where('is_open', 1)
+            ->whereIn('room_id', $iRoomInfo['rooms'])->get();
+        $msg = $this->msg(16,json_encode($room_list),$iRoomInfo);
+        $this->ws->push($fd, $msg);
+    }
 
     //发送计划任务
     private function setPlan($serv){

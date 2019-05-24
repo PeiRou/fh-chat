@@ -92,7 +92,9 @@ class ChatSettingController extends Controller
         }
 
         !is_null($request->is_open) && $data['is_open'] = $request->is_open == 1 ? 0 : 1;
+        $data['updated_at'] = date('Y-m-d H:i:s');          //修改时间
         if($roomid == 0){
+            $data['created_at'] = date('Y-m-d H:i:s');      //新增时间
             $u = DB::table('chat_room')->insert($data);
         }else{
             $u = DB::table('chat_room')->where('room_id',$roomid)->update($data);

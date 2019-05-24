@@ -612,9 +612,9 @@ class Swoole extends Command
             'uuid' => isset($userinfo['uuid'])?(string)$userinfo['uuid']:(string)$getUuid['uuid'],        //发言的唯一标实
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess'],      //服务器接收到讯息时间
+            'roomId' => isset($userinfo['room'])?$userinfo['room']:1,     //房间号码
         ];
-        $data['roomId'] = (isset($userinfo['room']) && $data['roomId'])?$userinfo['room']:1;
-        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) || $data['roomId']!=2)){
+        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['roomId']!=2)){
             $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);

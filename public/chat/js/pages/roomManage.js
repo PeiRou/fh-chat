@@ -88,7 +88,10 @@ $(function () {
                 }
                 return repTxt.join(',');
                 }},
-            {data:function (data) {              //创建时间
+            {data:function (data) {              //修改时间
+                return '<img src="'+data.head_img+'" alt="" style="max-height: 50px; max-width: 50px">';
+                }},
+            {data:function (data) {              //修改时间
                 return data.updated_at;
                 }},
             {data: function (data) {

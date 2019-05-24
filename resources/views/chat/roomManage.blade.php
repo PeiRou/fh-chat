@@ -25,7 +25,8 @@
                 <th width="6%">快速加入</th>
                 <th width="6%">是否关闭</th>
                 <th width="12%">发言条件</th>
-                <th width="20%">计划推送游戏</th>
+                <th width="15%">计划推送游戏</th>
+                <th width="5%">群头像</th>
                 <th width="10%">修改时间</th>
                 <th width="20%">操作</th>
             </thead>

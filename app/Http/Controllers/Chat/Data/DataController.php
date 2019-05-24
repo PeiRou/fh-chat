@@ -99,6 +99,9 @@ class DataController extends Controller
     {
         $users = DB::table('chat_room')->whereIn('roomtype',[1,2])->get();
         return DataTables::of($users)
+            ->editColumn('head_img',function ($data){
+                return substr($data->head_img,7);
+            })
             ->make(true);
     }
     //公告管理-表格数据

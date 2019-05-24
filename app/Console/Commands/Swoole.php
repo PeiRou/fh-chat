@@ -584,7 +584,7 @@ class Swoole extends Command
      * 组装回馈讯息
      * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息
      * 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单 16:房间列表 17:没有权限
-     * 18:加入房间成功
+     * 18:加入房间成功 19:可以快速进入的房间列表与欢迎语
      */
     private function msg($status,$msg,$userinfo = array()){
         if(!is_array($userinfo))

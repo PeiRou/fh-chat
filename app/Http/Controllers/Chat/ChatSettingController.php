@@ -508,20 +508,19 @@ class ChatSettingController extends Controller
             ]);
         }
 
-        if(ChatRoom::inRoom($request->id, [
-            'user_id' => $request->user_id
-        ])){
-            # 清会员在线数据
-            ChatRoomRepository::clearUserInfo($request->user_id);
-
+        if(!($res = Swoole::getSwoole('BackAction/addRoomUser', [
+                'roomId' => $request->id,
+                'user_id' => $request->user_id,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
             return response()->json([
-                'status'=>true,
+                'status'=>false,
+                'msg'=> 'error'
             ]);
         }
 
         return response()->json([
-            'status'=>false,
-            'msg'=> 'error'
+            'status'=>true,
         ]);
     }
     //房间踢人
@@ -534,20 +533,19 @@ class ChatSettingController extends Controller
             ]);
         }
 
-        if(ChatRoom::outRoom($request->roomId, [
-            'user_id' => $request->user_id
-        ])){
-            # 清会员在线数据
-            ChatRoomRepository::clearUserInfo($request->user_id);
-
+        if(!($res = Swoole::getSwoole('BackAction/deleteUser', [
+            'roomId' => $request->roomId,
+            'user_id' => $request->user_id,
+            'token' => Session::getId()
+        ])) || $res['code'] !== 0){
             return response()->json([
-                'status'=>true,
+                'status'=>false,
+                'msg'=> 'error'
             ]);
         }
 
         return response()->json([
-            'status'=>false,
-            'msg'=> 'error'
+            'status'=>true,
         ]);
     }
     //删除管理
@@ -559,13 +557,19 @@ class ChatSettingController extends Controller
                 'msg'=>'参数错误'
             ]);
         }
-        if(ChatRoom::outAdmin($request->roomId, $request->user_id))
+        if(!($res = Swoole::getSwoole('BackAction/delAdmin', [
+                'roomId' => $request->roomId,
+                'user_id' => $request->user_id,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
             return response()->json([
-                'status'=>true,
+                'status'=>false,
+                'msg'=> 'error'
             ]);
+        }
+
         return response()->json([
-            'status'=>false,
-            'msg'=> 'error'
+            'status'=>true,
         ]);
     }
     //添加管理
@@ -577,13 +581,19 @@ class ChatSettingController extends Controller
                 'msg'=>'参数错误'
             ]);
         }
-        if(ChatRoom::inAdmin($request->roomId, $request->user_id))
+        if(!($res = Swoole::getSwoole('BackAction/addRoomAdmin', [
+                'roomId' => $request->roomId,
+                'user_id' => $request->user_id,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
             return response()->json([
-                'status'=>true,
+                'status'=>false,
+                'msg'=> 'error'
             ]);
+        }
+
         return response()->json([
-            'status'=>false,
-            'msg'=> 'error'
+            'status'=>true,
         ]);
     }
     //删除房间
@@ -595,19 +605,20 @@ class ChatSettingController extends Controller
                 'msg'=>'参数错误'
             ]);
         }
-        try{
-            ChatRoom::delRoom($request->roomId);
-            return response()->json([
-                'status'=>true,
-            ]);
-        }catch (\Throwable $e){
-            writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+
+        if(!($res = Swoole::getSwoole('BackAction/delRoom', [
+                'roomId' => $request->roomId,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
             return response()->json([
                 'status'=>false,
                 'msg'=> 'error'
             ]);
         }
 
+        return response()->json([
+            'status'=>true,
+        ]);
     }
 
 }

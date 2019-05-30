@@ -53,7 +53,7 @@
             <input type="file" onchange="getBase64(this)">
         </div>
         <textarea style="display: none" name="head_img" id="head_img" ></textarea>
-        <img id="head_img_img" src="{{ str_replace('/upchat', '', @$roomInfo->head_img) ?? '' }}" alt="" style="max-height: 50px; max-width: 50px">
+        <img id="head_img_img" src="{{ str_replace('/upchat', '', (@$roomInfo->head_img ?? '')) ?? '' }}" alt="" style="max-height: 50px; max-width: 50px">
     </div>
     <input type="hidden" value="{{ $id }}" name="id">
 </form>

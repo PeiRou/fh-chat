@@ -7,8 +7,8 @@
     "require": {
         "php": ">=7.0.0",
         "barryvdh/laravel-cors": "^0.11.0",
+        "easyswoole/mysqli": "^1.1",
         "fideloper/proxy": "~3.3",
-        "guzzlehttp/guzzle": "^6.3",
         "gregwar/captcha": "1.*",
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.5.*",

@@ -92,6 +92,12 @@ return [
             'visibility' => 'public',
         ],
 
+        'home' => [
+            'driver' => 'local',
+            'root' => storage_path(),
+            'url' => env('APP_URL').'/storage',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

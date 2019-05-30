@@ -2,12 +2,16 @@
 
 namespace App\Console\Commands;
 
-use App\Model\ChatRoom;
+use App\Socket\Model\ChatRoom;
+use App\Socket\SwooleEvevts;
+use App\Socket\Utility\HttpParser;
+use App\Socket\Utility\Message;
+use App\Socket\Utility\Parser;
+use App\Socket\Utility\Room;
+use App\Socket\Utility\Users;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
 
 class Swoole extends Command
 {
@@ -123,7 +127,7 @@ class Swoole extends Command
             mkdir(public_path().'/dataimg');
 
         DB::table('chat_online')->truncate();           //聊天室在线记录
-        $this->clearAllRoom();  # 清聊天室所有数据
+        Room::clearAllRoom();  # 清聊天室所有数据
     }
 
     /***
@@ -146,6 +150,7 @@ class Swoole extends Command
     }
 
     public function start(){
+        \App\Socket\SwooleEvevts::initialize();
         //创建websocket服务器对象，监听0.0.0.0:2021端口
         if(env('WS_HOST_SSL')!='cs'){
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
@@ -155,8 +160,16 @@ class Swoole extends Command
             ));
         }else
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',9501));
+
+        //绑定自己
+        \Illuminate\Container\Container::getInstance()->bind('swoole', function(){
+            return $this;
+        }, true);
+
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
+            \App\Socket\SwooleEvevts::onOpen($ws, $request);
+
             DB::disconnect();
             error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
             try {
@@ -166,9 +179,11 @@ class Swoole extends Command
                 if(empty($iSess))
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
+                if(empty($iRoomInfo))
+                    return false;
                 $rooms = $iRoomInfo['rooms'];
-//                $iRoomInfo['rooms'] = array_values(array_diff(array_unique(array_merge($iRoomInfo['rooms'], ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
-                $this->sendToSerf($request->fd, 14, 'init');
+
+               $this->sendToSerf($request->fd, 14, 'init');
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
@@ -187,22 +202,28 @@ class Swoole extends Command
 //                $this->chkHisMsg($iRoomInfo,$request->fd);
                 if(!env('ISROOMS', false))
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
-                //房间列表
-                $this->getRoomList($request->fd,$iRoomInfo);
+
+                SwooleEvevts::onOpenAfter($request, $iRoomInfo);
+
                 //回传自己的基本设置
                 if($iRoomInfo['setNickname']==0)
                     $iRoomInfo['nickname'] = '';
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
-                $this->ws->push($request->fd, $msg);
+                $this->push($request->fd, $msg);
             }catch (\Exception $e){
+                echo $e->getMessage().PHP_EOL;
+                echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
+                echo $e->getTraceAsString().PHP_EOL;
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
 
-        $this->ws->on('workerStart', function($ws){
-            \swoole_process::signal(SIGPIPE, function($signo) {
-                \swoole_process::signal(SIGPIPE, null);
-            });
+        $this->ws->on('start', function($ws){
+
+        });
+
+        $this->ws->on('workerStart', function($server, $id){
+            \App\Socket\SwooleEvevts::onWorkerStart($server, $id);
         });
 
         //监听WebSocket消息事件
@@ -219,6 +240,8 @@ class Swoole extends Command
                         $uuid = substr($request->data,61);
                     }elseif(substr($request->data,55,8)=="&roomId="){
                         $roomId = (int)substr($request->data,63);
+                    }elseif(substr($request->data,55,9)=="&message="){
+                        $messageInfo = substr($request->data,64);
                     }else{
                         return true;
                     }
@@ -229,21 +252,28 @@ class Swoole extends Command
             $iRoomInfo = $this->getUserInfo($request->fd);   //取出他的房间号码
             error_log(date('Y-m-d H:i:s',time())." 发言=> ".$request->fd." => ".json_encode($request).json_encode($iRoomInfo).PHP_EOL, 3, '/tmp/chat/'.date('Ymd').'.log');        //只要连接就记下log
             //登陆失效
-            if(!isset($iRoomInfo['room'])|| empty($iRoomInfo['room'])){
+            if(!isset($iRoomInfo['userId'])|| empty($iRoomInfo['userId'])){
                 if(isset($iSess)){
                     $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
-                    if(empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))
+                    if(empty($iRoomInfo) || !isset($iRoomInfo['userId']) || empty($iRoomInfo['userId']))
                         return $this->sendToSerf($request->fd,3,'登陆失效');
                 }else
                     return $this->sendToSerf($request->fd,3,'登陆失效');
             }
+
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
                 if(isset($roomId) && $roomId > 0 && $type == 'inr'){
                     return $this->inRoom($roomId ?? 1, $request->fd, $iRoomInfo, $iSess);
                 }
-                //获取聊天用户数组
-                $iRoomUsers = $this->updAllkey('usr',$iRoomInfo['room']);   //获取聊天用户数组，在反序列化回数组
+                if(isset($messageInfo) && strlen($messageInfo) > 0 && $type == 'ins'){
+                    try{
+                        return (new Parser($ws, $request, $messageInfo))->run($iRoomInfo);
+                    }catch (\Throwable $e){
+                        throw $e;
+                    }
+                }
+
                 if($iRoomInfo['level']==99){
                     if($uuid != '' && $type != ''){
                         $serv = json_decode(json_encode(array()));
@@ -266,70 +296,33 @@ class Swoole extends Command
                                 return true;
                         }
                     }
-                }else{
-                    //如果全局禁言
-                    $redis = Redis::connection();
-                    $redis->select(1);
-                    if($redis->exists('speak') && $redis->get('speak')=='un')
-                        return $this->sendToSerf($request->fd,5,'当前聊天室处于禁言状态！');
                 }
-                //不广播被禁言的用户
-                if($iRoomInfo['noSpeak']==1)
-                    return $this->sendToSerf($request->fd,5,'此帐户已禁言');
-
-                $this->redis->select(1);
-                if($this->redis->exists($iRoomInfo['userId'].'speaking:')){
-                    $iRoomCss = $this->cssText(98,4);
-                    $Css['name'] = '系统消息';                          //用户显示名称
-                    $Css['level'] = 0;                                //用户背景颜色1
-                    $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
-                    $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
-                    $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
-                    $Css['img'] = '/game/images/chat/sys.png';         //用户大头
-                    return $this->sendToSerf($request->fd,13,'您说话太快啦，请先休息一会',$Css);
+                //获取聊天类型
+                if(($userStatus = Room::getUserStatus($iRoomInfo['userId'])) && isset($userStatus['type'])){
+                    # 消息过滤
+                    $msg = Message::filterMsg($request->data, $iRoomInfo);
+                    # 单聊
+                    if($userStatus['type'] == 'users')
+                        Users::senMessage($iRoomInfo, $msg, (int)$userStatus['id']);
+                    # 群聊
+                    elseif($userStatus['type'] == 'room')
+                        Room::sendMessage($request->fd, $iRoomInfo, $msg);
                 }
-                $this->redis->setex($iRoomInfo['userId'].'speaking:',2,'on');
 
-                //消息过滤HTML标签
-                $aMesgRep = urldecode(base64_decode($request->data));
-                $aMesgRep = trim ($aMesgRep);
-                $aMesgRep = strip_tags ($aMesgRep);
-                $aMesgRep = htmlspecialchars ($aMesgRep);
-                $aMesgRep = addslashes ($aMesgRep);
-                $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
-                //消息处理违禁词
-                if(empty($iRoomInfo['level'])||$iRoomInfo['level'] != 99)
-                    $aMesgRep = $this->regSpeaking($aMesgRep);
-
-                $aMesgRep = urlencode($aMesgRep);
-                $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
-                //发送消息
-                if(!is_array($iRoomInfo))
-                    $iRoomInfo = (array)$iRoomInfo;
-                $getUuid = $this->getUuid($iRoomInfo['name']);
-                $iRoomInfo['timess'] = $getUuid['timess'];
-                $iRoomInfo['uuid'] = $getUuid['uuid'];
-                foreach ($iRoomUsers as $fdId =>$val) {
-                    if($val==$request->fd)//组装消息数据
-                        $msg = $this->msg(4,$aMesgRep,$iRoomInfo);   //自己发消息
-                    else
-                        $msg = $this->msg(2,$aMesgRep,$iRoomInfo);   //别人发消息
-                    $this->push($val, $msg,$iRoomInfo['room']);
-                }
-                //自动推送清数据
-                $this->chkHisMsg($iRoomInfo,0,false);
             }catch (\Exception $e){
-//                echo $e->getMessage().PHP_EOL;
-//                echo $e->getTraceAsString();
+                echo $e->getMessage().PHP_EOL;
+                echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
+                echo $e->getTraceAsString().PHP_EOL;
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
         $this->ws->on('receive', function ($ws, $request) {
         });
         //接收WebSocket服务器推送功能
-        $this->ws->on('request', function ($serv) {
+        $this->ws->on('request', function ($serv, $response) {
             $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
             $type = isset($serv->post['type'])?$serv->post['type']:(isset($serv->get['type'])?$serv->get['type']:'');
+
             \Log::info($type);
             switch ($type){
                 case 'plan':
@@ -376,7 +369,8 @@ class Swoole extends Command
                     //发送跟单
                     $this->pushBetInfo($serv);
                     break;
-                default:
+                default: # 如果全都没有
+                    $this->httpParser($serv, $response);
                     break;
             }
         });
@@ -389,8 +383,27 @@ class Swoole extends Command
         $this->ws->start();
     }
 
+    private function httpParser($serv, $response)
+    {
+        try {
+            (new HttpParser($serv, $response))->run();
+        }catch (\Throwable $e){
+            echo $e->getMessage().PHP_EOL;
+            echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
+            echo $e->getTraceAsString().PHP_EOL;
+            writeLog('error',
+                $e->getMessage().PHP_EOL.
+                $e->getFile().'('.$e->getLine().')'.PHP_EOL.
+                $e->getTraceAsString());
+            $response->end(json_encode([
+                'code' => 500,
+                'msg' => 'error',
+                'data' => []
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
+    }
     //进入房间
-    private function inRoom($roomId, $fd, $iRoomInfo, $iSess)
+    public function inRoom($roomId, $fd, $iRoomInfo, $iSess)
     {
         try{
             # 房间信息
@@ -408,7 +421,7 @@ class Swoole extends Command
                 }
             }
             # 进入房间
-            $this->joinRoom($roomId, $fd, $iRoomInfo);
+            Room::joinRoom($roomId, $fd, $iRoomInfo);
             # 从sess取出会员资讯 切换聊天室后需要更新下用户各种权限信息
             $iRoomInfo = $this->getUsersess($iSess,$fd);
             # 更新目前房客资讯
@@ -426,17 +439,17 @@ class Swoole extends Command
                 $data['rooms'] = DB::table('chat_room')
                     ->select('room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak')
                     ->where('is_open', 1)
-                    ->where('roomtype', 2)
+//                    ->where('roomtype', 2)
                     ->where('is_auto', 1)->get();
-                $msg = $this->msg(19,json_encode($data),$iRoomInfo);
+                $msg = $this->json(19,$data);
                 $this->push($fd, $msg,$iRoomInfo['room']);
             }
-            # 获取房间列表
-            $this->getRoomList($fd,$iRoomInfo);
+            //推送房间列表
+//            Push::getRoomList($fd,$iRoomInfo);
         }catch (\Throwable $e){
             if($e->getCode() == 203){
-                $msg = $this->msg(17,$e->getMessage(),$iRoomInfo);
-                $this->push($fd, $msg,$iRoomInfo['room']);
+                $msg = $this->json(17,$e->getMessage());
+                $this->push($fd, $msg);
             }else{
                 throw $e;
             }
@@ -444,17 +457,8 @@ class Swoole extends Command
         }
     }
 
-    //获取房间列表
-    private function getRoomList($fd,$iRoomInfo){
-        $room_list = DB::table('chat_room')->select('room_id', 'room_name','head_img')
-            ->where('is_open', 1)
-            ->whereIn('room_id', $iRoomInfo['rooms'])->get();
-        $msg = $this->msg(16,json_encode($room_list),$iRoomInfo);
-        $this->ws->push($fd, $msg);
-    }
-
     //发送计划任务
-    private function setPlan($serv){
+    public function setPlan($serv){
         $plan = isset($serv->post['data'])?$serv->post['data']:(isset($serv->get['data'])?$serv->get['data']:"");
         if(empty($plan))
             return "";
@@ -497,7 +501,7 @@ class Swoole extends Command
     }
 
     //获得个人信息
-    private function getUser($serv){
+    public function getUser($serv){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:$serv->get['fd'];
 
         $iRoomInfo = empty($fd) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd)?'':Storage::disk('chatusrfd')->get('chatusrfd:'.$fd);     //从聊天室的广播号码取得每个人的聊天室信息
@@ -512,7 +516,7 @@ class Swoole extends Command
     }
 
     //获得个人信息fd
-    private function getFd($serv){
+    public function getFd($serv){
         $k = isset($serv->post['chatusr'])?$serv->post['chatusr']:$serv->get['chatusr'];
 
         $room_key = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
@@ -536,13 +540,13 @@ class Swoole extends Command
     }
 
     //推送给自己消息
-    private function sendToSerf($fd,$status=13,$msg,$userinfo=array()){
+    public function sendToSerf($fd,$status=13,$msg,$userinfo=array()){
         $msg = $this->msg($status,$msg,$userinfo);
         $this->ws->push($fd, $msg);
     }
 
     //更新个人信息
-    private function upinfo($serv,$fd=0,$userInfo=''){
+    public function upinfo($serv,$fd=0,$userInfo=''){
         $fd = isset($serv->post['fd'])?$serv->post['fd']:(isset($serv->get['fd'])?$serv->get['fd']:$fd);
         $info = isset($serv->post['info'])?$serv->post['info']:(isset($serv->get['info'])?$serv->get['info']:$userInfo);
         if(empty($fd)||empty($info))
@@ -551,7 +555,7 @@ class Swoole extends Command
     }
 
     //检查上传图片
-    private function upchat($serv){
+    public function upchat($serv){
         $path = isset($serv->post['path'])?$serv->post['path']:$serv->get['path'];
         $imageName = isset($serv->post['imgName'])?$serv->post['imgName']:$serv->get['imgName'];
         $img = isset($serv->post['img'])?$serv->post['img']:$serv->get['img'];
@@ -564,14 +568,14 @@ class Swoole extends Command
         \File::put(public_path(). $imageName, base64_decode($img));
     }
     //发消息给所有人
-    private function sendToAll($room_id,$msg){
+    public function sendToAll($room_id,$msg){
         $iRoomUsers = $this->updAllkey('usr',$room_id);   //获取聊天用户数组，在反序列化回数组
         foreach ($iRoomUsers as $usrfdId =>$fdId) {
             $this->push( $fdId, $msg,$room_id);
         }
     }
     //检查如果与聊天室服务器断线，则取消发送信息
-    private function push($fd,$msg,$room_id =1){
+    public function push($fd,$msg,$room_id =1){
         try{
             if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
                 $this->delAllkey($fd,'usr');   //删除用户
@@ -588,9 +592,19 @@ class Swoole extends Command
      * 组装回馈讯息
      * $status =>1:进入聊天室 2:别人发言 3:退出聊天室 4:自己发言 5:禁言 6:公告 7:获取自己权限 8:红包 9:抢到红包消息
      * 10:删除讯息 11:右上角消息推送 12:中间消息推送 13:您说话太快啦 14:begin 15:跟单注单 16:房间列表 17:没有权限
-     * 18:加入房间成功 19:可以快速进入的房间列表与欢迎语
+     * 18:加入房间成功 19:可以快速进入的房间列表与欢迎语 20:用户聊过天的房间和好友
+     * 21:添加好友请求  22首页所有的列表
      */
-    private function msg($status,$msg,$userinfo = array()){
+    public function msg($status,$msg,$userinfo = array()){
+        $data = $this->msgBuild(...func_get_args());
+        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['roomId']!=2)){
+            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
+        }
+        $res = json_encode($data,JSON_UNESCAPED_UNICODE);
+        return $res;//如果房客存在，把用户组反序列化
+    }
+    public function msgBuild($status,$msg,$userinfo = array(), $type = 'room')
+    {
         if(!is_array($userinfo))
             $userinfo = (array)$userinfo;
         $data['fd'] = isset($userinfo['name'])?$userinfo['name']:'';
@@ -613,14 +627,31 @@ class Swoole extends Command
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess'],      //服务器接收到讯息时间
             'roomId' => isset($userinfo['room'])?$userinfo['room']:1,     //房间号码
+            'type' => $type
         ];
-        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['roomId']!=2)){
-            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
-        }
-        $res = json_encode($data,JSON_UNESCAPED_UNICODE);
-        return $res;//如果房客存在，把用户组反序列化
+        return $data;
     }
-    private function getUuid($name=''){
+
+    public function json($status, $data)
+    {
+        return json_encode([
+            'status' => $status,
+            'msg' => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'data' => $data
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function sendFd($fd, $status, $data)
+    {
+        $fd && $this->push($fd, $this->json($status, $data));
+    }
+    public function sendUser($userId, $status, $data)
+    {
+        $fd = (int)Room::getUserFd($userId);
+        $fd && $this->push($fd, $this->json($status, $data));
+    }
+
+    public function getUuid($name=''){
         $timess = (int)(microtime(true)*1000*10000*10000);
         return array('timess'=>$timess,'uuid'=>(string)$timess);
     }
@@ -763,7 +794,7 @@ class Swoole extends Command
     }
 
     //取得会员资讯
-    private function getUsersess($iSess,$fd=0,$type=null){
+    public function getUsersess($iSess,$fd=0,$type=null){
         switch ($type){
             case 'plan':
                 $res = $iSess;
@@ -911,7 +942,7 @@ class Swoole extends Command
     }
 
     //取代违禁词
-    private function setBetRech($userid = 0){
+    public function setBetRech($userid = 0){
         if(empty($userid))
             return false;
         //重新计算最近2天下注
@@ -937,19 +968,19 @@ class Swoole extends Command
     }
 
     //取代违禁词
-    private function regSpeaking($str){
-        $aRegex = DB::table('chat_regex')->select('regex')->get();
-        $aRegStr = "";
-        foreach ($aRegex as $key => $val){
-            $aRegStr .= "(".$val->regex.")|";
-        }
-        $aRegStr = substr($aRegStr,0,-1);
-        $str=preg_replace("/".$aRegStr."/is","***", $str);
-        return $str;
-    }
+//    private function regSpeaking($str){
+//        $aRegex = DB::table('chat_regex')->select('regex')->get();
+//        $aRegStr = "";
+//        foreach ($aRegex as $key => $val){
+//            $aRegStr .= "(".$val->regex.")|";
+//        }
+//        $aRegStr = substr($aRegStr,0,-1);
+//        $str=preg_replace("/".$aRegStr."/is","***", $str);
+//        return $str;
+//    }
 
     //消息根据群组样式化
-    private function cssText($level,$role){
+    public function cssText($level,$role){
         $aCssColor = DB::table('chat_roles')->select('bg_color1','bg_color2','font_color')
             ->where(function ($query) use ($level,$role){
                 if(isset($role)){
@@ -967,7 +998,7 @@ class Swoole extends Command
     }
 
     //回传用户层级
-    private function chkChat_level($role=0,$reg=0,$bet=0,$isnotAuto_count=0,$resLv = 0){
+    public function chkChat_level($role=0,$reg=0,$bet=0,$isnotAuto_count=0,$resLv = 0){
         if($role==3)                //如果是管理员LEVEL无条件给99
             return 99;
         elseif($role==1)            //如果是游客LEVEL无条件给0
@@ -986,7 +1017,7 @@ class Swoole extends Command
     }
 
     //取得目前房客资讯
-    private function getUserInfo($fd){
+    public function getUserInfo($fd){
         $logVal = 'chatusrfd:'.$fd;
         if(Storage::disk('chatusrfd')->exists($logVal)){
             $tmp = Storage::disk('chatusrfd')->get($logVal);
@@ -997,14 +1028,14 @@ class Swoole extends Command
         }else
             return '';
     }
-    private function is_not_json($str){
+    public function is_not_json($str){
         return is_null(json_decode($str));
     }
 
     /**
      * 更新目前房客资讯
     */
-    private function updUserInfo($fd,$iRoomInfo,$ws=null){
+    public function updUserInfo($fd,$iRoomInfo,$ws=null){
         try{
             $room_key = $fd;               //成员房间号码
             $chatusr = 'chatusr:'.md5($iRoomInfo['userId']);
@@ -1016,7 +1047,7 @@ class Swoole extends Command
         }
     }
     //注销全局存LIST
-    private function delAllkey($addVal,$logo=''){
+    public function delAllkey($addVal,$logo=''){
         switch ($logo){
             case 'usr':
                 $logVal ='chatusrfd:'.$addVal;
@@ -1042,7 +1073,7 @@ class Swoole extends Command
     }
 
     //全局存LIST
-    private function updAllkey($logo = 'usr',$iRoomID,$addId = 0,$addVal = 0,$type='first',$notReturn = false){
+    public function updAllkey($logo = 'usr',$iRoomID,$addId = 0,$addVal = 0,$type='first',$notReturn = false){
         if(in_array($logo,array('usr')))
             $tmpTxt = 'chatusrfd:';
         else
@@ -1081,7 +1112,7 @@ class Swoole extends Command
                 case 'usr':         //获取用户
                     $iRoomUsers = array();
 //                    $files = Storage::disk('chatusrfd')->files();
-                    $fds = $this->getRoomFd($iRoomID);
+                    $fds = Room::getRoomFd($iRoomID);
                     # 获取群下所有用户
                     foreach ($fds as $value){
                         $value = 'chatusrfd:'.$value;
@@ -1115,7 +1146,7 @@ class Swoole extends Command
     /**
      * 从md5的用户ID去找到在聊天室的广播号码，在取得每个人的聊天室信息
      */
-    private function getIdToUserInfo($k){
+    public function getIdToUserInfo($k){
         try{
             $tmpUsr = Storage::disk('chatusr')->exists('chatusr:'.$k)?Storage::disk('chatusr')->get('chatusr:'.$k):'';                      //从md5的用户ID去找到在聊天室的广播号码
             $tmpUsrInfo = empty($tmpUsr) || !Storage::disk('chatusrfd')->exists('chatusrfd:'.$tmpUsr)?'':(array)json_decode(Storage::disk('chatusrfd')->get('chatusrfd:'.$tmpUsr));     //从聊天室的广播号码取得每个人的聊天室信息
@@ -1126,7 +1157,7 @@ class Swoole extends Command
     }
 
     //重新整理历史讯息
-    private function chkHisMsg($iRoomInfo,$fd=0,$IsPush=true){
+    public function chkHisMsg($iRoomInfo,$fd=0,$IsPush=true){
         $rsKeyH = 'his';
 
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
@@ -1193,139 +1224,13 @@ class Swoole extends Command
 
         return true;
     }
-
-    //进入房间
-    public function joinRoom($roomId, $fd, $iRoomInfo)
-    {
-        # 如果在其它房间就退出
-        if(!empty($r = $this->getUserIdRoomId($iRoomInfo['userId']))){
-            $this->exitRoom($r, $fd, $iRoomInfo);
-        }
-        # 将fd 推入 room list
-        $this->roomPush($roomId, $fd, $iRoomInfo['userId']);
-        # 设置 Fd => RoomId 映射
-        $this->setFdRoomIdMap($fd, $roomId);
-        # 设置 user_id => RoomId 映射
-        $this->setUserIdRoomIdMap($iRoomInfo['userId'], $roomId);
-        # 修改数据库表房间
-        DB::table('chat_users')->where('users_id', $iRoomInfo['userId'])->update(['room_id' => $roomId]);
-        # 广播
-//        $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-//        $this->sendToAll($roomId, $msg);
-    }
-
-    //离开房间 - 只是更换房间 不退出房间
-    public function exitRoom($roomId, $fd, $iRoomInfo)
-    {
-        # 将fd 移除 room list
-        $this->deleteRoomFd($roomId, $fd);
-        # 删除 Fd => RoomId 映射
-        $this->deleteRoomIdMapByFd($fd);
-        # 删除 user_id => RoomId 映射
-        $this->setUserIdRoomIdMap($iRoomInfo['userId'], $roomId);
-        # 更新目前房客资讯
-        $iRoomInfo['room'] = $roomId;
-        $this->updUserInfo($fd,$iRoomInfo);
-        # 广播
-//        $msg = $this->msg(3, '退出聊天室', $iRoomInfo);   //进入聊天室
-//        $this->sendToAll($roomId, $msg);
-    }
-
     //关闭链接
     public function closeLink($fd, $iRoomInfo)
     {
         # 退出房间
-        if(!empty($roomId = $this->getRoomIdMapByFd($fd))){
-            $this->exitRoom($roomId, $fd, $iRoomInfo);
+        if(!empty($roomId = Room::getRoomIdMapByFd($fd))){
+            Room::exitRoom($roomId, $fd, $iRoomInfo);
         }
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    //设置 Fd => RoomId 映射
-    public function setFdRoomIdMap($fd, $roomId)
-    {
-        $key = 'roomIdFdMap/'.$fd;
-        return $this->set($key, $roomId);
-    }
-    //删除fd 在 RoomId => fd 映射
-    public function deleteRoomIdMapByFd($fd)
-    {
-        $key = 'roomIdFdMap/'.$fd;
-        return $this->del($key);
-    }
-    //获取fd 在 RoomId => fd 映射
-    public function getRoomIdMapByFd($fd)
-    {
-        $key = 'roomIdFdMap/'.$fd;
-        return $this->get($key);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //将fd 推入 room list
-    public function roomPush($roomId, $fd, $userId)
-    {
-        $key = 'roomList/'.$roomId.'/'.$fd;
-        return $this->set($key, $userId);
-    }
-    //删除Room中的Fd
-    public function deleteRoomFd($roomId, $fd)
-    {
-        $key = 'roomList/'.$roomId.'/'.$fd;
-        return $this->del($key);
-    }
-    //获取 roomlist下所有fd
-    public function getRoomFd($roomId)
-    {
-        $key = 'roomList/'.$roomId;
-        $list = Storage::disk('room')->files($key);
-
-        return array_map(function($v){
-            $v = explode('/', $v);
-            $v = @array_pop($v) ?? '';
-            return $v;
-        }, $list);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //设置 user_id => RoomId 映射 每个用户只能在一个群里发信息
-    public function setUserIdRoomIdMap($userId, $roomId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return $this->set($key, $roomId);
-    }
-    //删除 user_id => RoomId 映射
-    public function deleteUserIdRoomId($userId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return $this->del($key);
-    }
-    //获取用户所在房间
-    public function getUserIdRoomId($userId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return $this->get($key);
-    }
-
-    //-----------------------------------------------------------------------------------
-    //用文件操作 之后可以改成别的
-    public function get($key)
-    {
-        return Storage::disk('room')->exists($key) ? Storage::disk('room')->get($key) : '';
-    }
-    public function set($key, $value)
-    {
-        return Storage::disk('room')->put($key, $value);
-    }
-    public function del($key)
-    {
-        return Storage::disk('room')->exists($key) && Storage::disk('room')->delete($key);
-    }
-    //清除所有聊天室有关的
-    public function clearAllRoom()
-    {
-        $files = Storage::disk('room')->allFiles();
-        while ($files){
-            Storage::disk('room')->delete(array_shift($files));
-        }
-    }
 }

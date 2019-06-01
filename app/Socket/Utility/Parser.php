@@ -33,8 +33,6 @@ class Parser
     {
         $this->iRoomInfo = $iRoomInfo;
         $controller = '\App\Socket\Controllers\\'.ucfirst($this->controller);
-        var_dump($controller);
-        var_dump( $this->action);
         if(!class_exists($controller) || !method_exists($controller, $this->action)){
             return false;
         }

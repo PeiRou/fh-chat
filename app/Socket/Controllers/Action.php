@@ -22,9 +22,9 @@ class Action extends Base
         if(!$id)
             return false;
         if($type == 'rooms'){
-            $this->inRoom($roomId ?? 1, $this->request->fd, $this->iRoomInfo, $this->iSess);
+            app('swoole')->inRoom($id, $this->request->fd, $this->iRoomInfo, $this->iSess);
         }elseif($type == 'users'){
-
+            \App\Socket\Repository\Action::inUser($this->request->fd, $this->iRoomInfo, $id);
         }
     }
 

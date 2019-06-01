@@ -12,7 +12,7 @@ namespace App\Socket\Repository;
 use App\Socket\Push;
 use App\Socket\Utility\Room;
 
-class Action
+class Action extends BaseRepository
 {
 
 

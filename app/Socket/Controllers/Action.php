@@ -14,6 +14,21 @@ use App\Socket\Utility\Room;
 class Action extends Base
 {
 
+    //打开窗口
+    public function openWindow()
+    {
+        $id = (int)$this->id;
+        $type = $this->type;
+        if(!$id)
+            return false;
+        if($type == 'rooms'){
+            $this->inRoom($roomId ?? 1, $this->request->fd, $this->iRoomInfo, $this->iSess);
+        }elseif($type == 'users'){
+
+        }
+    }
+
+    //关闭窗口
     public function exitWindow()
     {
         # 如果在其它房间就退出

@@ -261,7 +261,7 @@ class Swoole extends Command
                 }
                 if(isset($messageInfo) && strlen($messageInfo) > 0 && $type == 'ins'){
                     try{
-                        return (new Parser($ws, $request, $messageInfo))->run($iRoomInfo);
+                        return (new Parser($ws, $request, $messageInfo, $iSess))->run($iRoomInfo);
                     }catch (\Throwable $e){
                         throw $e;
                     }
@@ -870,8 +870,12 @@ class Swoole extends Command
         return $res;
     }
 
-    //自动加入房间
-    public function autoInRoom($iRoomInfo, $fd)
+    /**
+     * 自动加入房间 加入完后会在$iRoomInfo rooms推入加入房间的id 所以会更新$iRoomInfo
+     * @param $iRoomInfo
+     * @param $fd
+     */
+    public function autoInRoom(&$iRoomInfo, $fd)
     {
         //默认加入1、2房间
         $arr = [1,2];
@@ -1212,7 +1216,7 @@ class Swoole extends Command
         if(!ChatRoom::inRoom($roomId, ['user_id' => $iRoomInfo['userId']]))
             return false;
         array_push($iRoomInfo['rooms'], $roomId);
-        $iRoomInfo['rooms'] = array_unique($iRoomInfo['rooms']);
+        $iRoomInfo['rooms'] = array_values(array_diff(array_unique($iRoomInfo['rooms']), ['']));
         $this->updUserInfo($fd,$iRoomInfo);
         return true;
     }

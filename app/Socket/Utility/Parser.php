@@ -19,8 +19,9 @@ class Parser
     public $server;
     public $request;
 
-    public function __construct(\swoole_websocket_server $server, $request, $message)
+    public function __construct(\swoole_websocket_server $server, $request, $message, $iSess = '')
     {
+        $this->iSess = $iSess;
         $data = json_decode(urldecode(base64_decode($message)), 1);
         $this->request = $request;
         $this->server = $server;

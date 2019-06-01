@@ -563,7 +563,7 @@ class Swoole extends Command
     //发消息给所有人
     public function sendToAll($room_id,$msg){
         $iRoomUsers = $this->updAllkey('usr',$room_id);   //获取聊天用户数组，在反序列化回数组
-        foreach ($iRoomUsers as $usrfdId =>$fdId) {
+        foreach ($iRoomUsers ?? [] as $usrfdId =>$fdId) {
             $this->push( $fdId, $msg,$room_id);
         }
     }

@@ -58,7 +58,7 @@ class ChatUser extends Base
     //搜索
     protected static function search($db, $param = [], int $userId, int $limit = 20)
     {
-        $chatUsersWhere = ' 1 ';
+        $chatUsersWhere = ' 1 AND `chat_users`.`users_id` <> '.$userId;
         $chatRoomWhere = ' 1 ';
         $aParam = [];
         $limit = '';
@@ -73,7 +73,7 @@ class ChatUser extends Base
             $chatRoomWhere .= ' AND `chat_room`.`room_name` LIKE ? ';
             array_push($aParam, $param['name'].'%');
         }
-        $sql = "( SELECT
+        $sql = " SELECT
                     `chat_users`.`users_id` AS `id`,
                     `chat_users`.`username` AS `name`,
                     IF
@@ -86,8 +86,8 @@ class ChatUser extends Base
                     WHERE
                         {$chatUsersWhere} 
                         {$limit}
-                    ) UNION ALL
-                    (
+                     UNION ALL
+                    
                     SELECT
                         `chat_room`.`room_id` AS `id`,
                         `chat_room`.`room_name` AS `name`,
@@ -101,7 +101,7 @@ class ChatUser extends Base
                     WHERE
                         {$chatRoomWhere}
                         {$limit}
-                    )";
+                    ";
         return $db->rawQuery($sql, $aParam);
     }
 }

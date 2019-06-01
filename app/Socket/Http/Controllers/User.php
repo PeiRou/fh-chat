@@ -66,8 +66,8 @@ class User extends Base
             'name' => $name
         ];
         # （前期不需要这个限制）
-        if($chat_role !== 3)
-            $param['chat_role'] = 3;
+//        if($chat_role !== 3)
+//            $param['chat_role'] = 3;
         $users = ChatUser::search($param, $this->user['users_id']);
         return $this->show(0, '', $users ?? []);
     }

@@ -14,6 +14,7 @@ use App\Socket\Pool\MysqlPool;
 use App\Socket\Pool\RedisPool;
 use App\Socket\Utility\Pool\PoolManager;
 use App\Socket\Utility\Task\SuperClosure;
+use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
 class SwooleEvevts

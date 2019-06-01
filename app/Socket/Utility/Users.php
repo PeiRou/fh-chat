@@ -19,7 +19,7 @@ class Users
             'status' => $msgArr['status'],
             'nickname' => $msgArr['nickname'],
             'img' => $msgArr['img'],
-            'msg' => $msgArr['msg'],
+            'msg' => base64_encode(str_replace('+', '%20', $msgArr['msg'])),
             'dt' => $msgArr['dt'],
             'bg1' => $msgArr['bg1'],
             'bg2' => $msgArr['bg2'],
@@ -41,12 +41,13 @@ class Users
 
     public static function getUserMap(...$args)
     {
-        return implode(',', self::asort($args));
+        self::asort($args);
+        return implode(',', $args);
     }
 
-    public static function asort(array $arr)
+    public static function asort(array &$arr)
     {
-        return $arr;
+        return asort($arr);
     }
 
     //存聊天信息

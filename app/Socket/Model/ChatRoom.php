@@ -34,6 +34,15 @@ class ChatRoom extends Base
         }, 5);
     }
 
+    protected static function getRoomOne($db, $param = [])
+    {
+        return self::HandleCacheData(function()use($db, $param){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            return $db->getOne('chat_room') ?? null;
+        }, 5);
+    }
+
     /**
      * 加入房间
      * @param $roomId 房间id

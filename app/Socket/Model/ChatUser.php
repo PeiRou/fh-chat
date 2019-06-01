@@ -35,16 +35,6 @@ class ChatUser extends Base
         }, 5);
     }
 
-    //用户名称 昵称
-    protected static function getUserName($db, $param = [])
-    {
-        return self::HandleCacheData(function()use($db, $param){
-            foreach ($param as $k=>$v)
-                $db->where($k, $v);
-            return $db->getOne('chat_users', ['nickname'])['nickname'] ?? null;
-        }, 5);
-    }
-
     //查会员角色
     protected static function getUserRole($db, $param = [])
     {

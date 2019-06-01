@@ -8,12 +8,11 @@ class ChatFriendsList extends Base
 {
 
     //获取好友列表
-    protected static function getUserFriendList($db, $userId)
+    protected static function getUserFriendList($db, $userId, int $toId = null)
     {
-//        foreach ($param as $k=>$v)
-//            $db->where($k, $v);
-//        return $db->get('chat_friends_list');
-
+        $where = '';
+        if($toId)
+            $where .= " AND `u`.`users_id` = {$toId} ";
         $sql = " SELECT 	
                     `u`.`users_id` AS `user_id`,
                     `u`.`nickname`,
@@ -22,7 +21,7 @@ class ChatFriendsList extends Base
                 FROM
                 `chat_users` AS `u`
                 LEFT JOIN `chat_friends_list` AS `l` ON `u`.`users_id` = `l`.`to_id`
-                WHERE `l`.`user_id` = {$userId} ";
+                WHERE `l`.`user_id` = {$userId} {$where}";
 
         return $db->rawQuery($sql);
     }
@@ -43,8 +42,8 @@ class ChatFriendsList extends Base
             'to_id' => $toUser['users_id'],
             'remark' => $toUser['nickname'],
             'status' => 1,
-            'nickname' => $toUser['nickname'],
-            'img' => $toUser['img'],
+//            'nickname' => $toUser['nickname'],
+//            'img' => $toUser['img'],
         ];
         return $db->insert('chat_friends_list', $data);
     }

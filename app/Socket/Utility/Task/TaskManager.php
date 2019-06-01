@@ -26,7 +26,7 @@ class TaskManager
         return self::async($task);
     }
 
-    public static  function sync($task,$timeout = 0.5,$taskWorkerId = -1)
+    public static function sync($task,$timeout = 0.5,$taskWorkerId = -1)
     {
         if($task instanceof \Closure){
             try{

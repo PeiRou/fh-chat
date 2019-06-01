@@ -7,9 +7,11 @@ namespace App\Socket\Utility;
 
 
 use App\Service\Cache;
+use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatUser;
+use App\Socket\Push;
 use App\Socket\Utility\Task\TaskManager;
 use Illuminate\Support\Facades\Storage;
 
@@ -172,6 +174,7 @@ class Room
     {
         $disk = 'home';
         $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
+
         if((is_null($param = self::get($filekey, $disk)) || !$param) || !$param = @json_decode($param, 1)){
             $param = [];
             $param['type'] = $type;
@@ -185,10 +188,13 @@ class Room
         $param['lookNum'] = $param['lookNum'] ?? 0;
         foreach ($aParam as $key => $value){
             if($key == 'lookNum'){
-                if($value > 0)
+                if($value > 0){
                     $param['lookNum'] = $param['lookNum'] + $value;
+                }
                 else
                     $param['lookNum'] = $value;
+            }elseif($key == 'lastMsg'){
+                $param['lastMsg'] = $value;
             }else{
                 $param[$key] = $value;
             }
@@ -196,15 +202,22 @@ class Room
 
         if(!isset($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
             if($type == 'users'){
-                $param['name'] = ChatUser::getUserName(['users_id' => $id]) ?? '';
+                $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
+                $param['name'] = $toUser['remark'] ?? $toUser['nickname'];
+                $param['head_img'] = $toUser['img'];
             }elseif($type == 'room'){
-                $param['name'] = ChatRoom::getRoomValue(['room_id' => $id], 'room_name') ?? '';
+                $room = ChatRoom::getRoomOne(['room_id' => $id]);
+                $param['name'] = $room['room_name'];
+                $param['head_img'] = $room['head_img'];
             }
         }
         # 每次设置就将信息推送前端改变
-        app('swoole')->sendUser($userId, 23, $param);
-
-        return self::set($filekey, json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $disk);
+//        app('swoole')->sendUser($userId, 23, $param);
+        Push::pushUser($userId, 'HistoryChatList');
+        $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if(!$json)
+            return false;
+        return self::set($filekey, $json, $disk);
     }
 
     //获取单个
@@ -307,26 +320,24 @@ class Room
         $iRoomUserIds  = self::getRoomUserId($roomId);
 
         foreach ($userIds as $v){
-            TaskManager::async(function() use($iRoomUserIds, $v, $fd, $msg, $iRoomInfo, $roomId){
-                $lookNum = 1;
-                # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
-                if(in_array($v, $iRoomUserIds)){
-                    $lookNum = 0;
-                    $ufd = Room::getUserFd($v);
-                    # 推消息
-                    if($ufd == $fd)//组装消息数据
-                        $msg = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
-                    else
-                        $msg = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
-                    app('swoole')->push($ufd, $msg,$iRoomInfo['room']);
-                }
+            $lookNum = 1;
+            # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
+            if(in_array($v, $iRoomUserIds)){
+                $lookNum = 0;
+                $ufd = Room::getUserFd($v);
+                # 推消息
+                if($ufd == $fd)//组装消息数据
+                    $json = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
+                else
+                    $json = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
+                app('swoole')->push($ufd, $json,$iRoomInfo['room']);
+            }
 
-                # 设置未读消息数和最后一条消息
-                Room::setHistoryChatList($v, 'users', $roomId, [
-                    'lookNum' => $lookNum,
-                    'lastMsg' => $msg
-                ]);
-            });
+            # 设置未读消息数和最后一条消息
+            Room::setHistoryChatList($v, 'room', $roomId, [
+                'lookNum' => $lookNum,
+                'lastMsg' => str_replace('%20', '+', base64_decode($msg))
+            ]);
         }
 
     }

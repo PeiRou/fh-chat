@@ -34,7 +34,7 @@ class Users
             'type' => $msgArr['type'],
             'is_look' => 0,
             'created_at' => date('Y-m-d H:i:s'),
-            'userMap' => self::getUserMap([$toUserId, $iRoomInfo['userId']])
+            'userMap' => self::getUserMap($toUserId, $iRoomInfo['userId'])
         ];
         return $arr;
     }
@@ -46,7 +46,6 @@ class Users
 
     public static function asort(array $arr)
     {
-        asort($arr);
         return $arr;
     }
 

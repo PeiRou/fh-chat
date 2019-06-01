@@ -29,7 +29,6 @@ class Action extends BaseRepository
 
         if(empty($toUser))
             return false;
-
         # 推单聊历史记录
         Push::pushPersonalLog($fd, $iRoomInfo['userId'], $toUserId);
 

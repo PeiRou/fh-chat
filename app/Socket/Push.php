@@ -88,7 +88,10 @@ class Push
                 if ($v['user_id'] == $user_id)
                     $v['status'] = 4;
             }
-            app('swoole')->sendFd($fd, 25, $data);
+            $swoole = app('swoole');
+            foreach ($data as $v){
+                $swoole->push($fd, json_encode($v));
+            }
         });
     }
 

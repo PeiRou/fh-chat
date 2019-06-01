@@ -24,7 +24,6 @@ class PersonalLog extends Base
         $userMap = Users::getUserMap($user_id, $to_id);
         # 获取要删除的所有id
         $ids = $db->rawQuery(' SELECT `id` FROM `personal_log` WHERE `userMap` = "'.$userMap.'" AND `is_look` = 1  ORDER BY `id` DESC LIMIT 200 OFFSET '.$offset);
-
         # 通知这两个人删除信息
         if(count($ids)){
             $db->where('id', $ids, 'IN')->delete('personal_log');
@@ -34,7 +33,6 @@ class PersonalLog extends Base
 
         # 获取剩下的， 不管多少都拿
         $list = $db->where('userMap', $userMap)->get('personal_log');
-
         return $list;
     }
 }

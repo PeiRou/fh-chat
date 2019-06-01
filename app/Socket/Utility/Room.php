@@ -330,7 +330,7 @@ class Room
                     $json = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
                 else
                     $json = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
-                app('swoole')->push($ufd, $json,$iRoomInfo['room']);
+                app('swoole')->push($ufd, $json);
             }
 
             # 设置未读消息数和最后一条消息

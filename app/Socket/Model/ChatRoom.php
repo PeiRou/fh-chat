@@ -15,6 +15,7 @@ use App\Service\Cache;
 class ChatRoom extends Base
 {
     use Cache;
+
     //房间列表
     protected static function getRoomList($db, $param = [])
     {

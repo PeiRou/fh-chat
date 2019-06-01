@@ -154,18 +154,13 @@ class Swoole extends Command
         //创建websocket服务器对象，监听0.0.0.0:2021端口
         if(env('WS_HOST_SSL')!='cs'){
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',2021),SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
-            $this->ws->set(array(
+            $this->ws->set([
                 'ssl_cert_file' => __DIR__ . '/config/wx-chat-ssl/' .env('WS_HOST_SSL','fh').'_ssl.crt',
                 'ssl_key_file' => __DIR__ . '/config/wx-chat-ssl/' .env('WS_HOST_SSL','fh').'_ssl.key',
-            ));
+            ]);
         }else
             $this->ws = new \swoole_websocket_server("0.0.0.0", env('WS_PORT',9501));
-
-        //绑定自己
-        \Illuminate\Container\Container::getInstance()->bind('swoole', function(){
-            return $this;
-        }, true);
-
+        $this->ws->set(config('swoole.MAIN_SERVER.SETTING'));
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             \App\Socket\SwooleEvevts::onOpen($ws, $request);
@@ -204,7 +199,6 @@ class Swoole extends Command
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
 
                 SwooleEvevts::onOpenAfter($request, $iRoomInfo);
-
                 //回传自己的基本设置
                 if($iRoomInfo['setNickname']==0)
                     $iRoomInfo['nickname'] = '';
@@ -217,15 +211,14 @@ class Swoole extends Command
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
-
-        $this->ws->on('start', function($ws){
-
+        $this->ws->on('start', function($ws){});
+        $this->ws->on('Task',function($serv, \Swoole\Server\Task $task){
+            \App\Socket\SwooleEvevts::onTask($serv, $task);
         });
-
+        $this->ws->on('finish', function($ws){});
         $this->ws->on('workerStart', function($server, $id){
             \App\Socket\SwooleEvevts::onWorkerStart($server, $id);
         });
-
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
             if(substr($request->data,0,6)=="heart="){       //心跳检查
@@ -316,14 +309,11 @@ class Swoole extends Command
                 error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
-        $this->ws->on('receive', function ($ws, $request) {
-        });
+        $this->ws->on('receive', function ($ws, $request) {});
         //接收WebSocket服务器推送功能
         $this->ws->on('request', function ($serv, $response) {
             $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
             $type = isset($serv->post['type'])?$serv->post['type']:(isset($serv->get['type'])?$serv->get['type']:'');
-
-            \Log::info($type);
             switch ($type){
                 case 'plan':
                     //检查计划消息
@@ -380,6 +370,9 @@ class Swoole extends Command
             $this->delAllkey($fd,'usr');   //删除用户
         });
 
+        \App\Socket\SwooleEvevts::mainServerCreate();
+        //绑定自己
+        \Illuminate\Container\Container::getInstance()->instance('swoole', $this);
         $this->ws->start();
     }
 
@@ -855,8 +848,8 @@ class Swoole extends Command
 
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
                 $res['room'] = $aUsers->room_id;                   //取得房间id
-                $res['rooms'] = $aUsers->rooms;                   //取得房间id
-                $res['rooms'] = array_values(array_diff(array_unique(array_merge(explode(',', $res['rooms']), ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
+                $res['rooms'] = explode(',', $aUsers->rooms);                   //取得房间id
+//                $res['rooms'] = array_values(array_diff(array_unique(array_merge(explode(',', $res['rooms']), ['1','2'])), [''])); # 并入房间1 去重 去掉空的 重置索引避免数组变对象
                 //如果没有呢称，屏蔽帐号部分字元
                 $res['name'] = !isset($aUsers->nickname)||empty($aUsers->nickname)?substr($res['userName'],0,2).'******'.substr($res['userName'],-2,3):$aUsers->nickname;
                 $res['nickname'] = $aUsers->nickname;                 //用户呢称
@@ -871,9 +864,21 @@ class Swoole extends Command
                 $res['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
                 $res['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
                 $res['font'] = $iRoomCss->font_color;              //用户会话文字颜色
+                $this->autoInRoom($res, $fd); //进入房间
                 break;
         }
         return $res;
+    }
+
+    //自动加入房间
+    public function autoInRoom($iRoomInfo, $fd)
+    {
+        //默认加入1、2房间
+        $arr = [1,2];
+        foreach ($arr as $v){
+            !in_array($v, $iRoomInfo['rooms']) &&
+            ($this->addRoom($v,$iRoomInfo, $fd));
+        }
     }
     
     //检查发言状态
@@ -966,18 +971,6 @@ class Swoole extends Command
             'updated_at'=> date("Y-m-d H:i:s",time())
         ]);
     }
-
-    //取代违禁词
-//    private function regSpeaking($str){
-//        $aRegex = DB::table('chat_regex')->select('regex')->get();
-//        $aRegStr = "";
-//        foreach ($aRegex as $key => $val){
-//            $aRegStr .= "(".$val->regex.")|";
-//        }
-//        $aRegStr = substr($aRegStr,0,-1);
-//        $str=preg_replace("/".$aRegStr."/is","***", $str);
-//        return $str;
-//    }
 
     //消息根据群组样式化
     public function cssText($level,$role){
@@ -1221,7 +1214,6 @@ class Swoole extends Command
         array_push($iRoomInfo['rooms'], $roomId);
         $iRoomInfo['rooms'] = array_unique($iRoomInfo['rooms']);
         $this->updUserInfo($fd,$iRoomInfo);
-
         return true;
     }
     //关闭链接

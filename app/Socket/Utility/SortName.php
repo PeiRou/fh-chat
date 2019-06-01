@@ -70,7 +70,6 @@ class SortName
     {
         if(!count($data))
             return $data;
-//        $userName = array('张三','马大帅','李四','王五','小二','猫蛋','狗蛋','王花','三毛','小明','李刚','张飞', 'a', 'b', 'C');
         $charArray = [];
         sort($data);
         foreach($data as $v){
@@ -82,14 +81,14 @@ class SortName
         }
         ksort($charArray);
         $arr = [];
-        while($charArray['number']){
+        while($charArray['number'] ?? []){
             $k = array_shift($charArray['number']);
             while ($k) {
                 $kkk = array_shift($k);
                 array_push($arr, $kkk);
             }
         }
-        while($charArray['str']){
+        while($charArray['str'] ?? []){
             $k = array_shift($charArray['str']);
             while ($k) {
                 $kkk = array_shift($k);

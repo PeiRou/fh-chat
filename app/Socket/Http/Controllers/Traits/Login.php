@@ -20,6 +20,7 @@ trait Login
         });
         if(empty($this->user))
             return false;
+        $this->user['userId'] = $this->user['users_id'];
         $this->iRoomInfo = app('swoole')->getUsersess($token);
         return true;
     }

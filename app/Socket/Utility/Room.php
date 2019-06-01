@@ -10,7 +10,7 @@ use App\Service\Cache;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatUser;
-use Illuminate\Support\Facades\DB;
+use App\Socket\Utility\Task\TaskManager;
 use Illuminate\Support\Facades\Storage;
 
 class Room
@@ -20,20 +20,25 @@ class Room
     public static function joinRoom($roomId, $fd, $iRoomInfo)
     {
         # 如果在其它房间就退出
-        if(!empty($r = self::getUserIdRoomId($iRoomInfo['userId'])))
-            self::exitRoom($r, $fd, $iRoomInfo);
+//        if(!empty($r = self::getUserIdRoomId($iRoomInfo['userId'])))
+//            self::exitRoom($r, $fd, $iRoomInfo);
+        # 如果在其它房间就退出
+        if($status = self::getUserStatus($iRoomInfo['userId'])){
+            if($status['type'] == 'room')
+                self::exitRoom($status['id'], $fd, $iRoomInfo);
+        }
         # 将fd 推入 room list
         self::roomPush($roomId, $fd, $iRoomInfo['userId']);
         # 将userId 推入 room list
         self::roomPushUserId($roomId, $fd, $iRoomInfo['userId']);
         # 设置 Fd => RoomId 映射
         self::setFdRoomIdMap($fd, $roomId);
-        # 设置 user_id => RoomId 映射
-        self::setUserIdRoomIdMap($iRoomInfo['userId'], $roomId);
         # 设置用户状态 打开的群组还是单人 和id
         self::setUserStatus($iRoomInfo['userId'], $roomId);
         # 修改数据库表房间
-        DB::table('chat_users')->where('users_id', $iRoomInfo['userId'])->update(['room_id' => $roomId]);
+        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($iRoomInfo, $roomId) {
+            return $db->where('users_id', $iRoomInfo['userId'])->update('chat_users', ['room_id' => $roomId]);
+        });
         # 清空用户进入的房间未读消息数 并且加入这个列表
         self::setHistoryChatList($iRoomInfo['userId'], 'room', $roomId, ['lookNum' => 0]);
     }
@@ -48,7 +53,7 @@ class Room
         # 删除 Fd => RoomId 映射
         self::deleteRoomIdMapByFd($fd);
         # 删除 user_id => RoomId 映射
-        self::setUserIdRoomIdMap($iRoomInfo['userId'], $roomId);
+//        self::deleteUserIdRoomId($iRoomInfo['userId']);
         # 删除用户状态
         self::delUserStatus($iRoomInfo['userId']);
     }
@@ -161,25 +166,6 @@ class Room
         }, $list);
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    //设置 user_id => RoomId 映射 每个用户只能在一个群里发信息
-    public static function setUserIdRoomIdMap($userId, $roomId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return self::set($key, $roomId);
-    }
-    //删除 user_id => RoomId 映射
-    public static function deleteUserIdRoomId($userId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return self::del($key);
-    }
-    //获取用户所在房间
-    public static function getUserIdRoomId($userId)
-    {
-        $key = 'UserIdRoomId/'.$userId;
-        return self::get($key);
-    }
     //------------------------------------------------------------------------------------------------------------------
     //记录用户聊过的列表
     public static function setHistoryChatList($userId, $type, $id, $aParam)
@@ -314,7 +300,6 @@ class Room
     //发送消息到聊天室
     public static function sendRoom($fd, $iRoomInfo, $msg, $roomId)
     {
-        var_dump($roomId);
         # 所有在群里的会员
         $userIds = ChatRoomDt::getRoomUserIds($roomId);
 
@@ -322,24 +307,26 @@ class Room
         $iRoomUserIds  = self::getRoomUserId($roomId);
 
         foreach ($userIds as $v){
-            $lookNum = 1;
-            # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
-            if(in_array($v, $iRoomUserIds)){
-                $lookNum = 0;
-                $ufd = Room::getUserFd($v);
-                # 推消息
-                if($ufd == $fd)//组装消息数据
-                    $msg = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
-                else
-                    $msg = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
-                app('swoole')->push($ufd, $msg,$iRoomInfo['room']);
-            }
+            TaskManager::async(function() use($iRoomUserIds, $v, $fd, $msg, $iRoomInfo, $roomId){
+                $lookNum = 1;
+                # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
+                if(in_array($v, $iRoomUserIds)){
+                    $lookNum = 0;
+                    $ufd = Room::getUserFd($v);
+                    # 推消息
+                    if($ufd == $fd)//组装消息数据
+                        $msg = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
+                    else
+                        $msg = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
+                    app('swoole')->push($ufd, $msg,$iRoomInfo['room']);
+                }
 
-            # 设置未读消息数和最后一条消息
-            Room::setHistoryChatList($v, 'users', $roomId, [
-                'lookNum' => $lookNum,
-                'lastMsg' => $msg
-            ]);
+                # 设置未读消息数和最后一条消息
+                Room::setHistoryChatList($v, 'users', $roomId, [
+                    'lookNum' => $lookNum,
+                    'lastMsg' => $msg
+                ]);
+            });
         }
 
     }

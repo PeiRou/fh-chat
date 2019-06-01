@@ -55,7 +55,7 @@ class Base
         $data = [
             'code' => $code,
             'msg' => $msg,
-            'data' => (object)$data,
+            'data' => count($data) ? collect($data) : (object)[],
         ];
 
         $this->response->status($httpCode);

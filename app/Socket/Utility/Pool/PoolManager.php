@@ -9,7 +9,7 @@
 namespace App\Socket\Utility\Pool;
 
 
-use App\Socket\Utility\Singleton;
+use App\Service\Singleton;
 use App\Socket\Utility\Random;
 
 class PoolManager

@@ -13,7 +13,8 @@ use App\Socket\Pool\Mysql2Pool;
 use App\Socket\Pool\MysqlPool;
 use App\Socket\Pool\RedisPool;
 use App\Socket\Utility\Pool\PoolManager;
-use Swoole\Coroutine;
+use App\Socket\Utility\Task\SuperClosure;
+use App\Socket\Utility\Trigger;
 
 class SwooleEvevts
 {
@@ -37,64 +38,40 @@ class SwooleEvevts
     {
 
     }
+    public static function onTask($server, \Swoole\Server\Task $task)
+    {
+        $taskObj = $task->data;
+        if($taskObj instanceof SuperClosure){
+            try{
+                return $taskObj( $server, $task->id,$task->worker_id,$task->flags);
+            }catch (\Throwable $throwable){
+                Trigger::getInstance()->throwable($throwable);
+            }
+        }
+    }
 
+    public static function mainServerCreate()
+    {
+//        app('swoole')->ws->addProcess((new Test('testProcess'))->getProcess());
+    }
     public static function onWorkerStart($server, $id)
     {
         \swoole_process::signal(SIGPIPE, function($signo) {
             \swoole_process::signal(SIGPIPE, null);
         });
-//
-//        //绑定一个单例，传一些数据
-//        Container::getInstance()->bind('workerServer', function(){
-//            $obj = new \stdClass();
-//            $obj->db = new MysqlManagerService(config('swoole.mysql'));
-//            $obj->db->initChannel();
-//            //链接聊天记录的数据库
-//            $obj->dbchat = new MysqlManagerService(config('swoole.chat'));
-//            $obj->dbchat->initChannel();
-//            return $obj;
-//        }, true);
-//
-//        $db = app('workerServer')->db;
-//        $dbchat = app('workerServer')->dbchat;
-//
-//
-//        //回收链接
-//        if ((!$db->is_recycling) && !($dbchat->is_recycling)) {
-//            $db->is_recycling = true;
-//            $dbchat->is_recycling = true;
-//
-//            while (1) {
-//                Coroutine::sleep(10);
-//                if ($db->shouldRecover()) {
-//                    $mysql = $db->channel->pop();
-//                    $now   = time();
-//                    if ($now - $mysql->getUsedAt() > 20) {
-//                        $db->decrease();
-//                    } else {
-//                        !$db->channel->isFull() && $db->channel->push($mysql);
-//                    }
-//                }
-//
-//                if ($dbchat->shouldRecover()) {
-//                    $mysql = $dbchat->channel->pop();
-//                    $now   = time();
-//                    if ($now - $mysql->getUsedAt() > 20) {
-//                        $dbchat->decrease();
-//                    } else {
-//                        !$dbchat->channel->isFull() && $dbchat->channel->push($mysql);
-//                    }
-//                }
-//            }
-//        }
-
+        if($id >= $server->setting['worker_num']) {
+               swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_task_worker");
+        } else {
+            swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_worker");
+        }
     }
 
     //open事件之后
     public static function onOpenAfter($request, $iRoomInfo)
     {
         # 推送房间列表
-        Push::getRoomList($request->fd,$iRoomInfo);
+//        Push::getRoomList($request->fd,$iRoomInfo);
+
         # 推送所有的列表
         Push::pushList($request->fd,$iRoomInfo);
     }

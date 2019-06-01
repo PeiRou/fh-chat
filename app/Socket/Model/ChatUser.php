@@ -15,61 +15,17 @@ class ChatUser extends Base
 {
     use Cache;
 
-    //获取好友
-    protected static function getUserFriend($db, $param = [])
-    {
-        foreach ($param as $k=>$v)
-            $db->where($k, $v);
-        return $db->getOne('chat_friends_list');
-    }
-    //获取好友列表
-    protected static function getUserFriendList($db, $param = [])
-    {
-        foreach ($param as $k=>$v)
-            $db->where($k, $v);
-        return $db->get('chat_friends_list');
-    }
-
-    //是否可以添加好友
-    protected static function checkAddFriend($db, $user_id, $toUserId)
-    {
-        $db->where('user_id', $user_id);
-        $db->where('to_id', $toUserId);
-        $res = $db->getOne('chat_friends_log');
-        if(count($res)){
-            if($res['status'] === 0)
-                return false;
-        }
-        return true;
-    }
-
-
-    //添加好友
-    protected static function addFriend($db, array $user, $toUserId)
-    {
-        $data = [
-            'user_id' => $user['users_id'],
-            'name' => $user['username'],
-            'img' => $user['img'],
-            'to_id' => $toUserId,
-        ];
-        if($data['id'] = $db->insert('chat_friends_log', $data)) {
-            unset($data['to_id']);
-            return $data;
-        }
-        return false;
-    }
-
-    //好友申请列表
-    protected static function getFriendsLogList($db, $param = [])
-    {
-        foreach ($param as $k=>$v)
-            $db->where($k, $v);
-        $res = $db->get('chat_friends_log');
-        return $res;
-    }
-
     //用户信息
+    protected static function getUser($db, $param = [])
+    {
+        return self::HandleCacheData(function()use($db, $param){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            return $db->getOne('chat_users');
+        }, 5);
+    }
+
+    //用户信息单个值
     protected static function getUserValue($db, $param = [], $value)
     {
         return self::HandleCacheData(function()use($db, $param, $value){
@@ -87,5 +43,65 @@ class ChatUser extends Base
                 $db->where($k, $v);
             return $db->getOne('chat_users', ['nickname'])['nickname'] ?? null;
         }, 5);
+    }
+
+    //查会员角色
+    protected static function getUserRole($db, $param = [])
+    {
+        return self::RedisCacheData(function()use($db, $param){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            return $db->getValue('chat_users', 'chat_role');
+        }, 10);
+    }
+
+    //搜索
+    protected static function search($db, $param = [], int $userId, int $limit = 20)
+    {
+        $chatUsersWhere = ' 1 ';
+        $chatRoomWhere = ' 1 ';
+        $aParam = [];
+        $limit = '';
+        if($limit)
+            $limit = ' LIMIT ' . $limit;
+        if(isset($param['chat_role'])){
+            $chatUsersWhere .= ' AND `chat_users`.`chat_role` = '.(int)$param['chat_role'];
+        }
+        if(isset($param['name'])){
+            $chatUsersWhere .= ' AND `chat_users`.`username` LIKE ? ';
+            array_push($aParam, $param['name'].'%');
+            $chatRoomWhere .= ' AND `chat_room`.`room_name` LIKE ? ';
+            array_push($aParam, $param['name'].'%');
+        }
+        $sql = "( SELECT
+                    `chat_users`.`users_id` AS `id`,
+                    `chat_users`.`username` AS `name`,
+                    IF
+                        ( `chat_friends_list`.`to_id`, 1, 0 ) AS is_with,
+                        'users' AS `type` 
+                    FROM
+                        `chat_users`
+                        LEFT JOIN `chat_friends_list` ON `chat_friends_list`.`to_id` = `chat_users`.`users_id` 
+                        AND `chat_friends_list`.`user_id` = {$userId} 
+                    WHERE
+                        {$chatUsersWhere} 
+                        {$limit}
+                    ) UNION ALL
+                    (
+                    SELECT
+                        `chat_room`.`room_id` AS `id`,
+                        `chat_room`.`room_name` AS `name`,
+                    IF
+                        ( `chat_room_dt`.`user_id`, 1, 0 ) AS is_with,
+                        'room' AS `type` 
+                    FROM
+                        `chat_room`
+                        LEFT JOIN `chat_room_dt` ON `chat_room_dt`.`id` = `chat_room`.`room_id` 
+                        AND `chat_room_dt`.`user_id` = {$userId}
+                    WHERE
+                        {$chatRoomWhere}
+                        {$limit}
+                    )";
+        return $db->rawQuery($sql, $aParam);
     }
 }

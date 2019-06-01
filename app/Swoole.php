@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Support\Facades\Redis;
 
+
 class Swoole
 {
     private $timeout = 2;
@@ -40,6 +41,11 @@ class Swoole
         $url = env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021").'/'.$action;
         return json_decode(self::curl_get_content($url, $param), 1) ?? null;
     }
+    public static function get($action, $param = [])
+    {
+        $url = env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021").'/'.$action;
+        return self::curl_get_content($url, $param);
+    }
 
     public static function curl_get_content($url, $data = [], $conn_timeout=7, $timeout=10, $user_agent=null)
     {
@@ -65,7 +71,6 @@ class Swoole
         $err = curl_errno($ch);
         if (($err) || ($httpcode !== 200)) {
             writeLog('error', static::class.'_'.__FUNCTION__.'_'.'   http状态码：'.$httpcode.'失败信息：'.$err.'返回信息：'.$res);
-            return null;
         }
 
         curl_close($ch);

@@ -97,4 +97,8 @@ class AjaxStatusController extends Controller
         }
         return 'ok';
     }
+    public function chatapi(Request $request, $controller, $action)
+    {
+        return Swoole::get($controller.'/'.$action, $request->all());
+    }
 }

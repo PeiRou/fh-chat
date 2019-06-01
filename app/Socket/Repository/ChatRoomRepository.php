@@ -10,6 +10,8 @@ namespace App\Socket\Repository;
 
 
 use App\Socket\Model\ChatRoom;
+use App\Socket\Push;
+use App\Socket\Utility\Room;
 
 class ChatRoomRepository extends BaseRepository
 {
@@ -40,6 +42,8 @@ class ChatRoomRepository extends BaseRepository
             # 清会员在线数据
             \App\Repository\ChatRoomRepository::clearUserInfo($user_id);
 
+            # 更新这个人房间列表
+            Push::pushUser($user_id, 'RoomList');
             return true;
         }
         return false;

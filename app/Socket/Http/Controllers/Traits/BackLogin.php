@@ -37,6 +37,7 @@ trait BackLogin
                 return false;
             return $data;
         });
+        if(!$data) return false;
         $uId = $data->uId;
         $this->adminUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($uId) {
             return $db->where('sa_id', $uId)->getOne('chat_sa');

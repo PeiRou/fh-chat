@@ -7,7 +7,17 @@
  */
 
 return [
-    'SERVER_NAME' => "wx-time",
+    'SERVER_NAME' => "fh-chat",
+    'MAIN_SERVER' => [
+        'SETTING' => [
+            'worker_num' => 2,
+            'task_worker_num' => 4,
+            'max_request' => 5000,
+            'task_max_request' => 1000,
+            'enable_coroutine' => true,
+            'task_enable_coroutine' => true,
+        ],
+    ],
     'mysql' => [
         'config' => [
             'host' => env('DB_HOST','10.16.56.98'),

@@ -121,5 +121,6 @@ Route::get('/chat/admin/logout','Chat\ChatAccountController@logout');
 Route::post('/chat/setInfo','Chat\AjaxStatusController@setInfo');
 Route::get('/hisinfo','Chat\AjaxStatusController@getHisInfo');
 //Route::get('/delhisinfo','Chat\AjaxStatusController@delHisInfo');
+Route::get('/chatapi/{controller}/{action}','Chat\AjaxStatusController@chatapi');
 
 

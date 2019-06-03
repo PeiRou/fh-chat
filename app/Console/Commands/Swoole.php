@@ -1184,7 +1184,13 @@ class Swoole extends Command
         $ii = -1;
         //检查计划消息
         try{
+            $status = UserStatus::getInstance()->get($iRoomInfo['userId']);
             foreach ($iRoomHisTxt as $tmpkey =>$hisMsg) {
+                $u = UserStatus::getInstance()->get($iRoomInfo['userId']);
+                if($status['type'] !== $u['type'] ||
+                    $status['id'] !== $u['id'])
+                    break;
+                \co::sleep(0.5);
                 $ii ++;
                 $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
                 $hisMsg = (array)json_decode($hisMsg);

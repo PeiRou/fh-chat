@@ -98,6 +98,7 @@ class Push
             $swoole = app('swoole');
             $status = UserStatus::getInstance()->get($user_id);
             foreach ($data as $v) {
+                \co::sleep(0.5);
                 $u = UserStatus::getInstance()->get($user_id);
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])

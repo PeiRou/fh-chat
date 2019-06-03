@@ -13,6 +13,7 @@ use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Utility\Room;
 use App\Socket\Utility\SortName;
+use App\Socket\Utility\Tables\UserStatus;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
@@ -95,7 +96,12 @@ class Push
         TaskManager::async(function()use($fd,$user_id, $toUserId) {
             $data = PersonalLog::getPersonalLog($user_id, $toUserId);
             $swoole = app('swoole');
+            $status = UserStatus::getInstance()->get($user_id);
             foreach ($data as $v) {
+                $u = UserStatus::getInstance()->get($user_id);
+                if($status['type'] !== $u['type'] ||
+                    $status['id'] !== $u['id'])
+                    break;
                 if ($v['user_id'] == $user_id)
                     $v['status'] = 4;
                 $swoole->push($fd, json_encode($v));

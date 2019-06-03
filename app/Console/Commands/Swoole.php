@@ -177,7 +177,6 @@ class Swoole extends Command
                 if(empty($iRoomInfo))
                     return false;
                 $rooms = $iRoomInfo['rooms'];
-
                $this->sendToSerf($request->fd, 14, 'init');
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
@@ -565,6 +564,22 @@ class Swoole extends Command
         $iRoomUsers = $this->updAllkey('usr',$room_id);   //获取聊天用户数组，在反序列化回数组
         foreach ($iRoomUsers ?? [] as $usrfdId =>$fdId) {
             $this->push( $fdId, $msg,$room_id);
+
+            # 如果是发消息 记录用户聊过的列表
+            # 会员是不是正在这个聊天环境 如果是状态改为已读
+            if($json = json_decode($msg, 1)){
+                if(in_array($json['status'], [
+                    2, 4
+                ])){
+                    var_dump('4');
+                    $lookNum = 1;
+                    $s = Room::getFdStatus($fdId);
+                    if($s && $s['type'] == 'room' && $s['id'] == $room_id){
+                        $lookNum = 0;
+                    }
+                    Room::setHistoryChatList(Room::getUserId($fdId), 'room', $room_id, ['lookNum' => $lookNum]);
+                }
+            }
         }
     }
     //检查如果与聊天室服务器断线，则取消发送信息
@@ -715,7 +730,7 @@ class Swoole extends Command
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
         $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:(isset($serv->get['plantype'])?$serv->get['plantype']:'');
         $canSend = false;//是否能发送
-
+        var_dump('asdad');
         //判断统一杀率计画是否与
         if($plantype=='guan'){
             $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',0)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画

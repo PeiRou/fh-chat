@@ -305,7 +305,7 @@ class Room
         if(!$speaking) return false;
 
         $aMesgRep = urlencode($aMesgRep);
-        $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //计划发消息
+        $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //发消息
         //发送消息
         if(!is_array($iRoomInfo))
             $iRoomInfo = (array)$iRoomInfo;

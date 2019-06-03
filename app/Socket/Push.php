@@ -103,4 +103,10 @@ class Push
         });
     }
 
+    //
+    public static function pushDelChatLog($fd, $type, $key)
+    {
+
+    }
+
 }

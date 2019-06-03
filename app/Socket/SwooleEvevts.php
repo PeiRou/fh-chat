@@ -13,8 +13,8 @@ use App\Socket\Pool\Mysql2Pool;
 use App\Socket\Pool\MysqlPool;
 use App\Socket\Pool\RedisPool;
 use App\Socket\Utility\Pool\PoolManager;
+use App\Socket\Utility\Tables\UserStatus;
 use App\Socket\Utility\Task\SuperClosure;
-use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
 class SwooleEvevts
@@ -22,12 +22,12 @@ class SwooleEvevts
     public static function initialize()
     {
         //数据库连接池
-        $mysqlConf = PoolManager::getInstance()->register(MysqlPool::class, 6);
+        $mysqlConf = PoolManager::getInstance()->register(MysqlPool::class, config('swoole.MYSQLPOOL.POOL_MAX_NUM'));
         if ($mysqlConf === null) {}
-        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(0);
+        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
         //其它数据库连接池
         $mysqlConf = PoolManager::getInstance()->register(Mysql2Pool::class, 6);
-        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(0);
+        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
 
         //redis连接池
         $redisConf = PoolManager::getInstance()->register(RedisPool::class, config('swoole.REDISPOOL.POOL_MAX_NUM'));
@@ -53,6 +53,7 @@ class SwooleEvevts
 
     public static function mainServerCreate()
     {
+        UserStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new Test('testProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $id)

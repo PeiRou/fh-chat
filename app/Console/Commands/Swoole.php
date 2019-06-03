@@ -8,6 +8,7 @@ use App\Socket\Utility\HttpParser;
 use App\Socket\Utility\Message;
 use App\Socket\Utility\Parser;
 use App\Socket\Utility\Room;
+use App\Socket\Utility\Tables\UserStatus;
 use App\Socket\Utility\Users;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -220,6 +221,7 @@ class Swoole extends Command
         });
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
+
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -290,7 +292,7 @@ class Swoole extends Command
                     }
                 }
                 //获取聊天类型
-                if(($userStatus = Room::getFdStatus($request->fd)) && isset($userStatus['type'])){
+                if(($userStatus = Room::getUserStatus($iRoomInfo['userId'])) && isset($userStatus['type'])){
                     # 消息过滤
                     $msg = Message::filterMsg($request->data, $iRoomInfo);
                     # 单聊
@@ -572,7 +574,7 @@ class Swoole extends Command
                     2, 4
                 ])){
                     $lookNum = 1;
-                    $s = Room::getFdStatus($fdId);
+                    $s = Room::getUserStatus(Room::getUserId($fdId));
                     if($s && $s['type'] == 'room' && $s['id'] == $room_id){
                         $lookNum = 0;
                     }

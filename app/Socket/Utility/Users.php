@@ -6,6 +6,8 @@
 namespace App\Socket\Utility;
 
 
+use App\Socket\Model\OtherDb\PersonalLog;
+
 class Users
 {
     //
@@ -50,14 +52,6 @@ class Users
         return asort($arr);
     }
 
-    //存聊天信息
-    public static function insertMsgLog($arr)
-    {
-        return \App\Socket\Pool\Mysql2Pool::invoke(function (\App\Socket\Pool\Mysql2Object $db) use($arr) {
-            return $db->insert('personal_log', $arr);
-        });
-    }
-
     //单聊发消息
     public static function senMessage(array $user, $msg, $toUserId)
     {
@@ -68,7 +62,7 @@ class Users
         $toUserFd = Room::getUserFd($toUserId);
         if($toUserFd > 0){
             # 会员是不是正在这个聊天环境 如果是状态改为已读
-            $s = Room::getFdStatus($toUserFd);
+            $s = Room::getUserStatus($user['userId']);
             if($s && $s['type'] == 'users' && $s['id'] == $user['userId']){
                 $arr['is_look'] = 1;
                 $arr['look_time'] = date('Y-m-d H:i:s');
@@ -90,7 +84,7 @@ class Users
         app('swoole')->push($fd, json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         unset($arr['type']);
         //记录聊天日志
-        if(!Users::insertMsgLog($arr)){ }
+        if(!PersonalLog::insertMsgLog($arr)){ }
         return true;
     }
 

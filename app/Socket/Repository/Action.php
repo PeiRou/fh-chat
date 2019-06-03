@@ -21,7 +21,7 @@ class Action extends BaseRepository
     {
         $toUserId = (int)$toUser;
         # 设置用户状态
-        Room::setFdStatus($fd, $toUserId, 'users');
+        Room::setUserStatus($iRoomInfo['userId'], $toUserId, 'users', $fd);
 
         $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
             return $db->where('users_id', $toUserId)->getOne('chat_users');

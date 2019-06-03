@@ -10,9 +10,8 @@ use App\Service\Cache;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
-use App\Socket\Model\ChatUser;
 use App\Socket\Push;
-use App\Socket\Utility\Task\TaskManager;
+use App\Socket\Utility\Tables\UserStatus;
 use Illuminate\Support\Facades\Storage;
 
 class Room
@@ -22,7 +21,7 @@ class Room
     public static function joinRoom($roomId, $fd, $iRoomInfo)
     {
         # 如果在其它房间就退出
-        if($status = self::getFdStatus($fd)){
+        if($status = self::getUserStatus($iRoomInfo['userId'])){
             if($status['type'] == 'room')
                 self::exitRoom($status['id'], $fd, $iRoomInfo);
         }
@@ -33,7 +32,7 @@ class Room
         # 设置 Fd => RoomId 映射
         self::setFdRoomIdMap($fd, $roomId);
         # 设置用户状态 打开的群组还是单人 和id
-        self::setFdStatus($fd, $roomId);
+        self::setUserStatus($iRoomInfo['userId'], $roomId, 'room', $fd);
         # 修改数据库表房间
         \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($iRoomInfo, $roomId) {
             return $db->where('users_id', $iRoomInfo['userId'])->update('chat_users', ['room_id' => $roomId]);
@@ -52,7 +51,7 @@ class Room
         # 删除 Fd => RoomId 映射
         self::deleteRoomIdMapByFd($fd);
         # 删除用户状态
-        self::delFdStatus($fd);
+        self::delUserStatus($iRoomInfo['userId']);
     }
 
     //获取用户fd
@@ -79,28 +78,36 @@ class Room
      *  设置用户状态
      * $type 聊天模式 users：单聊、 room：群聊
      */
-    public static function setFdStatus($fd, $id, $type = 'room')
+    public static function setUserStatus($userId, $id, $type, $fd)
     {
-        $key = 'fdStatus/'.$fd;
-        return self::set($key, json_encode([
+        UserStatus::getInstance()->set($userId, [
+            'userId' => $userId,
+            'fd' => $fd,
             'type' => $type,
             'id' => $id
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        ]);
+//        $key = 'userStatus/'.$fd;
+//        return self::set($key, json_encode([
+//            'type' => $type,
+//            'id' => $id
+//        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     //删除用户状态
-    public static function delFdStatus($fd)
+    public static function delUserStatus($userId)
     {
-        $key = 'fdStatus/'.$fd;
-        return self::del($key);
+        UserStatus::getInstance()->del($userId);
+//        $key = 'userStatus/'.$userId;
+//        return self::del($key);
     }
     //获取用户状态
-    public static function getFdStatus($fd)
+    public static function getUserStatus($userId)
     {
-        $key = 'fdStatus/'.$fd;
-        $res = self::get($key);
-        if(!$res)
-            return $res;
-        return json_decode($res, 1);
+        return UserStatus::getInstance()->get($userId);
+//        $key = 'userStatus/'.$userId;
+//        $res = self::get($key);
+//        if(!$res)
+//            return $res;
+//        return json_decode($res, 1);
     }
 
     //------------------------------------------------------------------------------------------------------------------

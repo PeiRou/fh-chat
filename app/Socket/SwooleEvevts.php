@@ -26,8 +26,8 @@ class SwooleEvevts
         if ($mysqlConf === null) {}
         $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
         //其它数据库连接池
-        $mysqlConf = PoolManager::getInstance()->register(Mysql2Pool::class, 6);
-        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
+//        $mysqlConf = PoolManager::getInstance()->register(Mysql2Pool::class, 6);
+//        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
 
         //redis连接池
         $redisConf = PoolManager::getInstance()->register(RedisPool::class, config('swoole.REDISPOOL.POOL_MAX_NUM'));

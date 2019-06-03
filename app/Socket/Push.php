@@ -14,6 +14,7 @@ use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Utility\Room;
 use App\Socket\Utility\SortName;
 use App\Socket\Utility\Task\TaskManager;
+use App\Socket\Utility\Trigger;
 
 class Push
 {
@@ -47,29 +48,33 @@ class Push
     {
         !isset($user['userId']) && $user['userId'] = $user['users_id'];
         TaskManager::async(function()use($fd,$user, $column){
-            $columns = $column;
-            is_string($columns) && $columns = [$columns];
-            is_string($user['rooms']) && $user['rooms'] = explode(',', $user['rooms']);
-            $data = [];
-            # 群组列表 房间列表
-            if(in_array('RoomList', $columns) || $column == 'all')
-                $data['RoomList'] = ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]);
-            # 聊过的列表
-            if(in_array('HistoryChatList', $columns) || $column == 'all')
-                $data['HistoryChatList'] = Room::getHistoryChatList($user['userId']);
-            # 好友列表
-            if(in_array('FriendsList', $columns) || $column == 'all')
-                $data['FriendsList'] = SortName::addPeople(ChatFriendsList::getUserFriendList($user['userId']), 'nickname');
-            # 好友申请列表
-            if(in_array('FriendsLogList', $columns) || $column == 'all'){
-                # 列表
-                $data['FriendsLogList'] = SortName::addPeople(ChatFriendsLog::getFriendsLogList(['to_id' => $user['userId']]), 'name');
-                # 未处理数
-                $data['FriendsLogListNum'] = ChatFriendsLog::getFriendsLogListNum($user['userId']) ?? 0;
-            }
+            try{
+                $columns = $column;
+                is_string($columns) && $columns = [$columns];
+                is_string($user['rooms']) && $user['rooms'] = explode(',', $user['rooms']);
+                $data = [];
+                # 群组列表 房间列表
+                if(in_array('RoomList', $columns) || $column == 'all')
+                    $data['RoomList'] = ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]);
+                # 聊过的列表
+                if(in_array('HistoryChatList', $columns) || $column == 'all')
+                    $data['HistoryChatList'] = Room::getHistoryChatList($user['userId']);
+                # 好友列表
+                if(in_array('FriendsList', $columns) || $column == 'all')
+                    $data['FriendsList'] = SortName::addPeople(ChatFriendsList::getUserFriendList($user['userId']), 'nickname');
+                # 好友申请列表
+                if(in_array('FriendsLogList', $columns) || $column == 'all'){
+                    # 列表
+                    $data['FriendsLogList'] = SortName::addPeople(ChatFriendsLog::getFriendsLogList(['to_id' => $user['userId']]), 'name');
+                    # 未处理数
+                    $data['FriendsLogListNum'] = ChatFriendsLog::getFriendsLogListNum($user['userId']) ?? 0;
+                }
 
-            $msg = app('swoole')->json(22,$data);
-            app('swoole')->push($fd, $msg);
+                $msg = app('swoole')->json(22,$data);
+                app('swoole')->push($fd, $msg);
+            }catch (\Throwable $e){
+                Trigger::getInstance()->throwable($e);
+            }
         });
     }
 
@@ -84,12 +89,10 @@ class Push
     {
         TaskManager::async(function()use($fd,$user_id, $toUserId) {
             $data = PersonalLog::getPersonalLog($user_id, $toUserId);
-            foreach ($data as &$v) {
+            $swoole = app('swoole');
+            foreach ($data as $v) {
                 if ($v['user_id'] == $user_id)
                     $v['status'] = 4;
-            }
-            $swoole = app('swoole');
-            foreach ($data as $v){
                 $swoole->push($fd, json_encode($v));
             }
         });

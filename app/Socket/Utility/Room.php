@@ -22,10 +22,7 @@ class Room
     public static function joinRoom($roomId, $fd, $iRoomInfo)
     {
         # 如果在其它房间就退出
-//        if(!empty($r = self::getUserIdRoomId($iRoomInfo['userId'])))
-//            self::exitRoom($r, $fd, $iRoomInfo);
-        # 如果在其它房间就退出
-        if($status = self::getUserStatus($iRoomInfo['userId'])){
+        if($status = self::getFdStatus($fd)){
             if($status['type'] == 'room')
                 self::exitRoom($status['id'], $fd, $iRoomInfo);
         }
@@ -36,7 +33,7 @@ class Room
         # 设置 Fd => RoomId 映射
         self::setFdRoomIdMap($fd, $roomId);
         # 设置用户状态 打开的群组还是单人 和id
-        self::setUserStatus($iRoomInfo['userId'], $roomId);
+        self::setFdStatus($fd, $roomId);
         # 修改数据库表房间
         \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($iRoomInfo, $roomId) {
             return $db->where('users_id', $iRoomInfo['userId'])->update('chat_users', ['room_id' => $roomId]);
@@ -54,10 +51,8 @@ class Room
         self::deleteRoomUserId($roomId, $iRoomInfo['userId']);
         # 删除 Fd => RoomId 映射
         self::deleteRoomIdMapByFd($fd);
-        # 删除 user_id => RoomId 映射
-//        self::deleteUserIdRoomId($iRoomInfo['userId']);
         # 删除用户状态
-        self::delUserStatus($iRoomInfo['userId']);
+        self::delFdStatus($fd);
     }
 
     //获取用户fd
@@ -66,6 +61,17 @@ class Room
         $chatusr = 'chatusr:'.md5($user_id);
         return Storage::disk('chatusr')->exists($chatusr) ? Storage::disk('chatusr')->get($chatusr) : null;
     }
+    //获取用户id
+    public static function getUserId($fd)
+    {
+        return self::getiRoomInfo($fd)['userId'] ?? null;
+    }
+    //获取用户信息
+    public static function getIRoomInfo($fd)
+    {
+        $key = 'chatusrfd:'.$fd;
+        return Storage::disk('chatusrfd')->exists($key) ? @json_decode(Storage::disk('chatusrfd')->get($key), 1) : null;
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -73,24 +79,24 @@ class Room
      *  设置用户状态
      * $type 聊天模式 users：单聊、 room：群聊
      */
-    public static function setUserStatus($userId, $id, $type = 'room')
+    public static function setFdStatus($fd, $id, $type = 'room')
     {
-        $key = 'userStatus/'.$userId;
+        $key = 'fdStatus/'.$fd;
         return self::set($key, json_encode([
             'type' => $type,
             'id' => $id
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     //删除用户状态
-    public static function delUserStatus($userId)
+    public static function delFdStatus($fd)
     {
-        $key = 'userStatus/'.$userId;
+        $key = 'fdStatus/'.$fd;
         return self::del($key);
     }
     //获取用户状态
-    public static function getUserStatus($userId)
+    public static function getFdStatus($fd)
     {
-        $key = 'userStatus/'.$userId;
+        $key = 'fdStatus/'.$fd;
         $res = self::get($key);
         if(!$res)
             return $res;
@@ -214,6 +220,7 @@ class Room
         # 每次设置就将信息推送前端改变
 //        app('swoole')->sendUser($userId, 23, $param);
         Push::pushUser($userId, 'HistoryChatList');
+
         $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if(!$json)
             return false;

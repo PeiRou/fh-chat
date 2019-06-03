@@ -68,7 +68,7 @@ class Users
         $toUserFd = Room::getUserFd($toUserId);
         if($toUserFd > 0){
             # 会员是不是正在这个聊天环境 如果是状态改为已读
-            $s = Room::getUserStatus($toUserId);
+            $s = Room::getFdStatus($toUserFd);
             if($s && $s['type'] == 'users' && $s['id'] == $user['userId']){
                 $arr['is_look'] = 1;
                 $arr['look_time'] = date('Y-m-d H:i:s');

@@ -291,7 +291,7 @@ class Swoole extends Command
                     }
                 }
                 //获取聊天类型
-                if(($userStatus = Room::getUserStatus($iRoomInfo['userId'])) && isset($userStatus['type'])){
+                if(($userStatus = Room::getFdStatus($request->fd)) && isset($userStatus['type'])){
                     # 消息过滤
                     $msg = Message::filterMsg($request->data, $iRoomInfo);
                     # 单聊

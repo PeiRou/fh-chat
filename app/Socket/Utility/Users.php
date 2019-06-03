@@ -63,7 +63,7 @@ class Users
         if($toUserFd > 0){
             # 会员是不是正在这个聊天环境 如果是状态改为已读
             $s = Room::getUserStatus($user['userId']);
-            if($s && $s['type'] == 'users' && $s['id'] == $user['userId']){
+            if($s && $s['type'] == 'users' && $s['id'] == $toUserId){
                 $arr['is_look'] = 1;
                 $arr['look_time'] = date('Y-m-d H:i:s');
                 app('swoole')->push($toUserFd, json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

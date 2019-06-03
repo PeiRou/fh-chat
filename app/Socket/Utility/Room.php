@@ -343,7 +343,7 @@ class Room
             # 设置未读消息数和最后一条消息
             Room::setHistoryChatList($v, 'room', $roomId, [
                 'lookNum' => $lookNum,
-                'lastMsg' => str_replace('%20', '+', base64_decode($msg))
+                'lastMsg' => urldecode(str_replace('%20', '+', base64_decode($msg)))
             ]);
         }
 

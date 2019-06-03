@@ -19,7 +19,7 @@ class Users
             'status' => $msgArr['status'],
             'nickname' => $msgArr['nickname'],
             'img' => $msgArr['img'],
-            'msg' => base64_encode(str_replace('+', '%20', $msgArr['msg'])),
+            'msg' => base64_encode(str_replace('+', '%20', urlencode($msgArr['msg']))),
             'dt' => $msgArr['dt'],
             'bg1' => $msgArr['bg1'],
             'bg2' => $msgArr['bg2'],

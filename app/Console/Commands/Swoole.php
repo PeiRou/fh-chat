@@ -571,7 +571,6 @@ class Swoole extends Command
                 if(in_array($json['status'], [
                     2, 4
                 ])){
-                    var_dump('4');
                     $lookNum = 1;
                     $s = Room::getFdStatus($fdId);
                     if($s && $s['type'] == 'room' && $s['id'] == $room_id){
@@ -587,12 +586,14 @@ class Swoole extends Command
         try{
             if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
                 $this->delAllkey($fd,'usr');   //删除用户
+                return false;
             }else{
-                $this->ws->push($fd, $msg);
+                return $this->ws->push($fd, $msg);
             }
         }catch (\Throwable $e){
             $this->delAllkey($fd,'usr');   //删除用户
             writeLog('error', $e->getMessage());
+            return false;
         }
     }
 
@@ -730,7 +731,6 @@ class Swoole extends Command
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
         $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:(isset($serv->get['plantype'])?$serv->get['plantype']:'');
         $canSend = false;//是否能发送
-        var_dump('asdad');
         //判断统一杀率计画是否与
         if($plantype=='guan'){
             $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',0)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画

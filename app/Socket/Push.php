@@ -40,7 +40,10 @@ class Push
     public static function pushUser($userId, $column = 'all')
     {
         $user = ChatUser::getUser(['users_id' => $userId]);
-        return self::pushList(Room::getUserFd($userId), $user, $column);
+        if($user)
+            return self::pushList(Room::getUserFd($userId), $user, $column);
+        else
+            return false;
     }
 
     //异步推送好友列表、群组列表、好友申请列表、用户聊过的列表
@@ -72,8 +75,10 @@ class Push
 
                 $msg = app('swoole')->json(22,$data);
                 app('swoole')->push($fd, $msg);
+                return true;
             }catch (\Throwable $e){
                 Trigger::getInstance()->throwable($e);
+                return false;
             }
         });
     }

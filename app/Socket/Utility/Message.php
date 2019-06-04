@@ -46,4 +46,37 @@ class Message
         $str=preg_replace("/".$aRegStr."/is","***", $str);
         return $str;
     }
+
+    //发言权限
+    public static function is_speak(int $fd, array $iRoomInfo, string $type, int $id)
+    {
+        //不广播被禁言的用户
+        if($iRoomInfo['noSpeak']==1){
+            app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
+            return false;
+        }
+
+        return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd, $type, $id) {
+            $redis->select(1);
+            //如果全局禁言
+//            if($type == 'room' && $redis->exists('speak') && $redis->get('speak')=='un'){
+//                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
+//                return false;
+//            }
+
+            if($redis->exists($iRoomInfo['userId'].'speaking:')){
+                $iRoomCss = app('swoole')->cssText(98,4);
+                $Css['name'] = '系统消息';                          //用户显示名称
+                $Css['level'] = 0;                                //用户背景颜色1
+                $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
+                $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
+                $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
+                $Css['img'] = '/game/images/chat/sys.png';         //用户大头
+                app('swoole')->sendToSerf($fd,13,'您说话太快啦，请先休息一会',$Css);
+                return false;
+            }
+            $redis->setex($iRoomInfo['userId'].'speaking:',2,'on');
+            return true;
+        });
+    }
 }

@@ -86,28 +86,16 @@ class Room
             'type' => $type,
             'id' => $id
         ]);
-//        $key = 'userStatus/'.$fd;
-//        return self::set($key, json_encode([
-//            'type' => $type,
-//            'id' => $id
-//        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     //删除用户状态
     public static function delUserStatus($userId)
     {
         UserStatus::getInstance()->del($userId);
-//        $key = 'userStatus/'.$userId;
-//        return self::del($key);
     }
     //获取用户状态
     public static function getUserStatus($userId)
     {
         return UserStatus::getInstance()->get($userId);
-//        $key = 'userStatus/'.$userId;
-//        $res = self::get($key);
-//        if(!$res)
-//            return $res;
-//        return json_decode($res, 1);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -281,35 +269,12 @@ class Room
     }
 
     //聊天室发信息
-    public static function sendMessage($fd, $iRoomInfo, $aMesgRep)
+    public static function sendMessage($fd, $iRoomInfo, $aMesgRep, int $roomId)
     {
-        //不广播被禁言的用户
-        if($iRoomInfo['noSpeak']==1)
-            return app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
-
-        $speaking = \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd) {
-            $redis->select(1);
-            //如果全局禁言
-            if($redis->exists('speak') && $redis->get('speak')=='un'){
-                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
-                return false;
-            }
-
-            if($redis->exists($iRoomInfo['userId'].'speaking:')){
-                $iRoomCss = app('swoole')->cssText(98,4);
-                $Css['name'] = '系统消息';                          //用户显示名称
-                $Css['level'] = 0;                                //用户背景颜色1
-                $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
-                $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
-                $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
-                $Css['img'] = '/game/images/chat/sys.png';         //用户大头
-                app('swoole')->sendToSerf($fd,13,'您说话太快啦，请先休息一会',$Css);
-                return false;
-            }
-            $redis->setex($iRoomInfo['userId'].'speaking:',2,'on');
-            return true;
-        });
-        if(!$speaking) return false;
+        if(ChatRoom::getRoomValue(['room_id' => $roomId], 'is_speaking') === 0){
+            app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
+            return false;
+        }
 
         $aMesgRep = urlencode($aMesgRep);
         $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //发消息
@@ -319,7 +284,7 @@ class Room
         $getUuid = app('swoole')->getUuid($iRoomInfo['name']);
         $iRoomInfo['timess'] = $getUuid['timess'];
         $iRoomInfo['uuid'] = $getUuid['uuid'];
-        self::sendRoom($fd, $iRoomInfo, $aMesgRep, $iRoomInfo['room']);
+        self::sendRoom($fd, $iRoomInfo, $aMesgRep, $roomId);
         //自动推送清数据
         app('swoole')->chkHisMsg($iRoomInfo,0,false);
     }
@@ -341,9 +306,9 @@ class Room
                 $ufd = Room::getUserFd($v);
                 # 推消息
                 if($ufd == $fd)//组装消息数据
-                    $json = app('swoole')->msg(4,$msg,$iRoomInfo);   //自己发消息
+                    $json = app('swoole')->msg(4,$msg,$iRoomInfo,'room', $roomId);   //自己发消息
                 else
-                    $json = app('swoole')->msg(2,$msg,$iRoomInfo);   //别人发消息
+                    $json = app('swoole')->msg(2,$msg,$iRoomInfo,'room', $roomId);   //别人发消息
                 app('swoole')->push($ufd, $json);
             }
 

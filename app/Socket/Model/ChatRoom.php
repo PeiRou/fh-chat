@@ -24,14 +24,13 @@ class ChatRoom extends Base
         return $db->get('chat_room', null, ['room_id', 'room_name','head_img']);
     }
 
-    //
     protected static function getRoomValue($db, $param = [], $value)
     {
-        return self::HandleCacheData(function()use($db, $param, $value){
+        return self::RedisCacheData(function()use($db, $param, $value){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room', [$value])[$value] ?? null;
-        }, 5);
+        }, 10); //10秒缓存
     }
 
     protected static function getRoomOne($db, $param = [])

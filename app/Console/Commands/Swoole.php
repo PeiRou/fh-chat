@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Socket\Model\ChatRoom;
+use App\Socket\Repository\Action;
 use App\Socket\SwooleEvevts;
 use App\Socket\Utility\HttpParser;
 use App\Socket\Utility\Message;
@@ -293,14 +294,7 @@ class Swoole extends Command
                 }
                 //获取聊天类型
                 if(($userStatus = Room::getUserStatus($iRoomInfo['userId'])) && isset($userStatus['type'])){
-                    # 消息过滤
-                    $msg = Message::filterMsg($request->data, $iRoomInfo);
-                    # 单聊
-                    if($userStatus['type'] == 'users')
-                        Users::senMessage($iRoomInfo, $msg, (int)$userStatus['id']);
-                    # 群聊
-                    elseif($userStatus['type'] == 'room')
-                        Room::sendMessage($request->fd, $iRoomInfo, $msg);
+                    Action::sendMessage($request->fd, $userStatus['type'], $userStatus['id'], $request->data, $iRoomInfo);
                 }
 
             }catch (\Exception $e){
@@ -436,7 +430,7 @@ class Swoole extends Command
 //                    ->where('roomtype', 2)
                     ->where('is_auto', 1)->get();
                 $msg = $this->json(19,$data);
-                $this->push($fd, $msg,$iRoomInfo['room']);
+                $this->push($fd, $msg);
             }
             //推送房间列表
 //            Push::getRoomList($fd,$iRoomInfo);
@@ -584,7 +578,7 @@ class Swoole extends Command
         }
     }
     //检查如果与聊天室服务器断线，则取消发送信息
-    public function push($fd,$msg,$room_id =1){
+    public function push($fd,$msg){
         try{
             if(!$this->ws->connection_info($fd)){        //检查如果与聊天室服务器断线，则取消发送信息
                 $this->delAllkey($fd,'usr');   //删除用户
@@ -606,15 +600,15 @@ class Swoole extends Command
      * 18:加入房间成功 19:可以快速进入的房间列表与欢迎语 20:用户聊过天的房间和好友
      * 21:添加好友请求  22首页所有的列表
      */
-    public function msg($status,$msg,$userinfo = array()){
+    public function msg($status,$msg,$userinfo = array(), $type = 'room', $id = null){
         $data = $this->msgBuild(...func_get_args());
-        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['roomId']!=2)){
+        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!=2 && $type = 'room')){
             $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),'first',true);     //写入历史纪录
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);
         return $res;//如果房客存在，把用户组反序列化
     }
-    public function msgBuild($status,$msg,$userinfo = array(), $type = 'room')
+    public function msgBuild($status,$msg,$userinfo = array(), $type = 'room', $id = null)
     {
         if(!is_array($userinfo))
             $userinfo = (array)$userinfo;
@@ -637,8 +631,9 @@ class Swoole extends Command
             'uuid' => isset($userinfo['uuid'])?(string)$userinfo['uuid']:(string)$getUuid['uuid'],        //发言的唯一标实
             'times' => date('H:i:s',time()),                                        //服务器接收到讯息时间
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess'],      //服务器接收到讯息时间
-            'roomId' => isset($userinfo['room'])?$userinfo['room']:1,     //房间号码
-            'type' => $type
+//            'roomId' => isset($userinfo['room'])?$userinfo['room']:1,     //房间号码
+            'type' => $type,
+            'toId' => $id ? $id : ($type == 'room' ? isset($userinfo['room']) : 0), //目标id
         ];
         return $data;
     }
@@ -788,8 +783,6 @@ class Swoole extends Command
     }
     //取得自己的登陆信息
     private function getMyserf($iSess){
-//        $this->redis->select(1);
-//        $res = empty($this->redis->get($iSess))?'':(array)json_decode($this->redis->get($iSess));
         $res = (array)DB::table('chat_users')->select('users_id as userId','username as userName')->where('sess',$iSess)->first();
         return $res;
     }
@@ -1190,7 +1183,7 @@ class Swoole extends Command
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])
                     break;
-                \co::sleep(0.5);
+                \co::sleep(0.1);
                 $ii ++;
                 $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
                 $hisMsg = (array)json_decode($hisMsg);
@@ -1241,6 +1234,12 @@ class Swoole extends Command
         array_push($iRoomInfo['rooms'], $roomId);
         $iRoomInfo['rooms'] = array_values(array_diff(array_unique($iRoomInfo['rooms']), ['']));
         $this->updUserInfo($fd,$iRoomInfo);
+
+        # 设置未读消息数和最后一条消息
+        Room::setHistoryChatList($iRoomInfo['userId'], 'room', $roomId, [
+            'lookNum' => 0,
+            'lastMsg' => '加入聊天室'
+        ]);
         return true;
     }
     //关闭链接

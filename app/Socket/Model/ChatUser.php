@@ -28,11 +28,11 @@ class ChatUser extends Base
     //用户信息单个值
     protected static function getUserValue($db, $param = [], $value)
     {
-        return self::HandleCacheData(function()use($db, $param, $value){
+        return self::RedisCacheData(function()use($db, $param, $value){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_users', [$value])[$value] ?? null;
-        }, 5);
+        }, 10);
     }
 
     //查会员角色

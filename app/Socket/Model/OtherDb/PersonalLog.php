@@ -19,7 +19,7 @@ class PersonalLog extends Base
 
 //    const DRIVER = 'db';  // db | file
     const DRIVER = 'file';  // db | file
-    const FILEPATH = 'userChatLog/';  // db | file
+    const FILEPATH = 'userChatLog/';
     const LOG_MAX_NUM = 5;  //聊天记录保存条数
 
 
@@ -121,13 +121,16 @@ class PersonalLog extends Base
                         $arr = json_decode(Storage::disk('home')->get($v), 1);
                         Storage::disk('home')->delete($v);
 
+                        # 通知这两个人删除消息
                         app('swoole')->sendUser($arr['user_id'], 24, [
-                            'roomType' => 'users',
-                            'id' => $arr['uuid']
+                            'type' => 'users',
+                            'id' => $arr['uuid'],
+                            'toId' => $arr['toId']
                         ]);
-                        app('swoole')->sendUser($arr['to_user'], 24, [
-                            'roomType' => 'users',
-                            'id' => $arr['uuid']
+                        app('swoole')->sendUser($arr['toId'], 24, [
+                            'type' => 'users',
+                            'id' => $arr['uuid'],
+                            'toId' => $arr['toId']
                         ]);
                     }
                     $needDelnum --;

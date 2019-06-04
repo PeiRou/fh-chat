@@ -37,4 +37,14 @@ class Action extends Base
                 Room::exitRoom($status['id'], $this->request->fd, $this->iRoomInfo);
         }
     }
+
+    //发送消息
+    public function message()
+    {
+        $userStatus = Room::getUserStatus($this->iRoomInfo['userId']);
+        !($type = $this->type) && $type = $userStatus['type'];
+        !($id = $this->id) && $id = $userStatus['id'];
+
+        \App\Socket\Repository\Action::sendMessage($this->request->fd, $type, $id, $this->msg, $this->iRoomInfo);
+    }
 }

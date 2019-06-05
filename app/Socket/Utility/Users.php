@@ -12,36 +12,13 @@ use App\Socket\Utility\Task\TaskManager;
 class Users
 {
     //
-    public static function buildMsg($status, $msg, $iRoomInfo, $toUserId)
+    public static function buildMsg($status, $msg, $iRoomInfo, $toId, $type)
     {
-        $msgArr = app('swoole')->msgBuild($status, $msg, $iRoomInfo, 'users', $toUserId);
+        $msgArr = app('swoole')->msgBuild($status, $msg, $iRoomInfo, $type, $toId);
         $msgArr['msg'] = base64_encode(str_replace('+', '%20', urlencode($msgArr['msg'])));
         $msgArr['created_at'] = date('Y-m-d H:i:s');
-        $msgArr['userMap'] = self::getUserMap($toUserId, $iRoomInfo['userId']);
+        $msgArr['userMap'] = self::getUserMap($toId, $iRoomInfo['userId']);
         $msgArr['user_id'] = $iRoomInfo['userId'];
-//        $arr = [
-//            'user_id' => $iRoomInfo['userId'],
-//            'to_user' => $toUserId,
-//            'is_look' => 0,
-//            'status' => $msgArr['status'],
-//            'nickname' => $msgArr['nickname'],
-//            'img' => $msgArr['img'],
-//            'msg' => base64_encode(str_replace('+', '%20', urlencode($msgArr['msg']))),
-//            'dt' => $msgArr['dt'],
-//            'bg1' => $msgArr['bg1'],
-//            'bg2' => $msgArr['bg2'],
-//            'font' => $msgArr['font'],
-//            'level' => $msgArr['level'],
-//            'k' => $msgArr['k'],
-//            'nS' => $msgArr['nS'],
-//            'anS' => $msgArr['anS'],
-//            'uuid' => $msgArr['uuid'],
-//            'times' => $msgArr['times'],
-//            'time' => $msgArr['time'],
-//            'type' => $msgArr['type'],
-//            'created_at' => date('Y-m-d H:i:s'),
-//            'userMap' => self::getUserMap($toUserId, $iRoomInfo['userId'])
-//        ];
         return $msgArr;
     }
 
@@ -60,7 +37,7 @@ class Users
     public static function sendMessage(array $user, $msg, $toUserId)
     {
         $msg = htmlspecialchars($msg);
-        $arr = Users::buildMsg(2, $msg, $user, $toUserId);
+        $arr = Users::buildMsg(2, $msg, $user, $toUserId, 'users');
         TaskManager::async(function() use($arr, $user){
             # 推送自己
             $arr['status'] = 4;
@@ -72,7 +49,7 @@ class Users
         $lookNum = 1;
         if($toUserFd > 0){
             # 会员是不是正在这个聊天环境 如果是状态改为已读
-            $s = Room::getUserStatus($user['userId']);
+            $s = Room::getUserStatus($toUserId);
             if($s && $s['type'] == 'users' && $s['id'] == $toUserId){
                 $lookNum = 0;
                 $arr['look_time'] = date('Y-m-d H:i:s');

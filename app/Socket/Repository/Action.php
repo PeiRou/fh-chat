@@ -21,11 +21,11 @@ class Action extends BaseRepository
 {
 
     //进入单聊页面
-    public static function inUser($fd, $iRoomInfo, $toUser)
+    public static function inUser($fd, $iRoomInfo, $toUser, $type)
     {
         $toUserId = (int)$toUser;
         # 设置用户状态
-        Room::setUserStatus($iRoomInfo['userId'], $toUserId, 'users', $fd);
+        Room::setUserStatus($iRoomInfo['userId'], $toUserId, $type, $fd);
 
         $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
             return $db->where('users_id', $toUserId)->getOne('chat_users');
@@ -33,18 +33,34 @@ class Action extends BaseRepository
 
         if(empty($toUser))
             return false;
-        TaskManager::async(function()use($iRoomInfo){
-            $iRoomInfo['noSpeak'] = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
-            $iRoomInfo['allnoSpeak'] = 0; # 单聊就就不管聊天室的权限
-            # 更新权限
-            app('swoole')->push(Room::getUserFd($iRoomInfo['userId']), app('swoole')->msg(7,'fstInit',$iRoomInfo));
-        });
+        Push::pushSpeak($type, $iRoomInfo);
 
         # 推单聊历史记录
         Push::pushPersonalLog($fd, $iRoomInfo['userId'], $toUserId);
-
         # 设置 未读条数改为0
         Room::setHistoryChatList($iRoomInfo['userId'], 'users', $toUserId, ['lookNum' => 0]);
+    }
+
+    //进入多对一页面
+    public static function inMany($fd, $iRoomInfo, $toUserId, $type)
+    {
+        $roomId = 2;
+
+        # 设置用户状态
+        Room::setUserStatus($iRoomInfo['userId'], $toUserId, $type, $fd);
+        $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
+            return $db->where('users_id', $toUserId)->getOne('chat_users');
+        });
+
+        if(empty($toUser))
+            return false;
+        Push::pushSpeak($type, $iRoomInfo);
+
+        # 推历史记录
+        Push::pushManyLog($fd, $iRoomInfo['userId'], $toUserId, $roomId);
+        # 设置 未读条数改为0
+        Room::setHistoryChatList($iRoomInfo['userId'], $type, $toUserId, ['lookNum' => 0]);
+
     }
 
     /**

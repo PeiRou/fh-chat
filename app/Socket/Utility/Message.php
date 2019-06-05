@@ -9,6 +9,8 @@
 namespace App\Socket\Utility;
 
 
+use App\Socket\Model\ChatUser;
+
 class Message
 {
 
@@ -50,11 +52,17 @@ class Message
     //发言权限
     public static function is_speak(int $fd, array $iRoomInfo, string $type, int $id)
     {
-        //不广播被禁言的用户
-        if($iRoomInfo['noSpeak']==1){
+        //不广播被禁言的用户noSpeak 只用到群组
+        if($type == 'room' && $iRoomInfo['noSpeak']==1){
             app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
             return false;
         }
+        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($fd, $iRoomInfo) {
+            $status = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
+            if($status !== 0)
+                app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
+            return true;
+        });
 
         return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd, $type, $id) {
             $redis->select(1);

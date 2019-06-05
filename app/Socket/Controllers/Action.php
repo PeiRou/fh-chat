@@ -21,10 +21,12 @@ class Action extends Base
         $type = $this->type;
         if(!$id)
             return false;
-        if($type == 'room'){
+        if($type == 'room'){ # 群聊
             app('swoole')->inRoom($id, $this->request->fd, $this->iRoomInfo, $this->iSess);
-        }elseif($type == 'users'){
-            \App\Socket\Repository\Action::inUser($this->request->fd, $this->iRoomInfo, $id);
+        }elseif($type == 'users'){ # 单聊
+            \App\Socket\Repository\Action::inUser($this->request->fd, $this->iRoomInfo, $id, $type);
+        }elseif($type == 'many'){ # 多对一
+            \App\Socket\Repository\Action::inMany($this->request->fd, $this->iRoomInfo, $id, $type);
         }
     }
 
@@ -44,7 +46,6 @@ class Action extends Base
         $userStatus = Room::getUserStatus($this->iRoomInfo['userId']);
         !($type = $this->type) && $type = $userStatus['type'];
         !($id = $this->id) && $id = $userStatus['id'];
-
         \App\Socket\Repository\Action::sendMessage($this->request->fd, $type, $id, $this->msg, $this->iRoomInfo);
     }
 }

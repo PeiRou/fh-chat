@@ -121,6 +121,68 @@ class Push
         });
     }
 
+    /**
+     * 推送多对一历史记录
+     * @param $fd
+     * @param $user_id 当前的user_id
+     * @param $toUserId 那一个会员的id
+     * @param $roomId 会员对应群的id
+     */
+    public static function pushManyLog($fd,$user_id, $toUserId, $roomId)
+    {
+        TaskManager::async(function()use($fd,$user_id, $toUserId, $roomId) {
+            $data = PersonalLog::getManyLog($user_id, $toUserId, $roomId);
+            $swoole = app('swoole');
+            $status = UserStatus::getInstance()->get($user_id);
+            foreach ($data as $v) {
+                \co::sleep(0.1);
+                $u = UserStatus::getInstance()->get($user_id);
+                if($status['type'] !== $u['type'] ||
+                    $status['id'] !== $u['id'])
+                    break;
+                if ($v['user_id'] == $user_id)
+                    $v['status'] = 4;
+                $swoole->push($fd, json_encode($v));
+            }
+        });
+    }
+
+    //推群聊历史记录
+    public static function pushRoomLog($fd, $iRoomInfo, $roomId)
+    {
+        if($roomId !== 2){
+            app('swoole')->chkHisMsg($iRoomInfo,$fd);
+        }else{
+            self::pushManyLog($fd,$iRoomInfo['userId'], $iRoomInfo['userId'], $roomId);
+        }
+    }
+
+    //推权限
+    public static function pushSpeak($type, $iRoomInfo, $async = true)
+    {
+        $closure = function()use($iRoomInfo, $type){
+            if($type == 'users'){
+                $iRoomInfo['noSpeak'] = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
+                $iRoomInfo['allnoSpeak'] = 0; # 单聊就就不管聊天室的权限
+            }elseif ($type == 'room'){
+
+            }elseif ($type == 'many'){
+                $iRoomInfo['noSpeak'] = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
+                $iRoomInfo['allnoSpeak'] = 0; # 单聊就就不管聊天室的权限
+            }
+            # 更新权限
+            return app('swoole')->push(Room::getUserFd($iRoomInfo['userId']), app('swoole')->msg(7,'fstInit',$iRoomInfo));
+        };
+        if($closure) {
+            if ($async) {
+                TaskManager::async($closure);
+            } else {
+                return $closure();
+            }
+        }
+        return false;
+    }
+
     //
     public static function pushDelChatLog($fd, $type, $key)
     {

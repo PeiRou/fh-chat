@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Socket\Model\ChatRoom;
+use App\Socket\Push;
 use App\Socket\Repository\Action;
 use App\Socket\SwooleEvevts;
 use App\Socket\Utility\HttpParser;
@@ -243,7 +244,6 @@ class Swoole extends Command
                 }else
                     $request->data = substr($request->data,47);
             }
-
             $iRoomInfo = $this->getUserInfo($request->fd);   //取出他的房间号码
             error_log(date('Y-m-d H:i:s',time())." 发言=> ".$request->fd." => ".json_encode($request).json_encode($iRoomInfo).PHP_EOL, 3, '/tmp/chat/'.date('Ymd').'.log');        //只要连接就记下log
             //登陆失效
@@ -255,7 +255,6 @@ class Swoole extends Command
                 }else
                     return $this->sendToSerf($request->fd,3,'登陆失效');
             }
-
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
                 if(isset($roomId) && $roomId > 0 && $type == 'inr'){
@@ -417,7 +416,8 @@ class Swoole extends Command
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->ws->push($fd, $msg);
             # 历史讯息
-            $this->chkHisMsg($iRoomInfo,$fd);
+//            $this->chkHisMsg($iRoomInfo,$fd);
+            Push::pushRoomLog($fd, $iRoomInfo, $roomId);
             # 如果进入的房间是2把快速进入的房间列表显示出来
             if($roomId == 2){
                 $data = [];
@@ -1166,7 +1166,6 @@ class Swoole extends Command
     //重新整理历史讯息
     public function chkHisMsg($iRoomInfo,$fd=0,$IsPush=true){
         $rsKeyH = 'his';
-
         $iRoomHisTxt = $this->updAllkey($rsKeyH,$iRoomInfo['room']);     //取出历史纪录
         ksort($iRoomHisTxt);
         //控制两个小时内的数据

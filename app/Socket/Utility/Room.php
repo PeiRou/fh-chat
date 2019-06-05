@@ -200,12 +200,21 @@ class Room
                 $param['lastMsg'] = $value;
                 $param['lastTime'] = time();
             }else{
-                $param[$key] = $value;
-                $param['lastTime'] = time();
+                if($value instanceof \Closure){
+                    if($key == 'name' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
+                        $param[$key] = call_user_func($value);
+                    }
+                    if($key == 'head_img' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
+                        $param[$key] = call_user_func($value);
+                    }
+                }else{
+                    $param[$key] = $value;
+                    $param['lastTime'] = time();
+                }
             }
         }
 
-        if(!isset($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
+        if(empty($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
             if($type == 'users'){
                 $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
                 $param['name'] = $toUser['remark'] ?? $toUser['nickname'];
@@ -216,13 +225,14 @@ class Room
                 $param['head_img'] = $room['head_img'];
             }
         }
-        # 每次设置就将信息推送前端改变 改为同步
-        Push::pushUser($userId, 'HistoryChatList', false);
-
         $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if(!$json)
             return false;
-        return self::set($filekey, $json, $disk);
+        if(self::set($filekey, $json, $disk)){
+            # 每次设置就将信息推送前端改变 改为同步
+            return Push::pushUser($userId, 'HistoryChatList', false);
+        }
+        return false;
     }
 
     //获取单个

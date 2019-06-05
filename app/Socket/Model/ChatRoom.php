@@ -35,11 +35,11 @@ class ChatRoom extends Base
 
     protected static function getRoomOne($db, $param = [])
     {
-        return self::HandleCacheData(function()use($db, $param){
+        return self::RedisCacheData(function()use($db, $param){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room') ?? null;
-        }, 5);
+        }, 30);
     }
 
     /**

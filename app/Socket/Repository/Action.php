@@ -9,6 +9,7 @@
 namespace App\Socket\Repository;
 
 
+use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatUser;
 use App\Socket\Push;
 use App\Socket\Utility\Message;
@@ -63,10 +64,21 @@ class Action extends BaseRepository
         $msg = Message::filterMsg($msg, $iRoomInfo);
         # 单聊
         if($type == 'users')
-            Users::senMessage($iRoomInfo, $msg, $id);
+            Users::sendMessage($iRoomInfo, $msg, $id);
         # 群聊
-        elseif($type == 'room')
-            Room::sendMessage($fd, $iRoomInfo, $msg, $id);
+        elseif($type == 'room' || $type == 'many'){
+            if(ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking') === 0){
+                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
+                return false;
+            }
+
+            if(($type == 'room' && $id == 2) || $type == 'many'){
+                (new ManyToOne($fd, $iRoomInfo['userId'], $id, $msg, $type, $iRoomInfo))->sendMessage();
+            }else{
+                Room::sendMessage($fd, $iRoomInfo, $msg, $id);
+            }
+        }
+
     }
 
 }

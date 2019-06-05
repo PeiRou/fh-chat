@@ -30,7 +30,7 @@ class Message extends Base
             return true;
         }))
             return $this->show(1, '您发言太快了');
-        if(Users::senMessage($this->iRoomInfo, $msg, $toUserId))
+        if(Users::sendMessage($this->iRoomInfo, $msg, $toUserId))
             return $this->show(0);
         return $this->show(1, '失败');
     }

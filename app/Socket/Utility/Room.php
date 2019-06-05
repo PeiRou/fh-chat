@@ -184,6 +184,7 @@ class Room
             $param['update_name_at'] = time();
             $param['lookNum'] = 0;
             $param['lastMsg'] = '';
+            $param['lastTime'] = time();
         }
         $param['update_at'] = date('Y-m-d H:i:s');
         $param['lookNum'] = $param['lookNum'] ?? 0;
@@ -191,13 +192,16 @@ class Room
             if($key == 'lookNum'){
                 if($value > 0){
                     $param['lookNum'] = $param['lookNum'] + $value;
+                    $param['lastTime'] = time();
                 }
                 else
                     $param['lookNum'] = $value;
             }elseif($key == 'lastMsg'){
                 $param['lastMsg'] = $value;
+                $param['lastTime'] = time();
             }else{
                 $param[$key] = $value;
+                $param['lastTime'] = time();
             }
         }
 
@@ -212,9 +216,8 @@ class Room
                 $param['head_img'] = $room['head_img'];
             }
         }
-        # 每次设置就将信息推送前端改变
-//        app('swoole')->sendUser($userId, 23, $param);
-        Push::pushUser($userId, 'HistoryChatList');
+        # 每次设置就将信息推送前端改变 改为同步
+        Push::pushUser($userId, 'HistoryChatList', false);
 
         $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if(!$json)
@@ -242,6 +245,7 @@ class Room
         foreach ($files as $k=>$v){
             array_push($list,json_decode(self::get($v, $disk), 1));
         }
+        array_multisort(array_column($list,'lastTime'),SORT_DESC, $list);
         return $list;
     }
 
@@ -271,11 +275,6 @@ class Room
     //聊天室发信息
     public static function sendMessage($fd, $iRoomInfo, $aMesgRep, int $roomId)
     {
-        if(ChatRoom::getRoomValue(['room_id' => $roomId], 'is_speaking') === 0){
-            app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
-            return false;
-        }
-
         $aMesgRep = urlencode($aMesgRep);
         $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //发消息
         //发送消息

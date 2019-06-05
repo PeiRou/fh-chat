@@ -38,20 +38,26 @@ class Push
 //        app('swoole')->push($fd, $msg);
 //    }
 
-    public static function pushUser($userId, $column = 'all')
+    public static function pushUser($userId, $column = 'all', $async = true)
     {
         $user = ChatUser::getUser(['users_id' => $userId]);
         if($user)
-            return self::pushList(Room::getUserFd($userId), $user, $column);
+            return self::pushList(Room::getUserFd($userId), $user, $column, $async);
         else
             return false;
     }
 
-    //异步推送好友列表、群组列表、好友申请列表、用户聊过的列表
-    public static function pushList($fd, $user, $column = 'all')
+    /**
+     * 异步推送好友列表、群组列表、好友申请列表、用户聊过的列表
+     * @param $fd
+     * @param $user
+     * @param string $column
+     * @param bool $async 是否使用异步推送
+     */
+    public static function pushList($fd, $user, $column = 'all', $async = true)
     {
         !isset($user['userId']) && $user['userId'] = $user['users_id'];
-        TaskManager::async(function()use($fd,$user, $column){
+        $closure = function()use($fd,$user, $column){
             try{
                 $columns = $column;
                 is_string($columns) && $columns = [$columns];
@@ -81,7 +87,12 @@ class Push
                 Trigger::getInstance()->throwable($e);
                 return false;
             }
-        });
+        };
+        if($async){
+            TaskManager::async($closure);
+        }else{
+            return $closure();
+        }
     }
 
 

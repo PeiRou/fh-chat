@@ -29,16 +29,17 @@ class PersonalLog extends Base
         if(static::DRIVER == 'db'){
             return self::getPersonalLogdb($db, $user_id, $to_id);
         }elseif(self::DRIVER == 'file'){
-            return self::getPersonalLogfile($user_id, $to_id);
+            $path = self::FILEPATH.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
+            return self::getPersonalLogfile($path);
         }
 
     }
 
-    private static function getPersonalLogfile($user_id, $to_id)
+    private static function getPersonalLogfile($path)
     {
         $storage = Storage::disk('home');
         $iRoomUsers = array();
-        $files = Storage::disk('home')->files(self::FILEPATH.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/');
+        $files = Storage::disk('home')->files($path);
         $timess = (int)(microtime(true)*1000*10000*10000);
 
         //控制数据
@@ -51,8 +52,8 @@ class PersonalLog extends Base
                 $orgHis = $storage->get($value);
                 $aryHis =  (array)json_decode($orgHis);
                 if($aryHis['time'] < ($timess-(7200*1000*10000*10000)) || $ii < $needDelnum){
-                    if(Storage::disk('chathis')->exists($value))
-                        Storage::disk('chathis')->delete($value);              //删除历史
+                    if(Storage::disk('home')->exists($value))
+                        Storage::disk('home')->delete($value);              //删除历史
                     continue;
                 }
                 $iRoomUsers[$aryHis['time']] = $aryHis;
@@ -87,15 +88,16 @@ class PersonalLog extends Base
         if(self::DRIVER == 'db'){
             return $db->insert('personal_log', $arr);
         }elseif(self::DRIVER == 'file'){
-            return self::insertMsgLogFile($arr);
+            $userMap = str_replace(',','_', $arr['userMap']);
+            $path = self::FILEPATH.$userMap.'/';
+            return self::insertMsgLogFile($arr, $path);
         }
     }
 
-    private static function insertMsgLogFile($arr)
+    private static function insertMsgLogFile($arr, $path)
     {
-        $userMap = str_replace(',','_', $arr['userMap']);
         $addVal = json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $tmpTxt = self::FILEPATH.$userMap.'/';
+        $tmpTxt = $path;
         for($ii=0;$ii<10000;$ii++){//判断是否有并发一样的时间
             $timeIdx = $arr['uuid'] + $ii;
             if(!Storage::disk('home')->exists($tmpTxt.$timeIdx)){
@@ -111,7 +113,7 @@ class PersonalLog extends Base
         if(!Storage::disk('home')->put($tmpTxt.$timeIdx, $addVal))
             return false;
         //删除多余信息
-        $files = Storage::disk('home')->files(self::FILEPATH.$userMap.'/');
+        $files = Storage::disk('home')->files($path);
         $needDelnum = count($files)-self::LOG_MAX_NUM;
         if($needDelnum > 0){
             TaskManager::async(function() use($needDelnum, $files){
@@ -120,15 +122,14 @@ class PersonalLog extends Base
                     if(Storage::disk('home')->exists($v)){
                         $arr = json_decode(Storage::disk('home')->get($v), 1);
                         Storage::disk('home')->delete($v);
-
                         # 通知这两个人删除消息
                         app('swoole')->sendUser($arr['user_id'], 24, [
-                            'type' => 'users',
+                            'type' => $arr['type'],
                             'id' => $arr['uuid'],
                             'toId' => $arr['toId']
                         ]);
                         app('swoole')->sendUser($arr['toId'], 24, [
-                            'type' => 'users',
+                            'type' => $arr['type'],
                             'id' => $arr['uuid'],
                             'toId' => $arr['toId']
                         ]);

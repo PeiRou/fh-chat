@@ -57,7 +57,7 @@ class Users
     }
 
     //单聊发消息
-    public static function senMessage(array $user, $msg, $toUserId)
+    public static function sendMessage(array $user, $msg, $toUserId)
     {
         $msg = htmlspecialchars($msg);
         $arr = Users::buildMsg(2, $msg, $user, $toUserId);
@@ -87,7 +87,6 @@ class Users
 
         # 设置自己聊过的列表
         Room::setHistoryChatList($user['userId'], 'users', $toUserId, ['lastMsg' => $msg]);
-        unset($arr['type']);
         //记录聊天日志
         if(!PersonalLog::insertMsgLog($arr)){ }
         return true;

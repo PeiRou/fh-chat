@@ -255,7 +255,9 @@ class Room
         foreach ($files as $k=>$v){
             array_push($list,json_decode(self::get($v, $disk), 1));
         }
-        array_multisort(array_column($list,'lastTime'),SORT_DESC, $list);
+        $list = array_reverse(array_values(array_sort($list, function ($value) {
+            return $value['lastTime'];
+        })));
         return $list;
     }
 

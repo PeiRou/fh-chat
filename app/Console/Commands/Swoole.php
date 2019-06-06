@@ -1182,7 +1182,6 @@ class Swoole extends Command
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])
                     break;
-                \co::sleep(0.1);
                 $ii ++;
                 $hisKey = $rsKeyH.$iRoomInfo['room'].'='.$tmpkey;
                 $hisMsg = (array)json_decode($hisMsg);

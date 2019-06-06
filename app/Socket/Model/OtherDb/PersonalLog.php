@@ -97,6 +97,8 @@ class PersonalLog extends Base
         }
         return $iRoomUsers;
     }
+
+    // 用文件保存日志
     private static function insertMsgLogFile($arr, $path)
     {
         $addVal = json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

@@ -10,6 +10,7 @@ use App\Service\Cache;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
+use App\Socket\Model\ChatUser;
 use App\Socket\Push;
 use App\Socket\Utility\Tables\UserStatus;
 use Illuminate\Support\Facades\Storage;
@@ -76,7 +77,7 @@ class Room
 
     /**
      *  设置用户状态
-     * $type 聊天模式 users：单聊、 room：群聊
+     * $type 聊天模式 users：单聊、 room：群聊、many：多对一
      */
     public static function setUserStatus($userId, $id, $type, $fd)
     {
@@ -170,13 +171,22 @@ class Room
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //记录用户聊过的列表
+
+    /**
+     * 记录用户聊过的列表
+     * @param $userId 要设置的userId
+     * @param $type room users many
+     * @param $id  room:roomId | users:userId | many:userId
+     * @param $aParam
+     * @return bool
+     */
     public static function setHistoryChatList($userId, $type, $id, $aParam)
     {
         $disk = 'home';
         $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
 
         if((is_null($param = self::get($filekey, $disk)) || !$param) || !$param = @json_decode($param, 1)){
+            # 没有的话创建默认值
             $param = [];
             $param['type'] = $type;
             $param['id'] = $id;
@@ -200,11 +210,9 @@ class Room
                 $param['lastMsg'] = $value;
                 $param['lastTime'] = time();
             }else{
+
                 if($value instanceof \Closure){
                     if($key == 'name' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
-                        $param[$key] = call_user_func($value);
-                    }
-                    if($key == 'head_img' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
                         $param[$key] = call_user_func($value);
                     }
                 }else{
@@ -214,6 +222,8 @@ class Room
             }
         }
 
+        # name 如果没有的话自己根据id查  24小时更新一次
+        # 注：type = many 的情况比较特殊 需要根据房间的名称组合 所以在上面写了闭包来设置
         if(empty($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
             if($type == 'users'){
                 $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
@@ -223,6 +233,12 @@ class Room
                 $room = ChatRoom::getRoomOne(['room_id' => $id]);
                 $param['name'] = $room['room_name'];
                 $param['head_img'] = $room['head_img'];
+            }
+        }
+        # 因为上面使用闭包设置name  所以head_img就没设置  这里如果是空的话设置一下
+        if(empty($param['head_img'])){
+            if($type == 'many' || $type == 'users'){
+                $param['head_img'] = ChatUser::getUserValue(['users_id' => $id], 'img');
             }
         }
         $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

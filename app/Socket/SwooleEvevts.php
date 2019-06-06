@@ -21,10 +21,9 @@ class SwooleEvevts
 {
     public static function initialize()
     {
-        //数据库连接池
+        //注册数据库连接池
         $mysqlConf = PoolManager::getInstance()->register(MysqlPool::class, config('swoole.MYSQLPOOL.POOL_MAX_NUM'));
-        if ($mysqlConf === null) {}
-        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
+        $mysqlConf->setMaxObjectNum(50)->setMinObjectNum(10);
         //其它数据库连接池
 //        $mysqlConf = PoolManager::getInstance()->register(Mysql2Pool::class, 6);
 //        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
@@ -71,9 +70,6 @@ class SwooleEvevts
     //open事件之后
     public static function onOpenAfter($request, $iRoomInfo)
     {
-        # 推送房间列表
-//        Push::getRoomList($request->fd,$iRoomInfo);
-
         # 推送所有的列表
         Push::pushList($request->fd,$iRoomInfo);
     }

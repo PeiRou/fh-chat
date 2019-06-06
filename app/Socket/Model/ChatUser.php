@@ -46,24 +46,25 @@ class ChatUser extends Base
     }
 
     //搜索
-    protected static function search($db, $param = [], int $userId, int $limit = 20)
+    protected static function search($db, $param = [], int $userId, int $len = 20)
     {
-        $chatUsersWhere = ' 1 AND `chat_users`.`users_id` <> '.$userId;
-        $chatRoomWhere = ' 1 ';
-        $aParam = [];
-        $limit = '';
-        if($limit)
-            $limit = ' LIMIT ' . $limit;
-        if(isset($param['chat_role'])){
-            $chatUsersWhere .= ' AND `chat_users`.`chat_role` = '.(int)$param['chat_role'];
-        }
-        if(isset($param['name'])){
-            $chatUsersWhere .= ' AND `chat_users`.`username` LIKE ? ';
-            array_push($aParam, $param['name'].'%');
-            $chatRoomWhere .= ' AND `chat_room`.`room_name` LIKE ? ';
-            array_push($aParam, $param['name'].'%');
-        }
-        $sql = " SELECT
+        return self::RedisCacheData(function() use($db, $param, $userId, $len){
+            $chatUsersWhere = ' 1 AND `chat_users`.`users_id` <> '.$userId;
+            $chatRoomWhere = ' 1 ';
+            $aParam = [];
+            $limit = '';
+            if($len)
+                $limit = ' LIMIT ' . $len;
+            if(isset($param['chat_role'])){
+                $chatUsersWhere .= ' AND `chat_users`.`chat_role` = '.(int)$param['chat_role'];
+            }
+            if(isset($param['name'])){
+                $chatUsersWhere .= ' AND `chat_users`.`username` LIKE ? ';
+                array_push($aParam, $param['name'].'%');
+                $chatRoomWhere .= ' AND `chat_room`.`room_name` LIKE ? ';
+                array_push($aParam, $param['name'].'%');
+            }
+            $sql = " SELECT
                     `chat_users`.`users_id` AS `id`,
                     `chat_users`.`username` AS `name`,
                     IF
@@ -92,6 +93,7 @@ class ChatUser extends Base
                         {$chatRoomWhere}
                         {$limit}
                     ";
-        return $db->rawQuery($sql, $aParam);
+            return $db->rawQuery($sql, $aParam);
+        }, 60);
     }
 }

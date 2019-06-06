@@ -17,9 +17,9 @@ class BaseTable
 
     protected $table;
 
-    public function __construct($table)
+    public function __construct($table, $size = 1024)
     {
-        TableManager::getInstance()->add(static::class, $table);
+        TableManager::getInstance()->add(static::class, $table, $size);
         $this->table = TableManager::getInstance()->get(static::class);
     }
 

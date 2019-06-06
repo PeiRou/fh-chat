@@ -28,15 +28,6 @@ class Push
             app('swoole')->push($fd, $msg);
         });
     }
-    //推送房间列表
-//    public static  function getRoomList($fd,$iRoomInfo){
-//        $room_list = ChatRoom::getRoomList([
-//            'is_open' => 1,
-//            'rooms' => $iRoomInfo['rooms']
-//        ]);
-//        $msg = app('swoole')->json(16,$room_list);
-//        app('swoole')->push($fd, $msg);
-//    }
 
     public static function pushUser($userId, $column = 'all', $async = true)
     {

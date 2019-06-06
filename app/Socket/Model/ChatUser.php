@@ -64,7 +64,7 @@ class ChatUser extends Base
                 $chatRoomWhere .= ' AND `chat_room`.`room_name` LIKE ? ';
                 array_push($aParam, $param['name'].'%');
             }
-            $sql = " SELECT
+            $sql = " (SELECT
                     `chat_users`.`users_id` AS `id`,
                     `chat_users`.`username` AS `name`,
                     IF
@@ -76,10 +76,10 @@ class ChatUser extends Base
                         AND `chat_friends_list`.`user_id` = {$userId} 
                     WHERE
                         {$chatUsersWhere} 
-                        {$limit}
+                        {$limit} )
                      UNION ALL
                     
-                    SELECT
+                    ( SELECT
                         `chat_room`.`room_id` AS `id`,
                         `chat_room`.`room_name` AS `name`,
                     IF
@@ -91,7 +91,7 @@ class ChatUser extends Base
                         AND `chat_room_dt`.`user_id` = {$userId}
                     WHERE
                         {$chatRoomWhere}
-                        {$limit}
+                        {$limit} )
                     ";
             return $db->rawQuery($sql, $aParam);
         }, 60);

@@ -10,8 +10,11 @@ namespace App\Socket\Model;
 
 
 
+use App\Service\Cache;
+
 class Base
 {
+    use Cache;
 
     //方便使用钩子，全部使用私有函数
     public static function __callStatic($name, $arguments)

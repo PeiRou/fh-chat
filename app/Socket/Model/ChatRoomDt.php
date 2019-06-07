@@ -13,7 +13,6 @@ use App\Service\Cache;
 
 class ChatRoomDt extends Base
 {
-    use Cache;
 
     protected static function getRoomUserIds($db, $roomId)
     {
@@ -26,5 +25,28 @@ class ChatRoomDt extends Base
             }
             return $data;
         }, 5);
+    }
+
+    //删除user表里已经删掉的会员
+    protected static function clearInvalidUser($db)
+    {
+        $sql = ' SELECT
+                    `chat_room_dt`.`id`,
+                    `chat_room_dt`.`user_id`,
+                    `users`.`id` AS `uid` 
+                FROM
+                    `chat_room_dt`
+                    LEFT JOIN `users` ON `chat_room_dt`.`user_id` = `users`.`id`
+                    WHERE `users`.`id`  is null ';
+        $list = $db->rawQuery($sql);
+        if(count($list)){
+            foreach ($list as $v){
+                $del = true;
+                $db->whereOr("(`id` = ? AND `user_id` = ?)", Array($v['id'],$v['user_id']));
+            }
+            if(isset($del) && $del){
+                $db->delete('chat_room_dt');
+            }
+        }
     }
 }

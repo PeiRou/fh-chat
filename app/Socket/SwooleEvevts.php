@@ -9,11 +9,12 @@
 namespace App\Socket;
 
 
-use App\Socket\Pool\Mysql2Pool;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Pool\MysqlPool;
 use App\Socket\Pool\RedisPool;
+use App\Socket\Redis\Chat;
 use App\Socket\Utility\Pool\PoolManager;
-use App\Socket\Utility\Tables\UserStatus;
+use App\Socket\Utility\Tables\FdStatus;
 use App\Socket\Utility\Task\SuperClosure;
 use App\Socket\Utility\Trigger;
 
@@ -38,6 +39,14 @@ class SwooleEvevts
     {
 
     }
+    public static function onStart($server)
+    {
+        go(function(){
+            Chat::clearAll(); #清除redis 保存的聊天室信息
+            ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
+        });
+    }
+
     public static function onTask($server, \Swoole\Server\Task $task)
     {
         $taskObj = $task->data;
@@ -52,7 +61,7 @@ class SwooleEvevts
 
     public static function mainServerCreate()
     {
-        UserStatus::getInstance(); // 创建fd状态表
+        FdStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new Test('testProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $id)
@@ -64,6 +73,10 @@ class SwooleEvevts
                swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_task_worker");
         } else {
             swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_worker");
+        }
+        if ($server->taskworker == false) {
+            PoolManager::getInstance()->getPool(MysqlPool::class)->preLoad(3);//最小创建数量
+            PoolManager::getInstance()->getPool(RedisPool::class)->preLoad(1);//最小创建数量
         }
     }
 

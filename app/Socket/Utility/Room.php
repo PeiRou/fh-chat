@@ -12,7 +12,8 @@ use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatUser;
 use App\Socket\Push;
-use App\Socket\Utility\Tables\UserStatus;
+use App\Socket\Redis\Chat;
+use App\Socket\Utility\Tables\FdStatus;
 use Illuminate\Support\Facades\Storage;
 
 class Room
@@ -22,18 +23,14 @@ class Room
     public static function joinRoom($roomId, $fd, $iRoomInfo)
     {
         # 如果在其它房间就退出
-        if($status = self::getUserStatus($iRoomInfo['userId'])){
+        if($status = self::getFdStatus($fd)){
             if($status['type'] == 'room')
                 self::exitRoom($status['id'], $fd, $iRoomInfo);
         }
         # 将fd 推入 room list
         self::roomPush($roomId, $fd, $iRoomInfo['userId']);
-        # 将userId 推入 room list
-        self::roomPushUserId($roomId, $fd, $iRoomInfo['userId']);
         # 设置 Fd => RoomId 映射
         self::setFdRoomIdMap($fd, $roomId);
-        # 设置用户状态 打开的群组还是单人 和id
-        self::setUserStatus($iRoomInfo['userId'], $roomId, 'room', $fd);
         # 修改数据库表房间
         \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($iRoomInfo, $roomId) {
             return $db->where('users_id', $iRoomInfo['userId'])->update('chat_users', ['room_id' => $roomId]);
@@ -48,11 +45,9 @@ class Room
         # 将fd 移除 room list
         self::deleteRoomFd($roomId, $fd);
         # 将UserId 移除 room list
-        self::deleteRoomUserId($roomId, $iRoomInfo['userId']);
+//        self::deleteRoomUserId($roomId, $iRoomInfo['userId']);
         # 删除 Fd => RoomId 映射
         self::deleteRoomIdMapByFd($fd);
-        # 删除用户状态
-        self::delUserStatus($iRoomInfo['userId']);
     }
 
     //获取用户fd
@@ -79,9 +74,9 @@ class Room
      *  设置用户状态
      * $type 聊天模式 users：单聊、 room：群聊、many：多对一
      */
-    public static function setUserStatus($userId, $id, $type, $fd)
+    public static function setFdStatus($userId, $id, $type, $fd)
     {
-        UserStatus::getInstance()->set($userId, [
+        FdStatus::getInstance()->set($fd, [
             'userId' => $userId,
             'fd' => $fd,
             'type' => $type,
@@ -89,14 +84,14 @@ class Room
         ]);
     }
     //删除用户状态
-    public static function delUserStatus($userId)
+    public static function delFdStatus($fd)
     {
-        UserStatus::getInstance()->del($userId);
+        return FdStatus::getInstance()->del($fd);
     }
     //获取用户状态
-    public static function getUserStatus($userId)
+    public static function getFdStatus($fd)
     {
-        return UserStatus::getInstance()->get($userId);
+        return FdStatus::getInstance()->get($fd);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -121,29 +116,29 @@ class Room
 
     //------------------------------------------------------------------------------------------------------------------
     //将userId 推入 room list
-    public static function roomPushUserId($roomId, $fd, $userId)
-    {
-        $key = 'roomUserId/'.$roomId.'/'.$userId;
-        return self::set($key, $fd);
-    }
+//    public static function roomPushUserId($roomId, $fd, $userId)
+//    {
+//        $key = 'roomUserId/'.$roomId.'/'.$userId;
+//        return self::set($key, $fd);
+//    }
     //删除Room中的userId
-    public static function deleteRoomUserId($roomId, $userId)
-    {
-        $key = 'roomUserId/'.$roomId.'/'.$userId;
-        return self::del($key);
-    }
+//    public static function deleteRoomUserId($roomId, $userId)
+//    {
+//        $key = 'roomUserId/'.$roomId.'/'.$userId;
+//        return self::del($key);
+//    }
     //获取 Room中的userId
-    public static function getRoomUserId($roomId)
-    {
-        $key = 'roomUserId/'.$roomId;
-        $list = Storage::disk('room')->files($key);
-
-        return array_map(static function($v){
-            $v = explode('/', $v);
-            $v = @array_pop($v) ?? '';
-            return $v;
-        }, $list);
-    }
+//    public static function getRoomUserId($roomId)
+//    {
+//        $key = 'roomUserId/'.$roomId;
+//        $list = Storage::disk('room')->files($key);
+//
+//        return array_map(static function($v){
+//            $v = explode('/', $v);
+//            $v = @array_pop($v) ?? '';
+//            return $v;
+//        }, $list);
+//    }
     //------------------------------------------------------------------------------------------------------------------
     //将fd 推入 room list
     public static function roomPush($roomId, $fd, $userId)
@@ -157,7 +152,7 @@ class Room
         $key = 'roomList/'.$roomId.'/'.$fd;
         return self::del($key);
     }
-    //获取 roomlist下所有UserId
+    //获取 roomlist下所有Fd
     public static function getRoomFd($roomId)
     {
         $key = 'roomList/'.$roomId;
@@ -169,6 +164,7 @@ class Room
             return $v;
         }, $list);
     }
+
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -207,6 +203,7 @@ class Room
                 else
                     $param['lookNum'] = $value;
             }elseif($key == 'lastMsg'){
+                preg_match('/img=\/upchat\/dataimg/', $value) && $value = '您有一张图片';
                 $param['lastMsg'] = $value;
                 $param['lastTime'] = time();
             }else{
@@ -303,8 +300,6 @@ class Room
     //聊天室发信息
     public static function sendMessage($fd, $iRoomInfo, $aMesgRep, int $roomId)
     {
-        $aMesgRep = urlencode($aMesgRep);
-        $aMesgRep = base64_encode(str_replace('+', '%20', $aMesgRep));   //发消息
         //发送消息
         if(!is_array($iRoomInfo))
             $iRoomInfo = (array)$iRoomInfo;
@@ -313,39 +308,22 @@ class Room
         $iRoomInfo['uuid'] = $getUuid['uuid'];
         self::sendRoom($fd, $iRoomInfo, $aMesgRep, $roomId);
         //自动推送清数据
-        app('swoole')->chkHisMsg($iRoomInfo,0,false);
+        app('swoole')->chkHisMsg($iRoomInfo,$fd,false);
     }
 
     //发送消息到聊天室
     public static function sendRoom($fd, $iRoomInfo, $msg, $roomId)
     {
+        $aMesgRep = base64_encode(str_replace('+', '%20', urlencode($msg)));
         # 所有在群里的会员
         $userIds = ChatRoomDt::getRoomUserIds($roomId);
-
-        # 获取在这个群的userId
-        $iRoomUserIds  = self::getRoomUserId($roomId);
-
-        foreach ($userIds as $v){
-            $lookNum = 1;
-            # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
-            if(in_array($v, $iRoomUserIds)){
-                $lookNum = 0;
-                $ufd = Room::getUserFd($v);
-                # 推消息
-                if($ufd == $fd)//组装消息数据
-                    $json = app('swoole')->msg(4,$msg,$iRoomInfo,'room', $roomId);   //自己发消息
-                else
-                    $json = app('swoole')->msg(2,$msg,$iRoomInfo,'room', $roomId);   //别人发消息
-                app('swoole')->push($ufd, $json);
-            }
-
-            # 设置未读消息数和最后一条消息
-            Room::setHistoryChatList($v, 'room', $roomId, [
-                'lookNum' => $lookNum,
-                'lastMsg' => urldecode(str_replace('%20', '+', base64_decode($msg)))
-            ]);
+        foreach ($userIds as $toUserId){
+            $status = 2;
+            if(Chat::getUserId($fd) == $toUserId)
+                $status = 4;
+            $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
+            Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
         }
-
     }
 
 }

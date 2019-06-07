@@ -11,7 +11,7 @@ namespace App\Socket\Utility\Tables;
 
 use Swoole\Table;
 
-class UserStatus extends BaseTable
+class FdStatus extends BaseTable
 {
     function __construct()
     {

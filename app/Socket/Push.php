@@ -11,9 +11,9 @@ use App\Socket\Model\ChatFriendsLog;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
+use App\Socket\Redis\Chat;
 use App\Socket\Utility\Room;
 use App\Socket\Utility\SortName;
-use App\Socket\Utility\Tables\UserStatus;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
@@ -32,10 +32,16 @@ class Push
     public static function pushUser($userId, $column = 'all', $async = true)
     {
         $user = ChatUser::getUser(['users_id' => $userId]);
-        if($user)
-            return self::pushList(Room::getUserFd($userId), $user, $column, $async);
-        else
+        if($user){
+            $fds = Chat::getUserFd($userId);
+            foreach ($fds as $fd){
+                self::pushList($fd, $user, $column, $async);
+            }
+        }
+        else{
             return false;
+        }
+
     }
 
     /**
@@ -58,8 +64,10 @@ class Push
                 if(in_array('RoomList', $columns) || $column == 'all')
                     $data['RoomList'] = ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]);
                 # 聊过的列表
-                if(in_array('HistoryChatList', $columns) || $column == 'all')
+                if(in_array('HistoryChatList', $columns) || $column == 'all'){
                     $data['HistoryChatList'] = Room::getHistoryChatList($user['userId']);
+                }
+
                 # 好友列表
                 if(in_array('FriendsList', $columns) || $column == 'all')
                     $data['FriendsList'] = SortName::addPeople(ChatFriendsList::getUserFriendList($user['userId']), 'nickname');
@@ -98,9 +106,9 @@ class Push
         TaskManager::async(function()use($fd,$user_id, $toUserId) {
             $data = PersonalLog::getPersonalLog($user_id, $toUserId);
             $swoole = app('swoole');
-            $status = UserStatus::getInstance()->get($user_id);
+            $status = Room::getFdStatus($fd);
             foreach ($data as $v) {
-                $u = UserStatus::getInstance()->get($user_id);
+                $u = Room::getFdStatus($fd);
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])
                     break;
@@ -123,9 +131,9 @@ class Push
         TaskManager::async(function()use($fd,$user_id, $toUserId, $roomId) {
             $data = PersonalLog::getManyLog($user_id, $toUserId, $roomId);
             $swoole = app('swoole');
-            $status = UserStatus::getInstance()->get($user_id);
+            $status = Room::getFdStatus($fd);
             foreach ($data as $v) {
-                $u = UserStatus::getInstance()->get($user_id);
+                $u = Room::getFdStatus($fd);
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])
                     break;
@@ -172,10 +180,44 @@ class Push
         return false;
     }
 
-    //
-    public static function pushDelChatLog($fd, $type, $key)
+    /**
+     * 推送消息 只要有一个fd推送成功就返回成功
+     * @param $userId  目标userId
+     * @param $type  消息类型
+     * @param $id  消息来源id  users：userId | room：roomId | many：userId
+     * @param $msg
+     * @param bool $isSetHistoryChatList 是否记录未读消息数
+     * @param array $aParam 扩展参数
+     * @param bool $async 是否异步
+     */
+    public static function pushUserMessage($userId, $type, $id, $msg, $aParam = [], $isSetHistoryChatList = true, $async = true)
     {
+        $closure = function() use($userId, $type, $id, $msg, $aParam, $isSetHistoryChatList){
+            $lookNum = 1;
+            $fds = Chat::getUserFd((int)$userId);
+            foreach ($fds as $fd){
+                $s = Room::getFdStatus($fd);
 
+                if($s && $s['type'] == $type && $s['id'] == $id){
+                    if(app('swoole')->push($fd, $msg))
+                        $lookNum = 0;
+                }
+            }
+            # 设置目标用户聊过的列表
+            if($isSetHistoryChatList){
+                Room::setHistoryChatList($userId, $type, $id, [
+                    'lookNum' => $lookNum,
+                    'lastMsg' => $aParam['msg'] ?? $msg
+                ]);
+            }
+        };
+        if ($async) {
+            TaskManager::async($closure);
+        } else {
+            return $closure();
+        }
     }
+
+
 
 }

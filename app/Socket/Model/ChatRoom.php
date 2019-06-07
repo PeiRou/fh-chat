@@ -14,7 +14,6 @@ use App\Service\Cache;
 
 class ChatRoom extends Base
 {
-    use Cache;
 
     //房间列表
     protected static function getRoomList($db, $param = [])
@@ -202,5 +201,16 @@ class ChatRoom extends Base
 
         # 组成数组一次性修改所有的房间
         return self::batchUpdate($db, $data, 'users_id', 'chat_users');
+    }
+
+    //获取需要推送跟单的房间
+    protected static function getPushBetInfoRooms($db, $gameId)
+    {
+        return self::RedisCacheData(function() use($db, $gameId){
+            $res = $db->where('FIND_IN_SET("'.$gameId.'",`pushBetGame`)')->get('chat_room', null, ['room_id']);
+            return array_map(function($val){
+                return $val['room_id'];
+            }, $res);
+        }, 30);
     }
 }

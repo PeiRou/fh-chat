@@ -12,8 +12,8 @@ namespace App\Socket\Repository;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
+use App\Socket\Redis\Chat;
 use App\Socket\Utility\Room;
-use App\Socket\Utility\Tables\UserStatus;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Users;
 
@@ -64,14 +64,17 @@ class ManyToOne
             TaskManager::async(function() use($userStatus, $msg, $v, $fd, $iRoomInfo, $arr, $roomId){
                 $lookNum = 1;
                 # 如果打开的是这个群 将消息推送过去 未读消息数就是0 不然消息数+1
-                if($userStatus && $userStatus['isOpen']) {
-                    if ($ufd = Room::getUserFd($v)) {
-                        $lookNum = 0;
-                        $status = 2;
-                        $ufd == $fd && $status = 4;
-                        # 推消息
-                        $arr['status'] = $status;
-                        app('swoole')->push($ufd, json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                if($userStatus) {
+                    foreach ($userStatus['fdArr'] as $fdArr){
+                        if ($fdArr['isOpen']) {
+                            $status = 2;
+                            $fdArr['fd'] == $fd && $status = 4;
+                            # 推消息
+                            $arr['status'] = $status;
+                            if(app('swoole')->push($fdArr['fd'], json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))){
+                                $lookNum = 0;
+                            }
+                        }
                     }
                 }
                 # 设置未读消息数和最后一条消息
@@ -95,12 +98,8 @@ class ManyToOne
 
     public function userStatus($userId)
     {
-        $userStatus = UserStatus::getInstance()->get($userId);
-
-        $arr = [
-            'isOpen' => false
-        ];
-
+        $arr = [];
+        $arr['fdArr'] = [];
         $arr['type'] = 'many'; # 默认都是这个类型  只有会员本人才是 room 类型
         $arr['id'] = $this->oneId; # 默认对方id 都是会员id
          # 会员发消息 如果这个userId == 发消息的这个人
@@ -109,8 +108,31 @@ class ManyToOne
              $arr['id'] = $this->roomId; # id 就是这个房间id
          }
 
-        if($userStatus && $userStatus['type'] == $arr['type'] && $userStatus['id'] == $arr['id']){
-            $arr['isOpen'] = true;
+
+        $fds = Chat::getUserFd($userId);
+
+         # 如果有一个fd打开的是这个页面 isOpen 就是true
+        foreach ($fds as $fd){
+            $fdStatus = Room::getFdStatus($fd);
+            $array = [
+                'fd' => $fd,
+                'isOpen' => false # fd 的状态
+            ];
+            if($fdStatus && $fdStatus['type'] == $arr['type'] && $fdStatus['id'] == $arr['id']){
+                $array['isOpen'] = true;
+            }
+            $arr['fdArr'][] = $array;
+        }
+        return $arr;
+    }
+
+    //获取所有user的fd
+    public function getUsersFds()
+    {
+        $users = $this->getUsers();
+        $arr = [];
+        foreach ($users as $userId){
+            array_merge($arr, Chat::getUserFd($userId));
         }
         return $arr;
     }

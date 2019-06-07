@@ -17,8 +17,6 @@ use Illuminate\Support\Facades\Storage;
 class PersonalLog extends Base
 {
 
-//    const DRIVER = 'db';  // db | file
-    const DRIVER = 'file';  // db | file
     const FILEPATH = 'userChatLog/';
     const LOG_MAX_NUM = 5;  //聊天记录保存条数
 
@@ -26,34 +24,43 @@ class PersonalLog extends Base
     //用户聊天记录
     protected static function getPersonalLog($db, $user_id, $to_id)
     {
-        if(static::DRIVER == 'db'){
-            return self::getPersonalLogdb($db, $user_id, $to_id);
-        }elseif(self::DRIVER == 'file'){
-            $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
-            return self::getPersonalLogfile($path);
-        }
+        $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
+        return self::getPersonalLogfile($db, $path);
     }
 
     //多对一聊天记录
     protected static function getManyLog($db, $user_id, $to_id, $roomId)
     {
         $path = self::FILEPATH.'many'.'/'.str_replace(',','_', Users::getUserMap($to_id, $roomId)).'/';
-        return self::getPersonalLogfile($path);
+        return self::getPersonalLogfile($db, $path);
+    }
+    //聊天室历史记录
+    protected static function getRoomLog($db, $roomId)
+    {
+        $path = self::FILEPATH.'room'.'/'.$roomId.'/';
+        return self::getPersonalLogfile($db, $path);
     }
 
-    //存聊天信息
+    //存聊天信息 数组
     protected static function insertMsgLog($db, $arr)
     {
-        if(self::DRIVER == 'db'){
-            return $db->insert('personal_log', $arr);
-        }elseif(self::DRIVER == 'file'){
-            $userMap = str_replace(',','_', $arr['userMap']);
-            $path = self::FILEPATH.$arr['type'].'/'.$userMap.'/';
-            return self::insertMsgLogFile($arr, $path);
+        $filePath = '';
+        if($arr['type'] == 'room'){
+            $filePath = $arr['toId'];
+        }else{
+            $filePath = str_replace(',','_', $arr['userMap']);
         }
+        $path = self::FILEPATH.$arr['type'].'/'.$filePath.'/';
+        return self::insertMsgLogFile($db, $arr, $path);
+    }
+    //存聊天信息 数组
+    protected static function insertMsgLogRoom($db, $arr)
+    {
+        $path = self::FILEPATH.$arr['type'].'/'.$arr['toId'].'/';
+        return self::insertMsgLogFile($db, $arr, $path);
     }
 
-    private static function getPersonalLogdb($db, $user_id, $to_id)
+    protected static function getPersonalLogdb($db, $user_id, $to_id)
     {
         # 获取未读条数
         $lookNum = Room::getHistoryChatValue($user_id, 'users', $to_id, 'lookNum') ?? 0;
@@ -71,7 +78,7 @@ class PersonalLog extends Base
         return $list;
     }
 
-    private static function getPersonalLogfile($path)
+    protected static function getPersonalLogfile($db, $path)
     {
         $storage = Storage::disk('home');
         $iRoomUsers = array();
@@ -87,24 +94,27 @@ class PersonalLog extends Base
             if($storage->exists($value)){
                 $orgHis = $storage->get($value);
                 $aryHis =  (array)json_decode($orgHis);
+                $iRoomUsers[$aryHis['time']] = $aryHis;
                 if($aryHis['time'] < ($timess-(7200*1000*10000*10000)) || $ii < $needDelnum){
                     if(Storage::disk('home')->exists($value))
                         Storage::disk('home')->delete($value);              //删除历史
                     continue;
                 }
-                $iRoomUsers[$aryHis['time']] = $aryHis;
             }
         }
+
+        ksort($iRoomUsers);
         return $iRoomUsers;
     }
 
     // 用文件保存日志
-    private static function insertMsgLogFile($arr, $path)
+    protected static function insertMsgLogFile($db, $arr, $path)
     {
-        $addVal = json_encode($arr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $addVal = $arr;
+        if(is_array($addVal)) $addVal = json_encode($addVal, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $tmpTxt = $path;
         for($ii=0;$ii<10000;$ii++){//判断是否有并发一样的时间
-            $timeIdx = $arr['uuid'] + $ii;
+            $timeIdx = (int)$arr['uuid'] + $ii;
             if(!Storage::disk('home')->exists($tmpTxt.$timeIdx)){
                 if($ii>0){
                     $addId = $timeIdx;

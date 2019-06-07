@@ -24,8 +24,6 @@ class Action extends BaseRepository
     public static function inUser($fd, $iRoomInfo, $toUser, $type)
     {
         $toUserId = (int)$toUser;
-        # 设置用户状态
-        Room::setUserStatus($iRoomInfo['userId'], $toUserId, $type, $fd);
 
         $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
             return $db->where('users_id', $toUserId)->getOne('chat_users');
@@ -46,8 +44,6 @@ class Action extends BaseRepository
     {
         $roomId = 2;
 
-        # 设置用户状态
-        Room::setUserStatus($iRoomInfo['userId'], $toUserId, $type, $fd);
         $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
             return $db->where('users_id', $toUserId)->getOne('chat_users');
         });

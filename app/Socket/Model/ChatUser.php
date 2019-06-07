@@ -13,7 +13,6 @@ use App\Service\Cache;
 
 class ChatUser extends Base
 {
-    use Cache;
 
     //用户信息
     protected static function getUser($db, $param = [])

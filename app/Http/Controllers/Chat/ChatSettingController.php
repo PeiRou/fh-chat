@@ -74,6 +74,7 @@ class ChatSettingController extends Controller
         $request->input('rech') && $data['recharge'] = $request->input('rech');              //充值要求
         $request->input('bet') && $data['bet'] = $request->input('bet');                //打码要求
         isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
+        isset($request->pushBetGames) && $data['pushBetGame'] = implode(',', $request->pushBetGames);
 
         if(isset($request->head_img)){
             $image = $request->head_img;    //接收base64的图
@@ -618,6 +619,25 @@ class ChatSettingController extends Controller
 
         return response()->json([
             'status'=>true,
+        ]);
+    }
+    //跟单设置
+    public function setPushBet(Request $request){
+        $data = $request->all();
+        if($data['is_pushBet'] == 0){
+            $data['is_pushBet'] = 1;
+        }elseif($data['is_pushBet'] == 1){
+            $data['is_pushBet'] = 0;
+        }
+        $res = DB::table('chat_room_dt')->where('id',$data['roomId'])->where('user_id',$data['user_id'])->update(['is_pushbet'=>$data['is_pushBet']]);
+        if($res){
+            return response()->json([
+                'status'=>true,
+            ]);
+        }
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
         ]);
     }
 

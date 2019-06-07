@@ -269,7 +269,13 @@ class DataController extends Controller
 
         return DataTables::of($res)
             ->editColumn('control',function ($res)use($id){
-                return '<ul class="control-menu"><li onclick="deleteUser('.$id.','.$res->user_id.')">删除</li></ul>';
+                if($res->is_pushbet == 1){
+                    $is_pushbet = '不跟单';
+                }elseif($res->is_pushbet == 0){
+                    $is_pushbet = '跟单';
+                }
+
+                return '<ul class="control-menu"><li onclick="deleteUser('.$id.','.$res->user_id.')">删除</li></ul><ul class="control-menu"><li onclick="setPushBet('.$id.','.$res->user_id.','.$res->is_pushbet.')">'.$is_pushbet.'</li></ul>';
             })
             ->setTotalRecords($resCount)
             ->rawColumns(['control'])
@@ -326,7 +332,7 @@ class DataController extends Controller
                 return '<ul class="control-menu"><li onclick="delAdmin('.$id.','.$res->users_id.')">删除</li></ul>';
             })
             ->setTotalRecords($resCount)
-            ->rawColumns(['control'])
+            ->rawColumns(['control','is_speaking','is_pushbet'])
             ->skipPaging()
             ->make();
     }

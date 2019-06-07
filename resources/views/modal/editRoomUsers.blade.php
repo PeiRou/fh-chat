@@ -19,6 +19,20 @@
             },
             columns: [
                 {data:'user_name', title:'账号'},              //房间名称
+                {data:function (data) {
+                    if(data.is_speaking == 1){
+                        return '是';
+                    }else if(data.is_speaking == 0){
+                        return '否';
+                    }
+                },title:'是否能说话'},
+                {data:function (data) {
+                    if(data.is_pushbet == 1){
+                        return '是';
+                    }else if(data.is_pushbet == 0){
+                        return '否';
+                    }
+                },title:'是否能跟单'},
                 {data:'control', title:'操作', width:'20%'},
             ],
             language: {

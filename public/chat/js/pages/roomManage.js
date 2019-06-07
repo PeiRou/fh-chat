@@ -550,6 +550,36 @@ function deleteUser(roomId, user_id){
         },
     })
 }
+function setPushBet(roomId,user_id,is_pushBet) {
+    var data = {
+        roomId:roomId,
+        user_id:user_id,
+        is_pushBet:is_pushBet,
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/setPushBet',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            console.log(e);
+            if(e.status == true){
+                $('#users').DataTable().ajax.reload()
+            }else{
+                layer.msg(e.msg);
+            }
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
+}
 //删除管理
 function delAdmin(roomId, user_id){
     var data = {

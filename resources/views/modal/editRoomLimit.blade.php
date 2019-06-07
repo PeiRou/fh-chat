@@ -35,6 +35,47 @@
             @endforeach
         </div>
     </div>
+
+    <div class="inline field" style="word-wrap:break-word;">
+        <label>可跟单的游戏</label>
+        <br>
+        <div class="ui  icon">
+            <div class="ui checkbox"style="">
+                <input id="select_all" type="checkbox">
+                <label>全选&nbsp;</label>
+            </div>
+            <div class="ui checkbox"style="">
+                <input id="select_reverse" type="checkbox">
+                <label>反选&nbsp;</label>
+            </div><br/>
+            @foreach($openGames as $k => $v)
+                <div class="ui checkbox"style="">
+                    <input type="checkbox" class="pushBetGames" name="pushBetGames[]" value="{{$v->game_id}}" @if(in_array($v->game_id,$pushBetGames)) checked @endif>
+                    <label>{{$v->game_name}}&nbsp;</label>
+                </div>
+            @endforeach
+
+                <script>
+                    $(function () {
+
+                        $("#select_all").on('click', function() {
+                            $('.pushBetGames').prop("checked", $(this).prop('checked'));
+                            $('#select_reverse').prop("checked",false)
+                        })
+                        $("#select_reverse").on('click', function() {
+                            $('.pushBetGames').each(function () {
+                                if(this.checked){
+                                    this.checked = false;
+                                }else{
+                                    this.checked = true;
+                                }
+                            });
+                            $('#select_all').prop("checked",false)
+                        })
+                    })
+                </script>
+        </div>
+    </div>
     <div class="field">
         <label>充值要求</label>
         <div class="ui input icon">

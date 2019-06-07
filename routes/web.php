@@ -50,6 +50,8 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/sendPlan', 'Chat\ChatSettingController@sendPlan');                     //手动发送计画任务
         Route::post('/chat/action/updLevelInfo', 'Chat\ChatSettingController@updLevelInfo');               //修改层级信息
         Route::post('/chat/action//changeGoogleCode', 'Chat\ChatSettingController@changeGoogleCode');//更换子账号的google验证码
+        Route::post('/chat/action/setPushBet', 'Chat\ChatSettingController@setPushBet');//跟单设置
+
 
     //modal
         Route::get('/chat/modal/editUserLevel/{id}', 'Chat\Ajax\ModalController@editUserLevel');         //显示修改聊天室用户信息-弹窗表单

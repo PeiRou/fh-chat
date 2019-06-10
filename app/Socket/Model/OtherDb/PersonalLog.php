@@ -27,7 +27,7 @@ class PersonalLog extends Base
     {
         $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
         return self::getPersonalLogfile($db, $path, [
-            'type' => 'room',
+            'type' => 'users',
             'toId' => $to_id,
             'page' => $param['page'] ?? 1,
         ]);
@@ -141,7 +141,8 @@ class PersonalLog extends Base
 //                array_unshift($iRoomUsers,$aryHis);
             }
         }
-        rsort($iRoomUsers);
+//        rsort($iRoomUsers);
+        sort($iRoomUsers);
         return $iRoomUsers;
     }
 
@@ -216,8 +217,9 @@ class PersonalLog extends Base
                     'to_id' => $arr['toId'],
                     'room_id' => $arr['roomId'],
                     'user_id' => $arr['user_id'],
-                ]))
-                  continue;
+                ])){
+                    continue;
+                }
                 break;
             }
         }

@@ -26,7 +26,7 @@ class SwooleEvevts
     {
         //注册数据库连接池
         $mysqlConf = PoolManager::getInstance()->register(MysqlPool::class, config('swoole.MYSQLPOOL.POOL_MAX_NUM'));
-        $mysqlConf->setMaxObjectNum(50)->setMinObjectNum(10);
+        $mysqlConf->setMaxObjectNum(50)->setMinObjectNum(10); //设置最大数和最小数
         //其它数据库连接池
 //        $mysqlConf = PoolManager::getInstance()->register(Mysql2Pool::class, 6);
 //        $mysqlConf->setMaxObjectNum(20)->setMinObjectNum(10);
@@ -78,6 +78,8 @@ class SwooleEvevts
         } else {
             swoole_set_process_name(config('swoole.SERVER_NAME')."_worker");
         }
+
+        # 每个进程初始化的时候默认链接多少个链接 这样处理第一个请求不会有第一次链接的io时间
         if ($server->taskworker == false) {
             PoolManager::getInstance()->getPool(MysqlPool::class)->preLoad(3);//最小创建数量
             PoolManager::getInstance()->getPool(RedisPool::class)->preLoad(1);//最小创建数量

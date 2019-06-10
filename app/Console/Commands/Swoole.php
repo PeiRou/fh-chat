@@ -308,9 +308,6 @@ class Swoole extends Command
                 Trigger::getInstance()->throwable($e);
             }
         });
-        $this->ws->on('receive', function ($ws, $request) {
-            var_dump('_'.$ws->worker_id);
-        });
         //接收WebSocket服务器推送功能
         $this->ws->on('request', function ($serv, $response) {
             $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
@@ -466,7 +463,6 @@ class Swoole extends Command
         $sess = isset($serv->post['sess'])?$serv->post['sess']:(isset($serv->get['sess'])?$serv->get['sess']:"");
         $betInfo = isset($serv->post['betInfo'])?$serv->post['betInfo']:(isset($serv->get['betInfo'])?$serv->get['betInfo']:"");
         $issueInfo = isset($serv->post['issueInfo'])?$serv->post['issueInfo']:(isset($serv->get['issueInfo'])?$serv->get['issueInfo']:"");
-
         if(empty($sess) || empty($betInfo) || empty($issueInfo))
             return "";
         $iRoomInfo = $this->getUsersess($sess);
@@ -662,12 +658,11 @@ class Swoole extends Command
             'time' => isset($userinfo['timess'])?$userinfo['timess']:$getUuid['timess'],      //服务器接收到讯息时间
 //            'roomId' => isset($userinfo['room'])?$userinfo['room']:1,     //房间号码
             'type' => $type,
-            'toId' => $id ? $id : ($type == 'room' ? isset($userinfo['room']) : 0), //目标id
+            'toId' => $id ? $id : ($type == 'room' ? (isset($userinfo['room']) ? $userinfo['room'] : 0) : 0), //目标id
             'user_id' => $userinfo['userId'] ?? 0,
             'created_at' => date('Y-m-d H:i:s'),
             'roomId' => $roomId
         ];
-
         isset($data['user_id']) && $data['user_id'] > 0 && $data['userMap'] = Users::getUserMap($id, $userinfo['userId']);
         return $data;
     }
@@ -773,7 +768,6 @@ class Swoole extends Command
             $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',0)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画
             if(empty($res)) return;
         }
-
         //判断是否可以发送
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
         if($game!=0){
@@ -799,7 +793,6 @@ class Swoole extends Command
         $valHis = json_decode($valHis, 1);
         foreach ($rooms as $v){
             $valHis['room']= $v->room_id;
-
             //检查计划消息
             error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
             $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息

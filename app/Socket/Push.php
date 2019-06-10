@@ -64,10 +64,8 @@ class Push
                 if(in_array('RoomList', $columns) || $column == 'all')
                     $data['RoomList'] = ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]);
                 # 聊过的列表
-                if(in_array('HistoryChatList', $columns) || $column == 'all'){
+                if(in_array('HistoryChatList', $columns) || $column == 'all')
                     $data['HistoryChatList'] = Room::getHistoryChatList($user['userId']);
-                }
-
                 # 好友列表
                 if(in_array('FriendsList', $columns) || $column == 'all')
                     $data['FriendsList'] = SortName::addPeople(ChatFriendsList::getUserFriendList($user['userId']), 'nickname');

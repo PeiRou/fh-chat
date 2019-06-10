@@ -110,6 +110,7 @@ class Push
                 if($status['type'] !== $u['type'] ||
                     $status['id'] !== $u['id'])
                     break;
+                $v['status'] = 2;
                 if ($v['user_id'] == $user_id)
                     $v['status'] = 4;
                 $swoole->push($fd, json_encode($v));

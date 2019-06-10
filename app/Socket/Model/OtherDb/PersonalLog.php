@@ -28,7 +28,8 @@ class PersonalLog extends Base
         $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
         return self::getPersonalLogfile($db, $path, [
             'type' => 'users',
-            'toId' => $to_id,
+//            'toId' => $to_id,
+            'user_map' => Users::getUserMap($user_id, $to_id),
             'page' => $param['page'] ?? 1,
         ]);
     }
@@ -69,7 +70,7 @@ class PersonalLog extends Base
         if($arr['type'] == 'room'){
             $filePath = $arr['toId'];
         }elseif($arr['type'] == 'many'){
-            $filePath = $arr['roomId'].'/'.$arr['user_id'];
+            $filePath = $arr['roomId'].'/'.$arr['toId'];
         }else{
             $filePath = str_replace(',','_', $arr['userMap']);
         }
@@ -142,7 +143,7 @@ class PersonalLog extends Base
             }
         }
 //        rsort($iRoomUsers);
-        sort($iRoomUsers);
+        ksort($iRoomUsers);
         return $iRoomUsers;
     }
 
@@ -151,6 +152,7 @@ class PersonalLog extends Base
         isset($param['type']) && $db->where('type', $param['type']);
         isset($param['toId']) && $db->where('to_id', $param['toId']);
         isset($param['roomId']) && $db->where('room_id', $param['roomId']);
+        isset($param['user_map']) && $db->where('user_map', $param['user_map']);
         $page = $param['page'] ?? 1;
         $page_size = $param['page_size'] ?? 10;
         $db->orderBy ("idx","desc");
@@ -217,6 +219,7 @@ class PersonalLog extends Base
                     'to_id' => $arr['toId'],
                     'room_id' => $arr['roomId'],
                     'user_id' => $arr['user_id'],
+                    'user_map' => Users::getUserMap($arr['toId'], $arr['user_id']),
                 ])){
                     continue;
                 }

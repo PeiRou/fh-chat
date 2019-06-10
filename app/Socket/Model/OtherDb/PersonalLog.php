@@ -18,6 +18,7 @@ class PersonalLog extends Base
 
     const FILEPATH = 'userChatLog/';
     const LOG_MAX_NUM = 80;  //聊天记录保存条数
+    const page_size = 80;
 
 
     //用户聊天记录
@@ -152,7 +153,7 @@ class PersonalLog extends Base
         isset($param['roomId']) && $db->where('room_id', $param['roomId']);
         isset($param['user_map']) && $db->where('user_map', $param['user_map']);
         $page = $param['page'] ?? 1;
-        $page_size = $param['page_size'] ?? 10;
+        $page_size = $param['page_size'] ?? self::page_size;
         $db->orderBy ("idx","desc");
         return $db->get('chat_log', [($page-1)*$page_size,$page_size], ['idx']);
     }

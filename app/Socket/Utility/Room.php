@@ -27,8 +27,10 @@ class Room
             if($status['type'] == 'room')
                 self::exitRoom($status['id'], $fd, $iRoomInfo);
         }
-        # 将fd 推入 room list
+        # 将fd 推入 room list  用来获取聊天室的所有在线fd
         self::roomPush($roomId, $fd, $iRoomInfo['userId']);
+        # 将userId 推入 room list 用来获取聊天室的所有在线userId
+        self::roomPushUserId($roomId, $fd, $iRoomInfo['userId']);
         # 设置 Fd => RoomId 映射
         self::setFdRoomIdMap($fd, $roomId);
         # 修改数据库表房间
@@ -45,7 +47,7 @@ class Room
         # 将fd 移除 room list
         self::deleteRoomFd($roomId, $fd);
         # 将UserId 移除 room list
-//        self::deleteRoomUserId($roomId, $iRoomInfo['userId']);
+        self::deleteRoomUserId($roomId, $iRoomInfo['userId']);
         # 删除 Fd => RoomId 映射
         self::deleteRoomIdMapByFd($fd);
     }
@@ -59,7 +61,8 @@ class Room
     //获取用户id
     public static function getUserId($fd)
     {
-        return self::getiRoomInfo($fd)['userId'] ?? null;
+
+        return Chat::getUserId($fd);
     }
     //获取用户信息
     public static function getIRoomInfo($fd)
@@ -116,29 +119,29 @@ class Room
 
     //------------------------------------------------------------------------------------------------------------------
     //将userId 推入 room list
-//    public static function roomPushUserId($roomId, $fd, $userId)
-//    {
-//        $key = 'roomUserId/'.$roomId.'/'.$userId;
-//        return self::set($key, $fd);
-//    }
+    public static function roomPushUserId($roomId, $fd, $userId)
+    {
+        $key = 'roomUserId/'.$roomId.'/'.$userId;
+        return self::set($key, $fd);
+    }
     //删除Room中的userId
-//    public static function deleteRoomUserId($roomId, $userId)
-//    {
-//        $key = 'roomUserId/'.$roomId.'/'.$userId;
-//        return self::del($key);
-//    }
+    public static function deleteRoomUserId($roomId, $userId)
+    {
+        $key = 'roomUserId/'.$roomId.'/'.$userId;
+        return self::del($key);
+    }
     //获取 Room中的userId
-//    public static function getRoomUserId($roomId)
-//    {
-//        $key = 'roomUserId/'.$roomId;
-//        $list = Storage::disk('room')->files($key);
-//
-//        return array_map(static function($v){
-//            $v = explode('/', $v);
-//            $v = @array_pop($v) ?? '';
-//            return $v;
-//        }, $list);
-//    }
+    public static function getRoomUserId($roomId)
+    {
+        $key = 'roomUserId/'.$roomId;
+        $list = Storage::disk('room')->files($key);
+
+        return array_map(static function($v){
+            $v = explode('/', $v);
+            $v = @array_pop($v) ?? '';
+            return $v;
+        }, $list);
+    }
     //------------------------------------------------------------------------------------------------------------------
     //将fd 推入 room list
     public static function roomPush($roomId, $fd, $userId)
@@ -178,72 +181,77 @@ class Room
      */
     public static function setHistoryChatList($userId, $type, $id, $aParam)
     {
-        $disk = 'home';
-        $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
+        try{
+            $disk = 'home';
+            $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
 
-        if((is_null($param = self::get($filekey, $disk)) || !$param) || !$param = @json_decode($param, 1)){
-            # 没有的话创建默认值
-            $param = [];
-            $param['type'] = $type;
-            $param['id'] = $id;
-            $param['user_id'] = $userId;
-            $param['update_name_at'] = time();
-            $param['lookNum'] = 0;
-            $param['lastMsg'] = '';
-            $param['lastTime'] = time();
-        }
-        $param['update_at'] = date('Y-m-d H:i:s');
-        $param['lookNum'] = $param['lookNum'] ?? 0;
-        foreach ($aParam as $key => $value){
-            if($key == 'lookNum'){
-                if($value > 0){
-                    $param['lookNum'] = $param['lookNum'] + $value;
-                    $param['lastTime'] = time();
-                }
-                else
-                    $param['lookNum'] = $value;
-            }elseif($key == 'lastMsg'){
-                preg_match('/img=\/upchat\/dataimg/', $value) && $value = '您有一张图片';
-                $param['lastMsg'] = $value;
+            if((is_null($param = self::get($filekey, $disk)) || !$param) || !$param = @json_decode($param, 1)){
+                # 没有的话创建默认值
+                $param = [];
+                $param['type'] = $type;
+                $param['id'] = $id;
+                $param['user_id'] = $userId;
+                $param['update_name_at'] = time();
+                $param['lookNum'] = 0;
+                $param['lastMsg'] = '';
                 $param['lastTime'] = time();
-            }else{
-
-                if($value instanceof \Closure){
-                    if($key == 'name' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
-                        $param[$key] = call_user_func($value);
+            }
+            $param['update_at'] = date('Y-m-d H:i:s');
+            $param['lookNum'] = $param['lookNum'] ?? 0;
+            foreach ($aParam as $key => $value){
+                if($key == 'lookNum'){
+                    if($value > 0){
+                        $param['lookNum'] = $param['lookNum'] + $value;
+                        $param['lastTime'] = time();
                     }
-                }else{
-                    $param[$key] = $value;
+                    else
+                        $param['lookNum'] = $value;
+                }elseif($key == 'lastMsg'){
+                    preg_match('/img=\/upchat\/dataimg/', $value) && $value = '图片';
+                    $param['lastMsg'] = $value;
                     $param['lastTime'] = time();
+                }else{
+                    if($value instanceof \Closure){
+                        if($key == 'name' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
+                            $param[$key] = call_user_func($value);
+                        }
+                    }else{
+                        $param[$key] = $value;
+                        $param['lastTime'] = time();
+                    }
                 }
             }
-        }
+            !isset($aParam['roomId']) && $param['roomId'] = 0;
 
-        # name 如果没有的话自己根据id查  24小时更新一次
-        # 注：type = many 的情况比较特殊 需要根据房间的名称组合 所以在上面写了闭包来设置
-        if(empty($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
-            if($type == 'users'){
-                $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
-                $param['name'] = $toUser['remark'] ?? $toUser['nickname'];
-                $param['head_img'] = $toUser['img'];
-            }elseif($type == 'room'){
-                $room = ChatRoom::getRoomOne(['room_id' => $id]);
-                $param['name'] = $room['room_name'];
-                $param['head_img'] = $room['head_img'];
+            # name 如果没有的话自己根据id查  24小时更新一次
+            # 注：type = many 的情况比较特殊 需要根据房间的名称组合 所以在上面写了闭包来设置
+            if(empty($param['name']) || ($param['update_name_at'] < time() - 3600 * 24)){
+                if($type == 'users'){
+                    $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
+                    $param['name'] = $toUser['remark'] ?? $toUser['nickname'];
+                    $param['head_img'] = $toUser['img'];
+                }elseif($type == 'room'){
+                    $room = ChatRoom::getRoomOne(['room_id' => $id]);
+                    $param['name'] = $room['room_name'];
+                    $param['head_img'] = $room['head_img'];
+                }
             }
-        }
-        # 因为上面使用闭包设置name  所以head_img就没设置  这里如果是空的话设置一下
-        if(empty($param['head_img'])){
-            if($type == 'many' || $type == 'users'){
-                $param['head_img'] = ChatUser::getUserValue(['users_id' => $id], 'img');
+            # 因为上面使用闭包设置name  所以head_img就没设置  这里如果是空的话设置一下
+            if(empty($param['head_img'])){
+                if($type == 'many' || $type == 'users'){
+                    $param['head_img'] = ChatUser::getUserValue(['users_id' => $id], 'img');
+                }
             }
-        }
-        $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if(!$json)
-            return false;
-        if(self::set($filekey, $json, $disk)){
-            # 每次设置就将信息推送前端改变 改为同步
-            return Push::pushUser($userId, 'HistoryChatList', false);
+            $json = json_encode($param, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if(!$json)
+                return false;
+            if(self::set($filekey, $json, $disk)){
+                # 每次设置就将信息推送前端改变 因为异步里面不能使用异步 改为同步
+                return Push::pushUser($userId, 'HistoryChatList', false);
+            }
+            return true;
+        }catch (\Throwable $e){
+            Trigger::getInstance()->throwable($e);
         }
         return false;
     }
@@ -308,7 +316,7 @@ class Room
         $iRoomInfo['uuid'] = $getUuid['uuid'];
         self::sendRoom($fd, $iRoomInfo, $aMesgRep, $roomId);
         //自动推送清数据
-        app('swoole')->chkHisMsg($iRoomInfo,$fd,false);
+//        app('swoole')->chkHisMsg($iRoomInfo,$fd,false);
     }
 
     //发送消息到聊天室

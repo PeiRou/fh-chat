@@ -9,9 +9,6 @@
 namespace App\Socket\Model;
 
 
-use App\Repository\ChatRoomRepository;
-use App\Service\Cache;
-
 class ChatRoom extends Base
 {
 
@@ -39,6 +36,13 @@ class ChatRoom extends Base
                 $db->where($k, $v);
             return $db->getOne('chat_room') ?? null;
         }, 30);
+    }
+
+    //获取房间的说有管理员
+    protected static function getRoomSas($db, $roomId)
+    {
+        $room = ChatRoom::getRoomOne($db, ['room_id' => $roomId]);
+        return array_unique(array_diff(explode(',', $room['chat_sas']), ['']));
     }
 
     /**

@@ -13,9 +13,9 @@ use App\Socket\Utility\Task\TaskManager;
 class Users
 {
     //
-    public static function buildMsg($status, $msg, $iRoomInfo, $toId, $type)
+    public static function buildMsg($status, $msg, $iRoomInfo, $toId, $type, $roomId = 0)
     {
-        $msgArr = app('swoole')->msgBuild($status, $msg, $iRoomInfo, $type, $toId);
+        $msgArr = app('swoole')->msgBuild($status, $msg, $iRoomInfo, $type, $toId, $roomId);
         $msgArr['msg'] = base64_encode(str_replace('+', '%20', urlencode($msgArr['msg'])));
         return $msgArr;
     }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatRoom;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Redis\Chat;
@@ -18,6 +19,7 @@ use App\Socket\Utility\Users;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use SebastianBergmann\CodeCoverage\Report\PHP;
 
 class Swoole extends Command
 {
@@ -156,6 +158,7 @@ class Swoole extends Command
     }
 
     public function start(){
+        swoole_set_process_name(config('swoole.SERVER_NAME')."_manager");
         \App\Socket\SwooleEvevts::initialize();
         //创建websocket服务器对象，监听0.0.0.0:2021端口
         if(env('WS_HOST_SSL')!='cs'){
@@ -214,10 +217,8 @@ class Swoole extends Command
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
                 $this->push($request->fd, $msg);
             }catch (\Exception $e){
-                echo $e->getMessage().PHP_EOL;
-                echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
-                echo $e->getTraceAsString().PHP_EOL;
-                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
+                Trigger::getInstance()->throwable($e);
+//                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
             }
         });
         $this->ws->on('start', [\App\Socket\SwooleEvevts::class, 'onStart']);
@@ -304,13 +305,12 @@ class Swoole extends Command
                 }
 
             }catch (\Exception $e){
-                echo $e->getMessage().PHP_EOL;
-                echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
-                echo $e->getTraceAsString().PHP_EOL;
-                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
+                Trigger::getInstance()->throwable($e);
             }
         });
-        $this->ws->on('receive', function ($ws, $request) {});
+        $this->ws->on('receive', function ($ws, $request) {
+            var_dump('_'.$ws->worker_id);
+        });
         //接收WebSocket服务器推送功能
         $this->ws->on('request', function ($serv, $response) {
             $room = isset($serv->post['room'])?$serv->post['room']:(isset($serv->get['room'])?$serv->get['room']:0);
@@ -370,10 +370,9 @@ class Swoole extends Command
         $this->ws->on('close', function ($ws, $fd) {
             $this->delAllkey($fd,'usr');   //删除用户
         });
-
-        \App\Socket\SwooleEvevts::mainServerCreate();
         //绑定自己
         \Illuminate\Container\Container::getInstance()->instance('swoole', $this);
+        \App\Socket\SwooleEvevts::mainServerCreate();
         $this->ws->start();
     }
 
@@ -382,13 +381,7 @@ class Swoole extends Command
         try {
             (new HttpParser($serv, $response))->run();
         }catch (\Throwable $e){
-            echo $e->getMessage().PHP_EOL;
-            echo $e->getFile().'('.$e->getLine().')'.PHP_EOL;
-            echo $e->getTraceAsString().PHP_EOL;
-            writeLog('error',
-                $e->getMessage().PHP_EOL.
-                $e->getFile().'('.$e->getLine().')'.PHP_EOL.
-                $e->getTraceAsString());
+            Trigger::getInstance()->throwable($e);
             $response->end(json_encode([
                 'code' => 500,
                 'msg' => 'error',
@@ -423,7 +416,6 @@ class Swoole extends Command
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->push($fd, $msg);
             # 历史讯息
-//            $this->chkHisMsg($iRoomInfo,$fd);
             Push::pushRoomLog($fd, $iRoomInfo, $roomId);
             # 如果进入的房间是2把快速进入的房间列表显示出来
             if($roomId == 2){
@@ -481,13 +473,16 @@ class Swoole extends Command
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";
 
+        # 推送这个会员注单的房间
+        $rooms = ChatRoomDt::pushbetRooms($iRoomInfo['userId']);
         # 获取需要推送的房间
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
-
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){
+            if(!in_array(1, $rooms))
+                continue;
             TaskManager::async(function() use($iRoomInfo, $issueInfo, $betInfo, $roomId){
                 try{
-                    $iRoomUsers = app('swoole')->updAllkey('usr',$roomId);   //获取聊天用户数组，在反序列化回数组
+//                    $iRoomUsers = app('swoole')->updAllkey('usr',$roomId);   //获取聊天用户数组，在反序列化回数组
                     //发送消息
                     if(!is_array($iRoomInfo))
                         $iRoomInfo = (array)$iRoomInfo;
@@ -495,7 +490,8 @@ class Swoole extends Command
                     $iRoomInfo['timess'] = $getUuid['timess'];
                     $iRoomInfo['uuid'] = $getUuid['uuid'];
                     $iRoomInfo['dt'] = $issueInfo;
-                    foreach ($iRoomUsers as $fdId =>$val) {
+                    $fds = Room::getRoomFd($roomId); # 获取在群组里的所有fd
+                    foreach ($fds as $fdId =>$val) {
                         $msg = app('swoole')->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
                         app('swoole')->push($val, $msg);
                     }
@@ -588,8 +584,9 @@ class Swoole extends Command
     }
     //发消息给所有人
     public function sendToAll($room_id,$msg){
-        $iRoomUsers = $this->updAllkey('usr',$room_id);   //获取聊天用户数组，在反序列化回数组
-        foreach ($iRoomUsers ?? [] as $usrfdId =>$fdId) {
+//        $iRoomUsers = $this->updAllkey('usr',$room_id);   //获取聊天用户数组，在反序列化回数组
+        $fds = Room::getRoomFd($room_id); # 获取在群组里的所有fd
+        foreach ($fds ?? [] as $usrfdId =>$fdId) {
             $this->push( $fdId, $msg,$room_id);
 
             # 如果是发消息 记录用户聊过的列表
@@ -619,7 +616,7 @@ class Swoole extends Command
             }
         }catch (\Throwable $e){
             $this->delAllkey($fd,'usr');   //删除用户
-            writeLog('error', $e->getMessage());
+            Trigger::getInstance()->throwable($e);
             return false;
         }
     }
@@ -640,7 +637,7 @@ class Swoole extends Command
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);
         return $res;//如果房客存在，把用户组反序列化
     }
-    public function msgBuild($status,$msg,$userinfo = array(), $type = 'room', $id = null)
+    public function msgBuild($status,$msg,$userinfo = array(), $type = 'room', $id = null, $roomId = 0)
     {
         if(!is_array($userinfo))
             $userinfo = (array)$userinfo;
@@ -667,7 +664,8 @@ class Swoole extends Command
             'type' => $type,
             'toId' => $id ? $id : ($type == 'room' ? isset($userinfo['room']) : 0), //目标id
             'user_id' => $userinfo['userId'] ?? 0,
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s'),
+            'roomId' => $roomId
         ];
 
         isset($data['user_id']) && $data['user_id'] > 0 && $data['userMap'] = Users::getUserMap($id, $userinfo['userId']);

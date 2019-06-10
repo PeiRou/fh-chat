@@ -9,7 +9,6 @@
 namespace App\Socket\Model;
 
 
-use App\Service\Cache;
 
 class ChatRoomDt extends Base
 {
@@ -48,5 +47,27 @@ class ChatRoomDt extends Base
                 $db->delete('chat_room_dt');
             }
         }
+    }
+
+    //是否推送此会员的注单 0不跟单1跟单
+    protected static function is_pushbet($db, $roomId, $userId)
+    {
+        self::RedisCacheData(function() use($db, $roomId, $userId){
+            return $db->where('id', $roomId)
+                ->where('user_id', $userId)
+                ->getValue('is_pushbet') ?? 0;
+        });
+    }
+    //获取用户可以推送跟单的房间
+    protected static function pushbetRooms($db, $userId)
+    {
+        return self::RedisCacheData(function() use($db, $userId){
+            $res = $db->where('user_id', $userId)
+                ->where('is_pushbet', 1)
+                ->get('chat_room_dt', null, ['id']);
+            return array_map(function($val){
+                return $val['id'];
+            }, $res);
+        }, 30);
     }
 }

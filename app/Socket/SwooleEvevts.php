@@ -10,12 +10,14 @@ namespace App\Socket;
 
 
 use App\Socket\Model\ChatRoomDt;
+use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Pool\MysqlPool;
 use App\Socket\Pool\RedisPool;
 use App\Socket\Redis\Chat;
 use App\Socket\Utility\Pool\PoolManager;
 use App\Socket\Utility\Tables\FdStatus;
 use App\Socket\Utility\Task\SuperClosure;
+use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
 class SwooleEvevts
@@ -41,9 +43,11 @@ class SwooleEvevts
     }
     public static function onStart($server)
     {
+        swoole_set_process_name(config('swoole.SERVER_NAME')."_master");
         go(function(){
             Chat::clearAll(); #清除redis 保存的聊天室信息
             ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
+            PersonalLog::delLog(); #删除日志
         });
     }
 
@@ -62,7 +66,7 @@ class SwooleEvevts
     public static function mainServerCreate()
     {
         FdStatus::getInstance(); // 创建fd状态表
-//        app('swoole')->ws->addProcess((new Test('testProcess'))->getProcess());
+//        app('swoole')->ws->addProcess((new \App\Socket\Process\Test('testProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $id)
     {
@@ -70,9 +74,9 @@ class SwooleEvevts
             \swoole_process::signal(SIGPIPE, null);
         });
         if($id >= $server->setting['worker_num']) {
-               swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_task_worker");
+               swoole_set_process_name(config('swoole.SERVER_NAME')."_task_worker");
         } else {
-            swoole_set_process_name(config('swoole.SERVER_NAME')."_swoole_worker");
+            swoole_set_process_name(config('swoole.SERVER_NAME')."_worker");
         }
         if ($server->taskworker == false) {
             PoolManager::getInstance()->getPool(MysqlPool::class)->preLoad(3);//最小创建数量

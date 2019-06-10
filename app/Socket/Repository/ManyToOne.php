@@ -56,7 +56,7 @@ class ManyToOne
         $msg = $this->msg;
         $fd = $this->fd;
         $iRoomInfo = $this->iRoomInfo;
-        $arr = Users::buildMsg(2, $msg, $iRoomInfo, $this->roomId, 'many');
+        $arr = Users::buildMsg(2, $msg, $iRoomInfo, $this->oneId, 'many', 2);
         $arr['userMap'] = Users::getUserMap($this->oneId, $this->roomId);
         $roomId = $this->roomId;
         foreach ($userIds as $v){
@@ -81,6 +81,7 @@ class ManyToOne
                 Room::setHistoryChatList($v, $userStatus['type'], $userStatus['id'], [
                     'lookNum' => $lookNum,
                     'lastMsg' => $msg,
+                    'roomId' => $roomId,
                     'name' => function()use($userStatus, $roomId){
                         if($userStatus['type'] == 'many'){
                             $str =  ChatRoom::getRoomValue(['room_id' => $roomId], 'room_name');

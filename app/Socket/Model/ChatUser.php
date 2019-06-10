@@ -9,7 +9,6 @@
 namespace App\Socket\Model;
 
 
-use App\Service\Cache;
 
 class ChatUser extends Base
 {
@@ -93,6 +92,6 @@ class ChatUser extends Base
                         {$limit} )
                     ";
             return $db->rawQuery($sql, $aParam);
-        }, 60);
+        }, 60); # redis60秒缓存 这样一样的搜索条件不会一直请求数据库
     }
 }

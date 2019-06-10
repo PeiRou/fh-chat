@@ -7,7 +7,7 @@
  */
 
 return [
-    'SERVER_NAME' => "fh-chat",
+    'SERVER_NAME' => "fh-chat_swoole",
     'MAIN_SERVER' => [
         'SETTING' => [
             'worker_num' => 2,

@@ -9,6 +9,7 @@
 namespace App\Socket\Model\OtherDb;
 
 
+use App\Socket\Push;
 use App\Socket\Utility\Room;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Users;
@@ -22,63 +23,141 @@ class PersonalLog extends Base
 
 
     //用户聊天记录
-    protected static function getPersonalLog($db, $user_id, $to_id)
+    protected static function getPersonalLog($db, $user_id, $to_id, $param = [])
     {
         $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
-        return self::getPersonalLogfile($db, $path);
+        return self::getPersonalLogfile($db, $path, [
+            'type' => 'room',
+            'toId' => $to_id,
+            'page' => $param['page'] ?? 1,
+        ]);
     }
 
-    //多对一聊天记录
-    protected static function getManyLog($db, $user_id, $to_id, $roomId)
+    /**
+     * 多对一聊天记录
+     * @param $db
+     * @param $user_id 请求的userId
+     * @param $to_id如果是客服会传入会员id  如果是会员会传入自己id、
+     * @param $roomId
+     * @param $param  [page]
+     * @return array
+     */
+    protected static function getManyLog($db, $user_id, $to_id, $roomId, $param = [])
     {
-        $path = self::FILEPATH.'many'.'/'.str_replace(',','_', Users::getUserMap($to_id, $roomId)).'/';
-        return self::getPersonalLogfile($db, $path);
+        $path = self::FILEPATH.'many'.'/'.$roomId.'/'.$to_id.'/';
+        return self::getPersonalLogfile($db, $path, [
+            'type' => 'many',
+            'toId' => $to_id,
+            'roomId' => $roomId,
+            'page' => $param['page'] ?? 1,
+        ]);
     }
     //聊天室历史记录
-    protected static function getRoomLog($db, $roomId)
+    protected static function getRoomLog($db, $roomId, $param = [])
     {
         $path = self::FILEPATH.'room'.'/'.$roomId.'/';
-        return self::getPersonalLogfile($db, $path);
+        return self::getPersonalLogfile($db, $path, [
+            'type' => 'room',
+            'toId' => $roomId,
+            'page' => $param['page'] ?? 1,
+        ]);
     }
 
     //存聊天信息 数组
     protected static function insertMsgLog($db, $arr)
     {
-        $filePath = '';
         if($arr['type'] == 'room'){
             $filePath = $arr['toId'];
+        }elseif($arr['type'] == 'many'){
+            $filePath = $arr['roomId'].'/'.$arr['user_id'];
         }else{
             $filePath = str_replace(',','_', $arr['userMap']);
         }
         $path = self::FILEPATH.$arr['type'].'/'.$filePath.'/';
         return self::insertMsgLogFile($db, $arr, $path);
     }
-    //存聊天信息 数组
-    protected static function insertMsgLogRoom($db, $arr)
+
+    protected static function delRawLog($db, $param = [])
     {
-        $path = self::FILEPATH.$arr['type'].'/'.$arr['toId'].'/';
-        return self::insertMsgLogFile($db, $arr, $path);
+        $res = self::getOne($db, $param);
+        if(!count($res))
+            return false;
+        $path = self::getPath($res['type'], $res['user_id'], $res['to_id'], $res['room_id']);
+        self::delOneFile($db, $path.$res['idx']); # 删除文件
     }
 
-    protected static function getPersonalLogdb($db, $user_id, $to_id)
+    protected static function delOneFile($db, $file)
     {
-        # 获取未读条数
-        $lookNum = Room::getHistoryChatValue($user_id, 'users', $to_id, 'lookNum') ?? 0;
-        $offset = 50 + $lookNum;
-        $userMap = Users::getUserMap($user_id, $to_id);
-        # 获取要删除的所有id
-        $ids = $db->rawQuery(' SELECT `id` FROM `personal_log` WHERE `userMap` = "'.$userMap.'" AND `is_look` = 1  ORDER BY `id` DESC LIMIT 200 OFFSET '.$offset);
-        # 通知这两个人删除信息
-        if(count($ids)){
-            $db->where('id', $ids, 'IN')->delete('personal_log');
+        if(Storage::disk('home')->exists($file)){
+            $arr = json_decode(Storage::disk('home')->get($file), 1);
+            Storage::disk('home')->delete($file);
+            # 删数据库
+            self::deleteRaw($db, [
+                'type'=> $arr['type'],
+                'file'=> $file
+            ]);
+            # 通知
+            Push::pushDelChatLogAction($arr['type'], $arr['uuid'], $arr['user_id'], $arr['toId'], $arr['roomId']);
         }
-
-        # 获取剩下的， 不管多少都拿
-        $list = $db->where('userMap', $userMap)->get('personal_log');
-        return $list;
     }
 
-    protected static function getPersonalLogfile($db, $path)
+    protected static function getOne($db, $param = [])
+    {
+        isset($param['type']) && $db->where('type', $param['type']);
+        isset($param['toId']) && $db->where('to_id', $param['toId']);
+        isset($param['roomId']) && $db->where('room_id', $param['roomId']);
+        isset($param['idx']) && $db->where('idx', $param['idx']);
+        return $db->getOne('chat_log');
+    }
+
+    /**
+     * @param $type
+     * @param $toId
+     * @param int $roomId  只有type=many的时候才用到
+     */
+    public static function getPath($type, $userId, $toId, $roomId = 2)
+    {
+        if($type == 'room'){
+            $filePath = $toId;
+        }elseif($type == 'many'){
+            $filePath = $roomId.'/'.$toId;
+        }else{
+            $filePath = str_replace(',','_', Users::getUserMap($userId, $toId));
+        }
+        return self::FILEPATH.$type.'/'.$filePath.'/';
+    }
+
+    protected static function getPersonalLogfile($db, $path, $param = [])
+    {
+        $storage = Storage::disk('home');
+        $res = self::getIdx($db, $param);
+        $iRoomUsers = [];
+        foreach ($res as $row){
+            $file = $path.$row['idx'];
+            if(Storage::disk('home')->exists($file)){
+                $orgHis = $storage->get($file);
+                $aryHis = json_decode($orgHis, 1);
+                $iRoomUsers[$aryHis['time']] = $aryHis;
+//                array_unshift($iRoomUsers,$aryHis);
+            }
+        }
+        rsort($iRoomUsers);
+        return $iRoomUsers;
+    }
+
+    protected static function getIdx($db, $param = [])
+    {
+        isset($param['type']) && $db->where('type', $param['type']);
+        isset($param['toId']) && $db->where('to_id', $param['toId']);
+        isset($param['roomId']) && $db->where('room_id', $param['roomId']);
+        $page = $param['page'] ?? 1;
+        $page_size = $param['page_size'] ?? 10;
+        $db->orderBy ("idx","desc");
+        return $db->get('chat_log', [($page-1)*$page_size,$page_size], ['idx']);
+    }
+
+    //要改成数据库的形式  重新写
+    protected static function getPersonalLogfile1111111111111($db, $path, $param = [])
     {
         $storage = Storage::disk('home');
         $iRoomUsers = array();
@@ -93,7 +172,7 @@ class PersonalLog extends Base
             $ii ++;
             if($storage->exists($value)){
                 $orgHis = $storage->get($value);
-                $aryHis =  (array)json_decode($orgHis);
+                $aryHis = json_decode($orgHis, 1);
                 $iRoomUsers[$aryHis['time']] = $aryHis;
                 if($aryHis['time'] < ($timess-(7200*1000*10000*10000)) || $ii < $needDelnum){
                     if(Storage::disk('home')->exists($value))
@@ -105,6 +184,13 @@ class PersonalLog extends Base
 
         ksort($iRoomUsers);
         return $iRoomUsers;
+    }
+
+    protected static function delLog($db)
+    {
+        $timess = (int)(microtime(true)*1000*10000*10000) - (7200*1000*10000*10000);
+        $db->where (' idx < ? ', [$timess]);
+        $db->delete('chat_log');
     }
 
     // 用文件保存日志
@@ -120,8 +206,18 @@ class PersonalLog extends Base
                     $addId = $timeIdx;
                     $addVal = json_decode($addVal,true);
                     $addVal['time'] = $addId;
+                    $addVal['uuid'] = $addId;
                     $addVal = json_encode($addVal,JSON_UNESCAPED_UNICODE);
                 }
+                # 将id插入数据库
+                if(!self::insert($db, [
+                    'idx' => $timeIdx,
+                    'type' => $arr['type'],
+                    'to_id' => $arr['toId'],
+                    'room_id' => $arr['roomId'],
+                    'user_id' => $arr['user_id'],
+                ]))
+                  continue;
                 break;
             }
         }
@@ -131,28 +227,53 @@ class PersonalLog extends Base
         $files = Storage::disk('home')->files($path);
         $needDelnum = count($files)-self::LOG_MAX_NUM;
         if($needDelnum > 0){
-            TaskManager::async(function() use($needDelnum, $files){
-                while ($needDelnum){
-                    $v = array_shift($files);
-                    if(Storage::disk('home')->exists($v)){
-                        $arr = json_decode(Storage::disk('home')->get($v), 1);
-                        Storage::disk('home')->delete($v);
-                        # 通知这两个人删除消息
-                        app('swoole')->sendUser($arr['user_id'], 24, [
-                            'type' => $arr['type'],
-                            'id' => $arr['uuid'],
-                            'toId' => $arr['toId']
-                        ]);
-                        app('swoole')->sendUser($arr['toId'], 24, [
-                            'type' => $arr['type'],
-                            'id' => $arr['uuid'],
-                            'toId' => $arr['toId']
-                        ]);
-                    }
-                    $needDelnum --;
-                }
-            });
+            while ($needDelnum){
+                $v = array_shift($files);
+                self::delOneFile($db, $v); # 删除文件
+//                    if(Storage::disk('home')->exists($v)){
+//                        $arr = json_decode(Storage::disk('home')->get($v), 1);
+//                        Storage::disk('home')->delete($v);
+//                        # 删数据库
+//                        PersonalLog::deleteRaw([
+//                            'type'=> $arr['type'],
+//                            'file'=> $v
+//                        ]);
+//
+//                        # 通知这两个人删除消息
+//                        app('swoole')->sendUser($arr['user_id'], 24, [
+//                            'type' => $arr['type'],
+//                            'id' => $arr['uuid'],
+//                            'toId' => $arr['toId']
+//                        ]);
+//                        app('swoole')->sendUser($arr['toId'], 24, [
+//                            'type' => $arr['type'],
+//                            'id' => $arr['uuid'],
+//                            'toId' => $arr['toId']
+//                        ]);
+//                    }
+                $needDelnum --;
+            }
         }
         return true;
+    }
+
+    protected static function deleteRaw($db, $param = [])
+    {
+        if(isset($param['file'])){
+            $idxs = explode('/', $param['file']);
+            $param['idx'] = (int)array_pop($idxs);
+            unset($param['file']);
+        }
+
+        foreach ($param as $k=>$v){
+            $db->where($k, $v);
+        }
+        if(count($param))
+            $db->delete('chat_log');
+    }
+
+    protected static function insert($db, $data)
+    {
+        return $db->insert('chat_log', $data);
     }
 }

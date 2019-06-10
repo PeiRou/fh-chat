@@ -31,8 +31,8 @@ class Action extends BaseRepository
 
         if(empty($toUser))
             return false;
+        # 推会员在这个房间的权限
         Push::pushSpeak($type, $iRoomInfo);
-
         # 推单聊历史记录
         Push::pushPersonalLog($fd, $iRoomInfo['userId'], $toUserId);
         # 设置 未读条数改为0
@@ -50,13 +50,12 @@ class Action extends BaseRepository
 
         if(empty($toUser))
             return false;
+        # 推会员在这个房间的权限
         Push::pushSpeak($type, $iRoomInfo);
-
         # 推历史记录
         Push::pushManyLog($fd, $iRoomInfo['userId'], $toUserId, $roomId);
         # 设置 未读条数改为0
         Room::setHistoryChatList($iRoomInfo['userId'], $type, $toUserId, ['lookNum' => 0]);
-
     }
 
     /**

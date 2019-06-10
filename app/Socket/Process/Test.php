@@ -11,16 +11,13 @@ namespace App\Socket\Process;
 
 use App\Socket\Utility\Process\AbstractProcess;
 use App\Socket\Utility\Task\TaskManager;
+use App\Socket\Utility\Trigger;
 
 class Test extends AbstractProcess
 {
     private $isRun = false;
     public function run($arg)
     {
-
-        TaskManager::async(function(){
-            echo 's';
-        });
         $this->addTick(5000,function (){
             if(!$this->isRun){
                 $this->isRun = true;

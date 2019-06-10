@@ -36,8 +36,7 @@ class ChatFriendsRepository extends BaseRepository
         }
 
         # 更新这个人好友列表
-
-        Push::pushList(Room::getUserFd($user['users_id']), $user, ['FriendsList', 'FriendsLogList']);
+        Push::pushUser($user['users_id'], $user, ['FriendsList', 'FriendsLogList']);
         return true;
     }
 }

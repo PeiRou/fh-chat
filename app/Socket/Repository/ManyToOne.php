@@ -109,10 +109,8 @@ class ManyToOne
              $arr['id'] = $this->roomId; # id 就是这个房间id
          }
 
-
         $fds = Chat::getUserFd($userId);
 
-         # 如果有一个fd打开的是这个页面 isOpen 就是true
         foreach ($fds as $fd){
             $fdStatus = Room::getFdStatus($fd);
             $array = [
@@ -127,28 +125,15 @@ class ManyToOne
         return $arr;
     }
 
-    //获取所有user的fd
-    public function getUsersFds()
-    {
-        $users = $this->getUsers();
-        $arr = [];
-        foreach ($users as $userId){
-            array_merge($arr, Chat::getUserFd($userId));
-        }
-        return $arr;
-    }
-
     //获取所有要推送信息的user
     public function getUsers()
     {
         $arr = [];
-        # 类型是many 说明发信息的人是客服  toId 是userId
         if($this->type == 'many'){
             array_push($arr, $this->toId);
             $this->oneId = $this->toId;
             $this->roomId = 2;
         }else{
-            # 否则就是会员发的 toId 是room_id
             $this->roomId = $this->toId;
             $this->oneId = $this->user['users_id'];
             array_push($arr, $this->user['users_id']);

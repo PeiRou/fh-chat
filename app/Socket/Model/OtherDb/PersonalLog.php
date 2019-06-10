@@ -19,7 +19,7 @@ class PersonalLog extends Base
 {
 
     const FILEPATH = 'userChatLog/';
-    const LOG_MAX_NUM = 5;  //聊天记录保存条数
+    const LOG_MAX_NUM = 80;  //聊天记录保存条数
 
 
     //用户聊天记录
@@ -235,27 +235,6 @@ class PersonalLog extends Base
             while ($needDelnum){
                 $v = array_shift($files);
                 self::delOneFile($db, $v); # 删除文件
-//                    if(Storage::disk('home')->exists($v)){
-//                        $arr = json_decode(Storage::disk('home')->get($v), 1);
-//                        Storage::disk('home')->delete($v);
-//                        # 删数据库
-//                        PersonalLog::deleteRaw([
-//                            'type'=> $arr['type'],
-//                            'file'=> $v
-//                        ]);
-//
-//                        # 通知这两个人删除消息
-//                        app('swoole')->sendUser($arr['user_id'], 24, [
-//                            'type' => $arr['type'],
-//                            'id' => $arr['uuid'],
-//                            'toId' => $arr['toId']
-//                        ]);
-//                        app('swoole')->sendUser($arr['toId'], 24, [
-//                            'type' => $arr['type'],
-//                            'id' => $arr['uuid'],
-//                            'toId' => $arr['toId']
-//                        ]);
-//                    }
                 $needDelnum --;
             }
         }

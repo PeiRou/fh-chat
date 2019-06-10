@@ -258,7 +258,7 @@ class Push
     {
         self::pushDelChatLog($type, $idx, $userId, $toId, $roomId);
         # 单聊特殊 toId 和user_id要反过来在通知一遍
-        if($type)
+        if($type == 'users')
             self::pushDelChatLog($type, $idx, $toId, $userId, $roomId);
     }
 

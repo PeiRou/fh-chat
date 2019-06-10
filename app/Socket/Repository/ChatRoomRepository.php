@@ -69,7 +69,16 @@ class ChatRoomRepository extends BaseRepository
     //删除房间
     public static function delRoom($roomId)
     {
+
+        # 获取在这个房间的会员
+        $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
+        # 删除房间
         if(ChatRoom::delRoom($roomId)){
+            # 更新这些人的房间列表
+            foreach ($users as $user){
+                # 更新些人房间列表
+                Push::pushUser($user, 'RoomList');
+            }
             return true;
         }
         return false;

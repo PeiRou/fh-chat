@@ -66,9 +66,11 @@ class BackAction extends Base
         if(!($roomId = (int)$this->get('roomId'))){
             return $this->show(1, '参数错误');
         }
+        # 删除房间
         if(ChatRoomRepository::delRoom($roomId)){
             return $this->show(0);
         }
+
         return $this->show(1, 'error');
     }
 

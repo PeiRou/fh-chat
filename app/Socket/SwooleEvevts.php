@@ -17,7 +17,6 @@ use App\Socket\Redis\Chat;
 use App\Socket\Utility\Pool\PoolManager;
 use App\Socket\Utility\Tables\FdStatus;
 use App\Socket\Utility\Task\SuperClosure;
-use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 
 class SwooleEvevts
@@ -47,7 +46,7 @@ class SwooleEvevts
         go(function(){
             Chat::clearAll(); #清除redis 保存的聊天室信息
             ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
-            PersonalLog::delLog(); #删除日志
+            PersonalLog::delLog(); #删除聊天日志超过一定时间的
         });
     }
 

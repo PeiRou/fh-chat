@@ -9,7 +9,6 @@
 namespace App\Socket\Http\Controllers;
 
 use App\Socket\Utility\HttpParser;
-use App\Socket\Utility\Room;
 
 class Base
 {

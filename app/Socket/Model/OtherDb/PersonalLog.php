@@ -10,8 +10,6 @@ namespace App\Socket\Model\OtherDb;
 
 
 use App\Socket\Push;
-use App\Socket\Utility\Room;
-use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Users;
 use Illuminate\Support\Facades\Storage;
 

@@ -40,12 +40,14 @@ class Message
             });
             count($aRegex) && cache(['chat_regex_regex' => $aRegex], 60 * 60 * 2);
         }
-        $aRegStr = "";
-        foreach ($aRegex as $key => $val){
-            $aRegStr .= "(".$val['regex'].")|";
+        if(count($aRegex)){
+            $aRegStr = "";
+            foreach ($aRegex as $key => $val){
+                $aRegStr .= "(".$val['regex'].")|";
+            }
+            $aRegStr = substr($aRegStr,0,-1);
+            $str=preg_replace("/".$aRegStr."/is","***", $str);
         }
-        $aRegStr = substr($aRegStr,0,-1);
-        $str=preg_replace("/".$aRegStr."/is","***", $str);
         return $str;
     }
 

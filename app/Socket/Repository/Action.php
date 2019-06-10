@@ -10,11 +10,9 @@ namespace App\Socket\Repository;
 
 
 use App\Socket\Model\ChatRoom;
-use App\Socket\Model\ChatUser;
 use App\Socket\Push;
 use App\Socket\Utility\Message;
 use App\Socket\Utility\Room;
-use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Users;
 
 class Action extends BaseRepository

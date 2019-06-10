@@ -207,8 +207,6 @@ class Swoole extends Command
                 }
                 //检查历史讯息
 //                $this->chkHisMsg($iRoomInfo,$request->fd);
-                if(!env('ISROOMS', false))
-                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
 
                 SwooleEvevts::onOpenAfter($request, $iRoomInfo);
                 //回传自己的基本设置

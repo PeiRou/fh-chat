@@ -217,9 +217,14 @@ class Push
      * @param array $aParam 扩展参数
      * @param bool $async 是否异步
      */
-    public static function pushUserMessage($userId, $type, $id, $msg, $aParam = [], $isSetHistoryChatList = true, $async = true)
+    public static function pushUserMessage($userId, $type, $id, $msg, $aParam = [], $flow = [])
     {
-        $closure = function() use($userId, $type, $id, $msg, $aParam, $isSetHistoryChatList){
+        $isSetHistoryChatList = true; //是否更新聊过的列表
+        $async = true; //是否异步推送
+        $isSetLookNum = true;
+        extract($flow);
+        /** ---------------------------------上面是参数------------------------------------- */
+        $closure = function() use($userId, $type, $id, $msg, $aParam, $isSetHistoryChatList, $isSetLookNum){
             $lookNum = 1;
             $fds = Chat::getUserFd((int)$userId);
 
@@ -232,10 +237,10 @@ class Push
             }
             # 设置目标用户聊过的列表
             if($isSetHistoryChatList){
-                Room::setHistoryChatList($userId, $type, $id, [
-                    'lookNum' => $lookNum,
-                    'lastMsg' => $aParam['msg'] ?? $msg
-                ]);
+                $arr = [];
+                $arr['lastMsg'] = $aParam['msg'] ?? $msg;
+                $isSetLookNum && $arr['lookNum'] = $lookNum;
+                Room::setHistoryChatList($userId, $type, $id, $arr);
             }
         };
         if ($async) {
@@ -282,7 +287,9 @@ class Push
         ]);
         # 推送这些人 只有打开这个页面的才推送 没打开的不推送
         foreach ($users as $userId){
-            self::pushUserMessage($userId, $type, $toId, $msg, [], false);
+            self::pushUserMessage($userId, $type, $toId, $msg, [], [
+                'isSetHistoryChatList' => false
+            ]);
         }
     }
 

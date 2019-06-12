@@ -215,6 +215,7 @@ class Room
                     if($value instanceof \Closure){
                         if($key == 'name' && (empty($param[$key]) || ($param['update_name_at'] < time() - 3600 * 24))){
                             $param[$key] = call_user_func($value);
+                            $param['update_name_at'] = time();
                         }
                     }else{
                         $param[$key] = $value;
@@ -236,6 +237,7 @@ class Room
                     $param['name'] = $room['room_name'];
                     $param['head_img'] = $room['head_img'];
                 }
+                $param['update_name_at'] = time();
             }
             # 因为上面使用闭包设置name  所以head_img就没设置  这里如果是空的话设置一下
             if(empty($param['head_img'])){
@@ -338,6 +340,21 @@ class Room
                 $status = 4;
             $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
             Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
+        }
+    }
+
+    /**
+     * 发送消息到聊天室 房间的所有会员
+     * @param $roomId
+     * @param $msg
+     * @param $lastMsg
+     * @param bool $isSetLookNum false不记录未读条数
+     */
+    public static function sendRoomSystemMsg($roomId, $msg, $lastMsg, $isSetLookNum = false)
+    {
+        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+        foreach ($userIds as $toUserId){
+            Push::pushUserMessage($toUserId, 'room', $roomId, $msg,['msg' => $lastMsg],['isSetLookNum'=>$isSetLookNum]);
         }
     }
 

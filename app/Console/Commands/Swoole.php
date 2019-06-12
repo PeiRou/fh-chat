@@ -721,7 +721,8 @@ class Swoole extends Command
         $iRoomInfo = $this->getUsersess($hd_idx,'','hongbao', $room_id);     //包装红包消息
         $iMsg = (int)$hd_idx;
         $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动
-        $this->sendToAll($room_id,$msg);
+//        $this->sendToAll($room_id,$msg);
+        Room::sendRoomSystemMsg($room_id, $msg, '有新红包');
     }
     //检查抢到红包消息
     private function chkHongbaoNum($room_id,$serv){
@@ -792,7 +793,8 @@ class Swoole extends Command
             //计画消息组合底部固定信息
             $iMsg .= urlencode($baseSetting->plan_msg);
             $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
-            $this->sendToAll($valHis['room'], $msg);
+            Room::sendRoomSystemMsg($valHis['room'], $msg, '计划消息');
+//            $this->sendToAll($valHis['room'], $msg);
         }
     }
     //取得聊天室公告

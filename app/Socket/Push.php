@@ -92,7 +92,6 @@ class Push
         }
     }
 
-
     /**
      * 推送单聊历史记录
      * @param $fd
@@ -223,9 +222,9 @@ class Push
         $closure = function() use($userId, $type, $id, $msg, $aParam, $isSetHistoryChatList){
             $lookNum = 1;
             $fds = Chat::getUserFd((int)$userId);
+
             foreach ($fds as $fd){
                 $s = Room::getFdStatus($fd);
-
                 if($s && $s['type'] == $type && $s['id'] == $id){
                     if(app('swoole')->push($fd, $msg))
                         $lookNum = 0;

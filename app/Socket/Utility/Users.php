@@ -6,6 +6,8 @@
 namespace App\Socket\Utility;
 
 
+use App\Socket\Exception\SocketApiException;
+use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Utility\Task\TaskManager;
@@ -34,6 +36,13 @@ class Users
     //单聊发消息
     public static function sendMessage(array $user, $msg, $toUserId)
     {
+        # 是不是好友
+        if(!ChatFriendsList::getUserFriend([
+            'user_id' => $user['userId'],
+            'to_id' => $toUserId,
+        ]))
+            throw new SocketApiException('你们不是好友');
+
         $msg = htmlspecialchars($msg);
         $arr = Users::buildMsg(2, $msg, $user, $toUserId, 'users');
 

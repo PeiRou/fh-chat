@@ -71,4 +71,15 @@ class User extends Base
         $users = ChatUser::search($param, $this->user['users_id']);
         return $this->show(0, '', $users ?? []);
     }
+
+    //设置备注
+    public function setRemark()
+    {
+        if(empty($remark = $this->get('remark')) || !($toId = $this->get('toId')))
+            return $this->show(1, '参数错误');
+        if(mb_strlen($remark) > 7)
+            return $this->show(1, '昵称太长啦');
+        ChatFriendsList::setRemark($this->user['users_id'], $toId, $remark);
+        return $this->show(0);
+    }
 }

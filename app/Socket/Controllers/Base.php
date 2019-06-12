@@ -9,6 +9,7 @@
 namespace App\Socket\Controllers;
 
 
+use App\Socket\Exception\SocketApiException;
 use App\Socket\Utility\Parser;
 
 class Base

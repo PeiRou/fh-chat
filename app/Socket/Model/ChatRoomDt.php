@@ -70,4 +70,13 @@ class ChatRoomDt extends Base
             }, $res);
         }, 30);
     }
+
+    protected static function getOne($db, $param = [])
+    {
+        return self::RedisCacheData(function()use($db, $param){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            return $db->getOne('chat_room_dt') ?? null;
+        }, 30, false);
+    }
 }

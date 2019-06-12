@@ -86,7 +86,7 @@ class PersonalLog extends Base
         self::delOneFile($db, $path.$res['idx']); # 删除文件
     }
 
-    protected static function delOneFile($db, $file)
+    protected static function delOneFile($db, $file, $is_send = true)
     {
         if(Storage::disk('home')->exists($file)){
             $arr = json_decode(Storage::disk('home')->get($file), 1);
@@ -97,7 +97,7 @@ class PersonalLog extends Base
                 'file'=> $file
             ]);
             # 通知
-            Push::pushDelChatLogAction($arr['type'], $arr['uuid'], $arr['user_id'], $arr['toId'], $arr['roomId']);
+            $is_send && Push::pushDelChatLogAction($arr['type'], $arr['uuid'], $arr['user_id'], $arr['toId'], $arr['roomId']);
         }
     }
 
@@ -141,7 +141,6 @@ class PersonalLog extends Base
 //                array_unshift($iRoomUsers,$aryHis);
             }
         }
-//        rsort($iRoomUsers);
         ksort($iRoomUsers);
         return $iRoomUsers;
     }
@@ -183,16 +182,36 @@ class PersonalLog extends Base
                 }
             }
         }
-
         ksort($iRoomUsers);
         return $iRoomUsers;
     }
 
     protected static function delLog($db)
     {
-        $timess = (int)(microtime(true)*1000*10000*10000) - (7200*1000*10000*10000);
-        $db->where (' idx < ? ', [$timess]);
-        $db->delete('chat_log');
+        # 找出超过记录条数的
+        $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log 
+                GROUP BY `type`,`user_map`, `room_id`
+                HAVING `num` > ".self::LOG_MAX_NUM;
+        $res = $db->rawQuery($sql);
+
+        # 删掉文件 删掉表
+        foreach ($res as $v){
+            $num = $v['num'];
+            unset($v['num']);
+            foreach ($v as $kk=>$vv){
+                $db->where($kk, $vv);
+            }
+            $arr = $db->get('chat_log', $num);
+            foreach ($arr as $vv){
+                $path = self::getPath($vv['type'], $vv['user_id'], $vv['to_id'], $vv['room_id']);
+                $file = $path.$vv['idx'];
+                if(Storage::disk('home')->exists($file))
+                    Storage::disk('home')->delete($file);
+                # 删数据库
+                $db->whereOr('( `type` = "'.$vv['type'].'" AND `user_id` = "'.$vv['user_id'].'" AND `to_id` = '.$vv['to_id'].' AND `room_id` = '.$vv['room_id'].' ) ');
+            }
+            $db->delete('chat_log');
+        }
     }
 
     // 用文件保存日志

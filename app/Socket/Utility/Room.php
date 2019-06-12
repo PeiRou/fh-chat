@@ -7,6 +7,7 @@ namespace App\Socket\Utility;
 
 
 use App\Service\Cache;
+use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
@@ -308,6 +309,12 @@ class Room
     //聊天室发信息
     public static function sendMessage($fd, $iRoomInfo, $aMesgRep, int $roomId)
     {
+        # 是否在当前房间
+        if(!ChatRoomDt::getOne([
+            'id' => $roomId,
+            'user_id' => $iRoomInfo['userId']
+        ]))
+            throw new SocketApiException('您不在当前房间，请先加入房间');
         //发送消息
         if(!is_array($iRoomInfo))
             $iRoomInfo = (array)$iRoomInfo;

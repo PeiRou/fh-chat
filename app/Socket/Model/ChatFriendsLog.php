@@ -56,8 +56,10 @@ class ChatFriendsLog extends Base
                 throw new \Exception('update logdb error', 123);
             # 如果是同意 将两个人互加为好友
             if($status === 1){
-                if(!ChatFriendsRepository::addUserFriends($db, $user, $toUser) ||
-                !ChatFriendsRepository::addUserFriends($db, $toUser, $user))
+                if(
+                    !ChatFriendsRepository::addUserFriends($db, $user, $toUser) ||
+                    !ChatFriendsRepository::addUserFriends($db, $toUser, $user)
+                )
                     throw new \Exception('add list error', 123);
             }
             $db->commit();
@@ -67,7 +69,7 @@ class ChatFriendsLog extends Base
             if($e->getCode() == 123)
                 return $e->getMessage();
 
-            \App\Socket\Utility\Trigger::getInstance()->writeLog($e);
+            \App\Socket\Utility\Trigger::getInstance()->throwable($e);
             return 'error';
         }
     }

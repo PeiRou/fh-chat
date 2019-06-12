@@ -19,7 +19,6 @@ use App\Socket\Utility\Users;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use SebastianBergmann\CodeCoverage\Report\PHP;
 
 class Swoole extends Command
 {
@@ -173,7 +172,6 @@ class Swoole extends Command
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             \App\Socket\SwooleEvevts::onOpen($ws, $request);
-
             DB::disconnect();
             error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
             try {
@@ -196,7 +194,7 @@ class Swoole extends Command
                 Chat::bindUser($iRoomInfo['userId'], $request->fd);
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
-                $this->ws->push($request->fd, $msg);
+                $this->push($request->fd, $msg);
                 foreach ($rooms as $room){
                     //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
                     if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
@@ -205,9 +203,6 @@ class Swoole extends Command
                             $this->sendToAll($room, $msg);
                     }
                 }
-                //检查历史讯息
-//                $this->chkHisMsg($iRoomInfo,$request->fd);
-
                 SwooleEvevts::onOpenAfter($request, $iRoomInfo);
                 //回传自己的基本设置
                 if($iRoomInfo['setNickname']==0)
@@ -229,7 +224,6 @@ class Swoole extends Command
         });
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -445,7 +439,6 @@ class Swoole extends Command
         $session_id = md5(time().rand(1,10));
         if(empty($session_id))
             return "";
-
         $aRep =array(
             'userId' => 'plans',
             'plans' => $plan,

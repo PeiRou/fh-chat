@@ -29,9 +29,11 @@ class ChatFriendsList extends Base
     //获取好友 单个
     protected static function getUserFriend($db, $param = [])
     {
-        foreach ($param as $k=>$v)
-            $db->where($k, $v);
-        return $db->getOne('chat_friends_list');
+        return self::RedisCacheData(function() use ($db, $param){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            return $db->getOne('chat_friends_list');
+        }, 30, false);
     }
 
     //添加一个人为好友
@@ -48,5 +50,14 @@ class ChatFriendsList extends Base
         return $db->insert('chat_friends_list', $data);
     }
 
+    //设置备注
+    protected static function setRemark($db, int $userId, int $toId, string $remark)
+    {
+        return $db->where('user_id', $userId)
+            ->where('to_id', $toId)
+            ->update('chat_friends_list', [
+                'remark' => $remark
+            ]);
+    }
 
 }

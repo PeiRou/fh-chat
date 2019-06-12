@@ -59,12 +59,15 @@ class Message
             app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
             return false;
         }
-        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($fd, $iRoomInfo) {
+        if(!\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($fd, $iRoomInfo) {
             $status = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
-            if($status !== 0)
+            if($status !== 0){
                 app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
+                return false;
+            }
             return true;
-        });
+        }))
+            return false;
 
         return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd, $type, $id) {
             $redis->select(1);

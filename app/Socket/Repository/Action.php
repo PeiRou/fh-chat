@@ -9,6 +9,7 @@
 namespace App\Socket\Repository;
 
 
+use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Push;
 use App\Socket\Utility\Message;
@@ -68,7 +69,7 @@ class Action extends BaseRepository
     {
         # 用户是否可发言 是否正常
         if(!Message::is_speak($fd, $iRoomInfo, $type, $id))
-            return false;
+            throw new SocketApiException('您发言太快了');
         # 消息过滤
         $msg = Message::filterMsg($msg, $iRoomInfo);
         # 单聊

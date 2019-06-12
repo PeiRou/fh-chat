@@ -35,7 +35,7 @@ class ChatRoom extends Base
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room') ?? null;
-        }, 30);
+        }, 30, false);
     }
 
     //获取房间的说有管理员

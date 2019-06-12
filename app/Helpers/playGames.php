@@ -335,6 +335,18 @@ if(!function_exists('realIp')){
 if(!function_exists('writeLog')) {
     function writeLog($path = '', ...$args)
     {
+        $file = storage_path().'/logs/'.$path;
+        if(!file_exists($file)){
+            $paths = explode('/',$file);
+            array_pop($paths);
+            $p = '';
+            foreach ($paths as $path){
+                $p .= '/'.$path;
+                if(!file_exists($p))
+                    mkdir($p);
+            }
+        }
+
         if(isset($args[0]) && (is_array($args[0]) || is_object($args[0])))
             $args[0] = json_encode($args[0], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if(isset($args[1]))

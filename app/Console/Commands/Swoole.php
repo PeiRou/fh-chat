@@ -391,7 +391,6 @@ class Swoole extends Command
                 if($roomInfo->is_auto || $roomId == 1){
                     if(!$this->addRoom($roomId, $iRoomInfo, $fd))
                         throw new \Exception('加入房间失败', 203);
-
                 }else{
                     throw new \Exception('您不在当前房间中', 203);
                 }
@@ -746,6 +745,7 @@ class Swoole extends Command
         $iRoomInfo = $this->getUsersess($dt_idx,$userId,'hongbaoNum', $roomId);     //包装计划消息
         $iMsg = $amount;          //把金额提出来
         $msg = $this->msg(9,$iMsg,$iRoomInfo);   //发送抢红包消息
+
         $this->sendToAll($room_id,$msg);
     }
     //检查计画任务

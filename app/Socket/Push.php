@@ -8,6 +8,7 @@ namespace App\Socket;
 
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatFriendsLog;
+use App\Socket\Model\ChatHongbaoDt;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
@@ -37,11 +38,9 @@ class Push
             foreach ($fds as $fd){
                 self::pushList($fd, $user, $column, $async);
             }
-        }
-        else{
+        }else{
             return false;
         }
-
     }
 
     /**
@@ -170,6 +169,14 @@ class Push
                     PersonalLog::insertMsgLog($hisMsg);
                 }
             }
+
+            # 如果是红包 并且用户已领过 就不推送了
+            if($hisMsg['status'] == 8){
+                $idx = $hisMsg['msg'];
+                if(ChatHongbaoDt::checkUserIsGetHongbao($idx, $iRoomInfo['userId']))
+                    continue;
+            }
+
             if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
                 if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
                     $hisMsg['status'] = 4;
@@ -214,7 +221,7 @@ class Push
      * @param $id  消息目标id  users：userId | room：roomId | many：userId
      * @param $msg
      * @param bool $isSetHistoryChatList 是否记录未读消息数
-     * @param array $aParam 扩展参数
+     * @param array $aParam  扩展参数
      * @param bool $async 是否异步
      */
     public static function pushUserMessage($userId, $type, $id, $msg, $aParam = [], $flow = [])

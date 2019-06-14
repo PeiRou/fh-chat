@@ -44,7 +44,7 @@ trait Cache
      */
     public static function CaCheInstance()
     {
-        $path =  'Cache/'.str_replace('\\','_',get_class());
+        $path =  'Cache/'.str_replace('\\','_',static::class);
         static $Cache = [];
         if(empty($Cache[$path])){
             $store = new FileStore(new \Illuminate\Filesystem\Filesystem(), storage_path($path));

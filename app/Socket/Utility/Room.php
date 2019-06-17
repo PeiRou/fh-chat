@@ -40,6 +40,8 @@ class Room
         });
         # 清空用户进入的房间未读消息数 并且加入这个列表
         self::setHistoryChatList($iRoomInfo['userId'], 'room', $roomId, ['lookNum' => 0]);
+        # 设置用户状态 打开的群组还是单人 和id
+        Room::setFdStatus($iRoomInfo['userId'], $roomId, 'room', $fd);
     }
 
     //离开房间 - 只是更换房间 不退出房间

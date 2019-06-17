@@ -297,7 +297,6 @@ class Swoole extends Command
                 }
                 //获取聊天类型
                 if(($userStatus = Room::getFdStatus($request->fd)) && isset($userStatus['type'])){
-                    var_dump($userStatus);
                     Action::sendMessage($request->fd, $userStatus['type'], $userStatus['id'], $request->data, $iRoomInfo);
                 }
 

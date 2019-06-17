@@ -52,4 +52,11 @@ class Base extends Model
         }
     }
 
+    //获取制定栏位的数据，默认为id
+    public function getDataByField($param,$field = ''){
+        $field = empty($field)?$this->primaryKey:$field;
+        return $this->where($field,$param)->first();
+    }
+
+
 }

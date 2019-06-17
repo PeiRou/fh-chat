@@ -209,6 +209,10 @@ class Swoole extends Command
                     $iRoomInfo['nickname'] = '';
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
                 $this->push($request->fd, $msg);
+
+                # 如果是老聊天室 默认打开1聊天室
+                if(!env('ISROOMS', false))
+                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);;
             }catch (\Exception $e){
                 Trigger::getInstance()->throwable($e);
 //                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
@@ -293,6 +297,7 @@ class Swoole extends Command
                 }
                 //获取聊天类型
                 if(($userStatus = Room::getFdStatus($request->fd)) && isset($userStatus['type'])){
+                    var_dump($userStatus);
                     Action::sendMessage($request->fd, $userStatus['type'], $userStatus['id'], $request->data, $iRoomInfo);
                 }
 

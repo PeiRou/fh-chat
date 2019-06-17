@@ -26,7 +26,7 @@
     <div class="inline field">
         <label>计划推送游戏</label>
         <br>
-        <div class="ui input icon">
+        <div class="ui icon">
             @foreach($lotterys as $item => $itemname)
                 <div class="ui checkbox"style="margin-right: 5px">
                     <input type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>

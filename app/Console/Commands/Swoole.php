@@ -758,10 +758,12 @@ class Swoole extends Command
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
         $plantype = isset($serv->post['plantype'])?$serv->post['plantype']:(isset($serv->get['plantype'])?$serv->get['plantype']:'');
-        $canSend = false;//是否能发送
         //判断统一杀率计画是否与
         if($plantype=='guan'){
             $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',0)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画
+            if(empty($res)) return;
+        }else if ($plantype=='ziying'){
+            $res = DB::table('excel_base')->select('is_user')->where('game_id',$game)->where('is_user',1)->first();       //要在平台检查是不是走统一杀率，是的才能接入统一杀率计画
             if(empty($res)) return;
         }
         //判断是否可以发送
@@ -769,13 +771,6 @@ class Swoole extends Command
         if($game!=0){
             //判断时间内不开启计画 低于此时间不开启
             if(time() < strtotime(date('Y-m-d '.$baseSetting->send_starttime)) && (time() > strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
-            //判断符合的彩种才发送
-//            $plan_send_game = explode(",",$baseSetting->plan_send_game);
-//            foreach ($plan_send_game as& $key){
-//                if ($game == $key) $canSend = true;
-//            }
-            //如果不能发送，就退出
-//            if (!$canSend) return;
         }
 
         $rsKeyH = 'pln';

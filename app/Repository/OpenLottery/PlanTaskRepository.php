@@ -49,8 +49,8 @@ class PlanTaskRepository extends BaseRepository
             })
             ->editColumn('control', function ($aData){
                 return '<ul class="control-menu">
-                            <li onclick="edit(\'修改\',\'/SelfOpen/PlanTask/edit/'.$aData->id.'\')">修改</li>
-                            <li onclick="del(\'删除\',\'/SelfOpen/PlanTask/del/'.$aData->id.'\')">删除</li>
+                            <li onclick="edit(\'修改\',\'/chat/planTask/edit/'.$aData->id.'\')">修改</li>
+                            <li onclick="del(\'删除\',\'/chat/planTask/del/'.$aData->id.'\')">删除</li>
                         </ul>';
 //                return $this->lineButtonSplice($aData);
             })

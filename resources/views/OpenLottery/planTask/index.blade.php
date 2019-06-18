@@ -9,7 +9,7 @@
             <button style="line-height: 20px;border:0;margin-left: 10px;cursor:pointer;" onclick="javascript:history.go(-1)">返回</button>
         </div>
         <div class="content-top-buttons">
-            <span onclick="add('添加计划','/SelfOpen/PlanTask/add')">添加计划</span>
+            <span onclick="add('添加计划','/chat/planTask/add')">添加计划</span>
         </div>
     </div>
     <div class="table-content">

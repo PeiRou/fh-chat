@@ -27,18 +27,18 @@
                 <div id="bet_push_statusUn" class="red" @if($base->bet_push_status == "1")style="display: none"@endif>关闭中</div>
             </div>
 
-            <div class="inline fields">
-                <div class="six wide field">
-                    <label style="width :150px;text-align: right;" class="notEmpty">计划发布方式</label>
-                    <select class="ui dropdown" name="planSendMode" id="planSendMode">
-                        <option value="1" @if($base->plan_send_mode == "1") selected="selected" @endif>软件发布</option>
-                        <option value="0" @if($base->plan_send_mode != "1") selected="selected" @endif>手动发布</option>
-                    </select>
-                </div>
-                <div class="two wide field">
-                    <a class="ui teal button" id="dspPlan" style="display: none">点击显示输入框</a>
-                </div>
-            </div>
+            {{--<div class="inline fields">--}}
+                {{--<div class="six wide field">--}}
+                    {{--<label style="width :150px;text-align: right;" class="notEmpty">计划发布方式</label>--}}
+                    {{--<select class="ui dropdown" name="planSendMode" id="planSendMode">--}}
+                        {{--<option value="1" @if($base->plan_send_mode == "1") selected="selected" @endif>软件发布</option>--}}
+                        {{--<option value="0" @if($base->plan_send_mode != "1") selected="selected" @endif>手动发布</option>--}}
+                    {{--</select>--}}
+                {{--</div>--}}
+                {{--<div class="two wide field">--}}
+                    {{--<a class="ui teal button" id="dspPlan" style="display: none">点击显示输入框</a>--}}
+                {{--</div>--}}
+            {{--</div>--}}
             {{--<div class="inline fields">--}}
                 {{--<label style="width :119px;text-align: right;">计划推送游戏</label>--}}
                 {{--<div class="ui checkbox"style="margin-right: 5px">--}}

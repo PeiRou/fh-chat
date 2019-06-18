@@ -32,10 +32,12 @@ class ExcelBase extends Base
     {
         $iModel = $this
             ->select('excel_base.*', 'game.game_name')
-            ->leftJoin('game', 'game.game_id', '=', 'excel_base.game_id')
-            ->where(function ($aSql) use($aParam){
-
-            });
+            ->join('game', 'game.game_id', '=', 'excel_base.game_id')
+            ->where('game.status',1)
+            ->where('excel_base.is_user',1);
+//            ->where(function ($aSql) use($aParam){
+//
+//            });
         return [
             'iCount' => $iModel->count(),
             'aData' => $iModel
@@ -61,7 +63,9 @@ class ExcelBase extends Base
 
     public function getGameSelect(){
         $aData = $this->select('excel_base.excel_base_idx','excel_base.game_id','game.game_name')
-            ->leftJoin('game', 'game.game_id', '=', 'excel_base.game_id')
+            ->join('game', 'game.game_id', '=', 'excel_base.game_id')
+            ->where('game.status',1)
+            ->where('excel_base.is_user',1)
             ->get();
         foreach ($aData as $kData => $iData){
             foreach ($this->aCategory as $kCateGory => $iCateGory){

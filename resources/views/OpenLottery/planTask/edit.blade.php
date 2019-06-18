@@ -1,4 +1,4 @@
-<form id="dataForm" class="ui mini form" action="{{ route('SelfOpen.planTask.edit',['id'=>$iInfo->id]) }}">
+<form id="dataForm" class="ui mini form" action="{{ route('chat.planTask.edit',['id'=>$iInfo->id]) }}">
 
     <div class="field">
         <label>计划中奖概率(%)</label>

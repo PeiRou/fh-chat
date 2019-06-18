@@ -84,10 +84,8 @@
             <a href="{{ url('/chat/baseManage') }}"><span><i class="icon-book"></i></span>平台配置</a>
         </li>
         <li id="menu-Open" class="nav-item">
-            <a href="javascript:void(0)"><span><i class="icon-book"></i></span>开奖管理</a>
-            <ul>
-                <li id="menu-SelfOpen-planTask-index"><a href="{{ route('SelfOpen.planTask.index') }}"><cite></cite><span>自营计划设定</span></a></li>
-            </ul>
+            <a href="{{ url('/chat/planTask/index') }}"><span><i class="icon-book"></i></span>自营计划设定</a>
+            {{--<a href="{{ url('/SelfOpen/PlanTask/index') }}"><span><i class="icon-book"></i></span>自营计划设定</a>--}}
         </li>
     </ul>
 </div>

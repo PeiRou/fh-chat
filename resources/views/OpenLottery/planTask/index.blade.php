@@ -84,7 +84,7 @@
                 destroy: true,
                 aLengthMenu: [[100]],
                 ajax: {
-                    url:'{{ route('SelfOpen.planTask.index') }}',
+                    url:'{{ route('chat.planTask.index') }}',
                     type:'post',
                     data:function (d) {
                         d.game_id = $('#gameId').val();

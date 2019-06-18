@@ -103,11 +103,11 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/baseManage', 'Chat\ChatViewController@baseManage');                                             // 平台配置
 
         //计划设定
-        Route::group(['prefix'=>'SelfOpen/PlanTask/','namespace'=>'OpenLottery'],function () {
-            Route::any('index', ['uses'=>'PlanTaskController@index','as'=>'SelfOpen.planTask.index']);        //列表
-            Route::any('add', ['uses'=>'PlanTaskController@add','as'=>'SelfOpen.planTask.add']);              //添加
-            Route::any('edit/{id}', ['uses'=>'PlanTaskController@edit','as'=>'SelfOpen.planTask.edit']);           //修改
-            Route::any('del/{id}', ['uses'=>'PlanTaskController@del','as'=>'SelfOpen.planTask.del']);              //删除
+        Route::group(['prefix'=>'chat/planTask/','namespace'=>'OpenLottery'],function () {
+            Route::any('index', ['uses'=>'PlanTaskController@index','as'=>'chat.planTask.index']);        //列表
+            Route::any('add', ['uses'=>'PlanTaskController@add','as'=>'chat.planTask.add']);              //添加
+            Route::any('edit/{id}', ['uses'=>'PlanTaskController@edit','as'=>'chat.planTask.edit']);           //修改
+            Route::any('del/{id}', ['uses'=>'PlanTaskController@del','as'=>'chat.planTask.del']);              //删除
         });
 
         //在线人数状态

@@ -1,4 +1,4 @@
-<form id="dataForm" class="ui mini form" action="{{ route('SelfOpen.planTask.add') }}">
+<form id="dataForm" class="ui mini form" action="{{ route('chat.planTask.add') }}">
 
     <div class="field">
         <label>游戏</label>

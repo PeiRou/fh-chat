@@ -74,7 +74,7 @@
             }
         });
     });
-    $('#game_id').click('change',function () {
+    $('#game_id').on('change',function () {
         var category = $(this).find("option:selected").attr('data-category');
         var html = '<option value="">请选择玩法类型</option>';
         if(category === 'car'){

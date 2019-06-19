@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat;
 use App\Swoole;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 
@@ -63,9 +64,8 @@ class AjaxStatusController extends Controller
         $res = '';
         try{
             $value = $request->get('uuid');
-            $orgHis = Storage::disk('chathis')->get($value);
-            $k = (array)json_decode($orgHis);
-            $k = isset($k['k'])?$k['k']:'';
+            $k = DB::table('chat_log')->select('user_id')->where('idx',$value)->first();
+            $k = isset($k->user_id)?md5($k->user_id):'';
             if(empty($k))
                 return '';
             $fd = @Storage::disk('chatusr')->get('chatusr:'.$k);

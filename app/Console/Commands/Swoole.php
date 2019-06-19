@@ -703,7 +703,12 @@ class Swoole extends Command
         if(empty($uuid))
             return false;
         if(!empty($sUuid))
-            $this->delHisInfo('his'.$room_id.'='.$sUuid);
+            PersonalLog::delRawLog([
+                'type' => $serv->post['type'] ?? $serv->get['type'] ?? 'room',
+                'toId' => $serv->post['toId'] ?? $serv->get['toId'] ?? 1,
+                'idx' => $uuid,
+            ]);
+//            $this->delHisInfo('his'.$room_id.'='.$sUuid);
 
         $rsKeyH = 'delH';
         error_log(date('Y-m-d H:i:s',time())." 检查删除消息=> ".$rsKeyH.'|'.$uuid.PHP_EOL, 3, '/tmp/chat/delHis.log');

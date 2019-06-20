@@ -77,7 +77,7 @@ class Message
 //                return false;
 //            }
 
-            if($redis->setnx($iRoomInfo['userId'].'speaking:')){
+            if($redis->setnx($iRoomInfo['userId'].'speaking:', 'no')){
                 $redis->expire($iRoomInfo['userId'].'speaking:', 2);
                 return true;
             }

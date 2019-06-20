@@ -20,7 +20,9 @@
                         <select class="ui dropdown" id="gameId" style='height:32px !important;'>
                             <option value="">选择游戏</option>
                             @foreach($aData['game'] as $iGame)
-                                <option value="{{ $iGame->game_id }}">{{ $iGame->game_name }}</option>
+                                @if(!($iGame->category == 'lhc'))
+                                 <option value="{{ $iGame->game_id }}">{{ $iGame->game_name }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -60,7 +62,7 @@
         var columns = [
             {data:'game_id',title:'游戏ID'},
             {data:'game_name',title:'游戏名称'},
-            {data:'play_name',title:'游戏玩法'},
+            {data:'play_name',title:'计划名称显示'},
             {data:'num_digits',title:'选取的号码位数'},
             {data:'planned_probability',title:'计划中奖概率'},
             {data:'Winning_count',title:'中奖次数'},

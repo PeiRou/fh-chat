@@ -27,7 +27,7 @@ class AddValidate extends BaseValidate
             return [
                 'game_id' => 'required|integer',
                 'play_name' => 'required|max:50',
-                'planned_probability' => 'required|numeric|max:100',
+                'planned_probability' => 'required|numeric|max:100|min:0',
                 'type' => 'required|integer',
             ];
         }
@@ -44,6 +44,7 @@ class AddValidate extends BaseValidate
             'planned_probability.required' => '计划百分比必须填写',
             'planned_probability.numeric' => '计划百分比必须是数字',
             'planned_probability.max' => '计划百分比必须小于100%',
+            'planned_probability.min' => '计划百分比必须大于0',
             'type.required' => '玩法类型必须选择',
             'type.integer' => '玩法类型必须是整形',
         ];

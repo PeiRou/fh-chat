@@ -68,8 +68,10 @@ class Action extends BaseRepository
     public static function sendMessage(int $fd, string $type, int $id, string $msg, array $iRoomInfo)
     {
         # 用户是否可发言 是否正常
-        if(!Message::is_speak($fd, $iRoomInfo, $type, $id))
+        if(!Message::is_speak($fd, $iRoomInfo, $type, $id)){
             throw new SocketApiException('您发言太快了');
+        }
+
         # 消息过滤
         $msg = Message::filterMsg($msg, $iRoomInfo);
         # 单聊

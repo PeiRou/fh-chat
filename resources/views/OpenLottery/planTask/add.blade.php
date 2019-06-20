@@ -57,7 +57,35 @@
             validating: 'refresh icon'
         },
         fields: {
-
+            game_id:{
+                validators: {
+                    notEmpty: {
+                        message: '游戏不能为空'
+                    }
+                }
+            },
+            play_name:{
+                validators: {
+                    notEmpty: {
+                        message: '前台显示名称不能为空'
+                    }
+                }
+            },
+            planned_probability:{
+                validators: {
+                    notEmpty: {
+                        message: '计划中奖概率不能为空'
+                    },
+                    greaterThan: {
+                        value: 0,
+                        message: '数字请控制在0~100之间'
+                    },
+                    lessThan: {
+                        value: 100,
+                        message: '数字请控制在0~100之间'
+                    }
+                }
+            }
         }
     }).on('success.form.fv', function(e) {
         e.preventDefault();

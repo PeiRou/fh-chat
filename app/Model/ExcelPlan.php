@@ -53,6 +53,7 @@ class ExcelPlan extends Base
 
     public function edit($aParam,$id){
         return $this->where('id',$id)->update([
+            'play_name' => $aParam['play_name'],
             'planned_probability' => $aParam['planned_probability'],
             'Winning_count' => 0,
             'total_count' => 1,

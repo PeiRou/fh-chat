@@ -73,10 +73,10 @@ class Action extends BaseRepository
         # 消息过滤
         $msg = Message::filterMsg($msg, $iRoomInfo);
         # 单聊
-        if($type == 'users')
+        if($type == 'users') {
             Users::sendMessage($iRoomInfo, $msg, $id);
-        # 群聊
-        elseif($type == 'room' || $type == 'many'){
+            # 群聊
+        }elseif($type == 'room' || $type == 'many'){
             if(ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking') === 0){
                 app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
                 return false;

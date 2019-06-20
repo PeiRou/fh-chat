@@ -77,19 +77,33 @@ class Message
 //                return false;
 //            }
 
-            if($redis->exists($iRoomInfo['userId'].'speaking:')){
-                $iRoomCss = app('swoole')->cssText(98,4);
-                $Css['name'] = '系统消息';                          //用户显示名称
-                $Css['level'] = 0;                                //用户背景颜色1
-                $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
-                $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
-                $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
-                $Css['img'] = '/game/images/chat/sys.png';         //用户大头
-                app('swoole')->sendToSerf($fd,13,'您说话太快啦，请先休息一会',$Css);
-                return false;
+            if($redis->setnx($iRoomInfo['userId'].'speaking:')){
+                $redis->expire($iRoomInfo['userId'].'speaking:', 2);
+                return true;
             }
-            $redis->setex($iRoomInfo['userId'].'speaking:',2,'on');
-            return true;
+            $iRoomCss = app('swoole')->cssText(98,4);
+            $Css['name'] = '系统消息';                          //用户显示名称
+            $Css['level'] = 0;                                //用户背景颜色1
+            $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
+            $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
+            $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
+            $Css['img'] = '/game/images/chat/sys.png';         //用户大头
+            app('swoole')->sendToSerf($fd,13,'您说话太快啦，请先休息一会',$Css);
+            return false;
+
+//            if($redis->exists($iRoomInfo['userId'].'speaking:')){
+//                $iRoomCss = app('swoole')->cssText(98,4);
+//                $Css['name'] = '系统消息';                          //用户显示名称
+//                $Css['level'] = 0;                                //用户背景颜色1
+//                $Css['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
+//                $Css['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
+//                $Css['font'] = $iRoomCss->font_color;              //用户会话文字颜色
+//                $Css['img'] = '/game/images/chat/sys.png';         //用户大头
+//                app('swoole')->sendToSerf($fd,13,'您说话太快啦，请先休息一会',$Css);
+//                return false;
+//            }
+//            $redis->setex($iRoomInfo['userId'].'speaking:',2,'on');
+//            return true;
         });
     }
 }

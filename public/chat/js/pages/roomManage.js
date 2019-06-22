@@ -109,27 +109,32 @@ $(function () {
                         testExe = 'on';
                         testTxt = '开放测试帐号自动发言';
                     }
-                    if(parseInt(data.is_auto)==1){
-                        autoexe = 'un';
-                        autotxt = '关闭快速加入';
-                    }else{
-                        autoexe = 'on';
-                        autotxt = '开启快速加入';
+                    var invAuto = '';       //快速加入
+                    var invUser = '';       //管理用户
+                    var invSa = '';         //管理员设置
+                    if(data.is_rooms==1){
+                        if(parseInt(data.is_auto)==1){
+                            autoexe = 'un';
+                            autotxt = '关闭快速加入';
+                        }else{
+                            autoexe = 'on';
+                            autotxt = '开启快速加入';
+                        }
+                        invAuto = "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>";
+                        if(data.room_id !== '1'){
+                            invUser = "<li onclick='invUser("+data.room_id+")'>管理用户</li>";
+                            invSa = "<li onclick='invAdmin("+data.room_id+")'>管理员设置</li>";
+                        }
                     }
-                    var invUser = '';
-                    if(data.room_id !== '1'){
-                        invUser = "<li onclick='invUser("+data.room_id+")'>管理用户</li>";
-                    }
-                    var delRoom = '';
+                    var delRoom = '';       //预设的房间不可以删除
                     if(data.room_id !== '1' && data.room_id !== '2' && data.room_id !== '3'){
                         delRoom = "<li onclick='delRoom("+data.room_id+")'>删除</li>";
                     }
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoomInfo("+data.room_id+",\""+data.room_name+"\","+data.roomtype+","+data.recharge+","+data.bet+",\""+data.planSendGame+"\")'>修改</li>" +
                         "<li onclick='unSpeakRoom("+data.room_id+",\""+exe+"\")'>"+txt+"</li>" +
-                        "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>" +
-                        invUser + delRoom +
-                        "<li onclick='invAdmin("+data.room_id+")'>管理设置</li>" +
+                        invAuto + invUser + invSa +
+                        delRoom +
                         "<li onclick='openTestAccount("+data.room_id+",\""+testExe+"\")'>"+testTxt+"</li>" +
                         "</ul>";
                 }}

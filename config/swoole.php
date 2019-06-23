@@ -12,8 +12,8 @@ return [
         'SETTING' => [
             'worker_num' => 2,
             'task_worker_num' => 4,
-            'max_request' => 5000,
-            'task_max_request' => 1000,
+            'max_request' => 1000,
+            'task_max_request' => 500,
             'enable_coroutine' => true,
             'task_enable_coroutine' => true,
         ],

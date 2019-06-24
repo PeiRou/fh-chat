@@ -40,7 +40,7 @@
                 <div class="outline">
                     <div class="title">相关下载</div>
                     <div class="content" style="padding: 10px 0px 10px 3px;">
-                        <a class="dash_link" href='/download/chatAdmin.pdf' target='_blank'>聊天室使用说明.pdf</a>
+                        <a class="dash_link" href='/download/chatAdmin-v1.1.pdf' target='_blank'>聊天室使用说明.pdf</a>
                     </div>
                 </div>
             </div>

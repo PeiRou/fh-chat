@@ -109,8 +109,8 @@ $(function () {
                         testExe = 'on';
                         testTxt = '开放测试帐号自动发言';
                     }
+                    var invUser = "<li onclick='invUser("+data.room_id+")'>管理用户</li>";      //管理用户
                     var invAuto = '';       //快速加入
-                    var invUser = '';       //管理用户
                     var invSa = '';         //管理员设置
                     if(data.is_rooms==1){
                         if(parseInt(data.is_auto)==1){
@@ -122,7 +122,6 @@ $(function () {
                         }
                         invAuto = "<li onclick='openAutoRoom("+data.room_id+",\""+autoexe+"\")'>"+autotxt+"</li>";
                         if(data.room_id !== '1'){
-                            invUser = "<li onclick='invUser("+data.room_id+")'>管理用户</li>";
                             invSa = "<li onclick='invAdmin("+data.room_id+")'>管理员设置</li>";
                         }
                     }

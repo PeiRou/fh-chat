@@ -147,13 +147,43 @@ class Swoole extends Command
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
         $this->redis->select(1);
         $this->redis->flushdb();        //服务每天一启动就要清除之前的聊天室redis
-        $del = DB::table('chat_users')->where('level',0)->delete();
+        $del = DB::table('chat_users')->where('level',0)->delete();                         //删除游客在聊天室的纪录
+        $del = DB::table('chat_room_dt')->where('user_name', 'like', 'guest_%')->delete();  //删除游客在聊天室的纪录
         $files = Storage::disk('chathis')->files();
         $arrayTmp = [];
         foreach ($files as $hisKey){
             $arrayTmp[] = $hisKey;
         }
         Storage::disk('chathis')->delete($arrayTmp);              //删除历史
+
+        $handler = opendir(public_path().'/dataimg');                                  //删除除了昨天以前的图片
+        while(false!==($file=readdir($handler))){
+            if(is_numeric($file)&& (int)$file < date('Ymd',strtotime('-1 days')))
+                $this->deldir(public_path().'/dataimg/'.$file);
+        }
+    }
+
+    private function deldir($dir) {
+        //先删除目录下的文件：
+        $dh = opendir($dir);
+        while ($file = readdir($dh)) {
+            if($file != "." && $file!="..") {
+                $fullpath = $dir."/".$file;
+                if(!is_dir($fullpath)) {
+                    unlink($fullpath);
+                } else {
+                    deldir($fullpath);
+                }
+            }
+        }
+        closedir($dh);
+
+        //删除当前文件夹：
+        if(rmdir($dir)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function start(){

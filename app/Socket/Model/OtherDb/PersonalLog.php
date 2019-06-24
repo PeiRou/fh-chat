@@ -246,7 +246,7 @@ class PersonalLog extends Base
                 echo 'else'.PHP_EOL;
                 $hisTxt = Storage::disk('home')->get($tmpTxt.$timeIdx);       //如果存在检查一下是不是同一个人
                 $hisTxt = json_decode($hisTxt,true);
-                if(strtotime($hisTxt['times']) <= strtotime($arr['times'])+4 && $hisTxt['user_id'] == $arr['user_id']){
+                if(strtotime($hisTxt['times'])+4 >= strtotime($arr['times']) && $hisTxt['user_id'] == $arr['user_id']){
                     throw new SocketApiException('您发言太快了1');
                     break;
                 }

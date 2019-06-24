@@ -8,7 +8,7 @@
 
 namespace App\Socket\Model\OtherDb;
 
-
+use App\Socket\Exception\SocketApiException;
 use App\Socket\Push;
 use App\Socket\Utility\Users;
 use Illuminate\Support\Facades\Storage;
@@ -242,6 +242,14 @@ class PersonalLog extends Base
                     continue;
                 }
                 break;
+            }else{
+                echo 'else'.PHP_EOL;
+                $hisTxt = Storage::disk('home')->get($tmpTxt.$timeIdx);       //如果存在检查一下是不是同一个人
+                $hisTxt = json_decode($hisTxt,true);
+                if(strtotime($hisTxt['times']) <= strtotime($arr['times'])+4 && $hisTxt['user_id'] == $arr['user_id']){
+                    throw new SocketApiException('您发言太快了1');
+                    break;
+                }
             }
         }
         if(!Storage::disk('home')->put($tmpTxt.$timeIdx, $addVal))

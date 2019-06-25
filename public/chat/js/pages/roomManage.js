@@ -21,6 +21,7 @@ $(function () {
     });
     dataTable = $('#dtTable')
         .on('xhr.dt', function (e, settings, json, xhr) {
+            //如果是多房间，就不显示房间的人数
             if(is_rooms==0){
                 var column = dataTable.column(2);
                 column.visible(false);

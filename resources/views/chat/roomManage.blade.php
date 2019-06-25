@@ -35,6 +35,12 @@
 @endsection
 
 @section('page-js')
+    <script>
+        var is_rooms=0;
+        @if(env('ISROOMS',false)==true)
+            is_rooms = 1;
+        @endif
+    </script>
     <script src="/vendor/layui/layui.js"></script>
     <link rel="stylesheet" href="/vendor/layui/css/layui.css">
     <script src="/chat/js/pages/roomManage.js"></script>

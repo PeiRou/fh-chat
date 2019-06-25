@@ -98,7 +98,23 @@ class DataController extends Controller
     public function roomManage()
     {
         $is_rooms = env('ISROOMS', false)?1:0;
-        $users = DB::table('chat_room')->select('*',DB::raw("'".$is_rooms."' as is_rooms"))->whereIn('roomtype',[1,2])->get();
+//        $users = DB::table('chat_room')->select('*',DB::raw("'".$is_rooms."' as is_rooms"))
+//            ->whereIn('roomtype',[1,2])->get();
+        $orgUsers = DB::select("select chat_room.*,x.countUsers,'".$is_rooms."' as is_rooms,'0' as online from chat_room
+join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on  chat_room.room_id = x.id where roomtype in (1,2)");
+        $users = [];
+        foreach ($orgUsers as $key => $val){
+            $countOnline = 0;
+            $key = 'roomList/'.$val->room_id;
+            $list = Storage::disk('room')->files($key);
+            foreach ($list as $key1 =>$fd){
+                $fd = explode('/',$fd);
+                if(isset($fd[2])&&Storage::disk('chatusrfd')->exists('chatusrfd:'.$fd[2]))
+                    $countOnline++;
+            }
+            $val->online = $countOnline;
+            $users[$key] = $val;
+        }
         return DataTables::of($users)
             ->editColumn('head_img',function ($data){
                 return substr($data->head_img,7);

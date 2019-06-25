@@ -4,8 +4,7 @@
 $(function () {
     $('#menu-roomManage').addClass('active');
 
-    var lottery;
-    var roomType;
+    var lottery,roomType;
     $.ajax({
         url :'/chat/modal/getLottery',
         type: 'GET',
@@ -20,7 +19,14 @@ $(function () {
             roomType = jQuery.parseJSON(result);
         }
     });
-    dataTable = $('#dtTable').DataTable({
+    dataTable = $('#dtTable')
+        .on('xhr.dt', function (e, settings, json, xhr) {
+            if(is_rooms==0){
+                var column = dataTable.column(2);
+                column.visible(false);
+            }
+        })
+        .DataTable({
         searching: false,
         ordering:false,     //禁止排序
         bLengthChange: false,
@@ -28,7 +34,6 @@ $(function () {
         serverSide: true,
         ajax: {
             url :'/chat/datatables/room',
-            data:{}
         },
         columns: [
             {data:'room_name'},              //房间名称
@@ -37,7 +42,7 @@ $(function () {
                 }},
             {data:function(data){                //在线人数
                 var sa = data.chat_sas==""?0:(data.chat_sas.split(",")).length;
-                return " 0 / 0 / "+sa+" ";
+                return " "+data.online+" / "+data.countUsers+" / "+sa+" ";
                 }},
             {data:function(data){              //是否禁言 is_speaking
                 if(data.is_speaking=="1") {
@@ -95,6 +100,7 @@ $(function () {
                 return data.updated_at;
                 }},
             {data: function (data) {
+                    is_rooms = data.is_rooms;
                     if(parseInt(data.is_speaking)==1){
                         exe = 'un';
                         txt = '禁言';

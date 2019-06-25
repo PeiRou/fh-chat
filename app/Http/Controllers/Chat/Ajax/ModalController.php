@@ -79,7 +79,7 @@ class ModalController extends Controller
         $data = explode("&",$data);
         $games = isset($data[5])?array_flip(explode(",",$data[5])):array();
         $roomInfo = DB::table('chat_room')->where('room_id', @$data[0])->first();
-        $pushBetGames = explode(',',$roomInfo->pushBetGame);
+        $pushBetGames = !empty($roomInfo)?explode(',',$roomInfo->pushBetGame):[];
         $openGames = DB::table('game')->where('status',1)->get();
         return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType)->with('openGames',$openGames)->with('pushBetGames',$pushBetGames);
     }

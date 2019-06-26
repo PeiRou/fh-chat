@@ -243,11 +243,16 @@ class PersonalLog extends Base
                 }
                 break;
             }else{
-                echo 'else'.PHP_EOL;
+                echo 'else--'.PHP_EOL;
                 $hisTxt = Storage::disk('home')->get($tmpTxt.$timeIdx);       //如果存在检查一下是不是同一个人
                 $hisTxt = json_decode($hisTxt,true);
+//                if(strtotime($hisTxt['times'])+2 >= strtotime($arr['times']) && $hisTxt['user_id'] == $arr['user_id']){
+//                    throw new SocketApiException(date('Y-m-d H:i:s').'您发言太快了1');
+//                    break;
+//                }
+                echo 'uuid:'.$tmpTxt.$timeIdx.'--hisT:'.$hisTxt['times'].'--pushT:'.$arr['times'].'--hisU:'.$hisTxt['user_id'].'--pushU:'.$arr['user_id'].PHP_EOL;
                 if(strtotime($hisTxt['times'])+2 >= strtotime($arr['times']) && $hisTxt['user_id'] == $arr['user_id']){
-                    throw new SocketApiException('您发言太快了1');
+                    throw new SocketApiException(date('Y-m-d H:i:s').'您发言太快了1'.PHP_EOL);
                     break;
                 }
             }

@@ -70,6 +70,7 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/modal/googleSubAccount/{id}', 'Chat\Ajax\ModalController@googleSubAccount');  //子账号google验证码
         Route::get('/chat/modal/getRoomType', 'Chat\Ajax\ModalController@getRoomType');                   //获取房间类型
         Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                   //取得计画任务彩种
+        Route::get('/chat/modal/getAllRooms', 'Chat\Ajax\ModalController@getAllRooms');                   //取得所有房间ID跟名称
 
     //datatable
         Route::get('/chat/datatables/user', 'Chat\Data\DataController@userManage');          // 会员管理-表格数据

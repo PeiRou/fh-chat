@@ -1,9 +1,19 @@
 <form id="updUserForm" class="ui mini form" action="{{ url('/chat/action/updNoteInfo') }}">
     <div class="field">
         <label>房间</label>
-        <div class="ui input icon">
-            <input type="text" name="roomName"  placeholder="" value="{{ $name }}" disabled="disabled"/>
-        </div>
+        @if(env('ISROOMS',false)==true)
+            @foreach($allRooms as $item => $val)
+                <div class="ui checkbox"style="margin-right: 5px">
+                    <input type="checkbox" name="rooms[]" value="{{$val->room_id}}" @if(in_array($val->room_id,$rooms))) checked="checked" @endif>
+                    <label>{{$val->room_name}}&nbsp;</label>
+                </div>
+            @endforeach
+        @else
+            <div class="ui input icon">
+                <input type="text" name="roomName"  placeholder="" value="{{ $name }}" disabled="disabled"/>
+            </div>
+            <input type="hidden" value="" name="rooms">
+        @endif
     </div>
     <div class="field">
         <label>公告内容</label>

@@ -6,6 +6,14 @@ var roomid = 0;
 $(function () {
     $('#menu-noteManage').addClass('active');
 
+    var allAooms;
+    $.ajax({
+        url :'/chat/modal/getAllRooms',
+        type: 'GET',
+        success: function(result) {
+            allAooms = jQuery.parseJSON(result);
+        }
+    });
     dataTable = $('#dtTable').DataTable({
         searching: false,
         ordering:false,     //禁止排序
@@ -18,7 +26,25 @@ $(function () {
         },
         columns: [
             {data:'content'},              //公告内容
-            {data:'room_name'},              //房间
+            // {data:'room_name'},              //房间
+            {data:function (data) {
+                if(data.is_rooms==1){
+                    var rooms = data.rooms.split(",");//4,5,6
+                    var repTxt = [];
+                    if(data.rooms!=""){
+                        console.log(allAooms)
+                        $.each(rooms, function (index, value) {
+                            $.each(allAooms, function (index1, value1) {
+                                if(value==value1.room_id)
+                                    repTxt.push(value1.room_name);
+                            });
+                        });
+                    }
+                    return repTxt.join(',');
+                }else{
+                    return data.room_name;
+                }
+                }},              //房间
             {data:'created_at'},            // 添加时间
             {data:'add_account'},           // 添加人
             {data:'updated_at'},            // 修改时间

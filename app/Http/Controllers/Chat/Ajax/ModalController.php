@@ -44,6 +44,15 @@ class ModalController extends Controller
     public function getRoomType(){
         return json_encode($this->roomType);
     }
+    //取得所有房间ID跟名称
+    public function getAllRooms($type='json'){
+        $res = DB::table('chat_room')->select('room_id','room_name')->whereNotIn('room_id',[2,3])->orderby('room_id')->get();
+        if($type=='json')
+            return json_encode($res);
+        else
+            return $res;
+
+    }
     //显示修改聊天室用户信息-弹窗表单
     public function editUserLevel($data)
     {
@@ -87,14 +96,22 @@ class ModalController extends Controller
     public function editNoteInfo($data)
     {
         $data = explode("&",$data);
-        $note = DB::table('chat_note')->select('room_id','content')->where('chat_note_idx',$data[0])->first();
+        $note = DB::table('chat_note')->select('room_id','rooms','content')->where('chat_note_idx',$data[0])->first();
         if($note==null){
             $note = new \stdClass();
             $note->content = "";
             $roomid = $data[2];
-        }else
+            $rooms = [];
+        }else{
             $roomid = $note->room_id;
-        return view('modal.editNoteInfo')->with('id',$data[0])->with('name',$data[1])->with('roomid',$roomid)->with('note',$note);
+            $rooms = explode(',',$note->rooms);
+        }
+        //如果是多房间，则获取所有房间
+        if(env('ISROOMS',false)==true)
+            $allRooms = $this->getAllRooms('array');
+        else
+            $allRooms = [];
+        return view('modal.editNoteInfo')->with('id',$data[0])->with('name',$data[1])->with('roomid',$roomid)->with('note',$note)->with('rooms',$rooms)->with('allRooms',$allRooms);
     }
     //显示修改聊天室管理员-弹窗表单
     public function editAdminInfo($data)

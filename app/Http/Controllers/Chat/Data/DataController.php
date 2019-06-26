@@ -124,8 +124,9 @@ join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on
     //公告管理-表格数据
     public function noteManage()
     {
+        $is_rooms = env('ISROOMS', false)?1:0;
         $users = DB::table('chat_note')
-            ->select('chat_note.*','room_name')
+            ->select('chat_note.*','room_name',DB::raw("'".$is_rooms."' as is_rooms"))
             ->join('chat_room', 'chat_room.room_id', '=', 'chat_note.room_id')->get();
         return DataTables::of($users)
             ->make(true);

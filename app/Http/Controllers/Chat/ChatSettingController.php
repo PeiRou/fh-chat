@@ -159,6 +159,8 @@ class ChatSettingController extends Controller
         $data['upd_sa_id'] = Session::get('account_id');              //添加管理员id
         $data['upd_account'] = Session::get('account');               //添加管理员
         $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
+//        $data['rooms'] = implode(',',$request->input('rooms'));      //多房间公告设定
+        isset($request->rooms) && $data['rooms'] = implode(',', $request->rooms);       //多房间公告设定
 
         if($noteid>0)
             $update = DB::table('chat_note')->where('chat_note_idx',$noteid)->update($data);

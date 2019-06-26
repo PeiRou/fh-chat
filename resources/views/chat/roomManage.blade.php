@@ -1,7 +1,7 @@
 @extends('chat.master')
 
 @section('top-buttons')
-    @if(env('ISROOMS',false) == true)<span class="ui green button" onclick="addRoom()">添加房间</span>@endif
+    @if(env('ISROOMS',false)==true)<span class="ui green button" onclick="addRoom()">添加房间</span>@endif
 @endsection
 
 @section('title','房间管理')

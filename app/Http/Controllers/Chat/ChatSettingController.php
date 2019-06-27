@@ -380,10 +380,10 @@ class ChatSettingController extends Controller
             return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);
     }
 
-    //修改平台配置-已废弃
-//    public function updBaseInfo(Request $request){
-//        $data['open_status'] = $request->input('openStatus')=="on"?1:0;              //聊天室状态
-//        $data['bet_push_status'] = $request->input('bet_push_status')=="on"?1:0;              //聊天室是否开启推送跟单
+    //修改平台配置
+    public function updBaseInfo(Request $request){
+        $data['open_status'] = $request->input('openStatus')=="on"?1:0;              //聊天室状态
+        $data['bet_push_status'] = $request->input('bet_push_status')=="on"?1:0;              //聊天室是否开启推送跟单
 //        $data['plan_send_mode'] = $request->input('planSendMode')=="1"?1:0;         //计划发布方式
 //        $planSendGamePK10 = $request->input('planSendGamePK10');                    //计划推送游戏-北京赛车
 //        $data['plan_send_game'] = "";
@@ -410,25 +410,25 @@ class ChatSettingController extends Controller
 //        $planSendGame = $request->input('planSendGameKSSSC');                    //计划推送游戏-快速时时彩
 //        if($planSendGame=="on")
 //            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."803";
-//        $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
-//        $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
-//        $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
-//        $data['is_open_auto'] = $request->input('isOpenAuto')=="1"?1:0;                      //是否展开聊天室
-//        $data['bet_min_amount'] = $request->input('betMin');                        //下注最低推送额
-//        $data['ip_blacklist'] = $request->input('ipBlacklist');                     //IP黑名单
-//        $data['sa_id'] = Session::get('account_id');              //添加管理员id
-//        $data['account'] = Session::get('account');               //添加管理员
-//        $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
-//        $data['guan_msg'] = $request->guan_msg;      //更新日期
-//
-//
-//        $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
-//
-//        if($update==1)
-//            return response()->json(['status'=>true],200);
-//        else
-//            return response()->json(['status'=>false,'msg'=>'修改违禁词失败'],200);
-//    }
+        $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
+        $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
+        $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
+        $data['is_open_auto'] = $request->input('isOpenAuto')=="1"?1:0;                      //是否展开聊天室
+        $data['bet_min_amount'] = $request->input('betMin');                        //下注最低推送额
+        $data['ip_blacklist'] = $request->input('ipBlacklist');                     //IP黑名单
+        $data['sa_id'] = Session::get('account_id');              //添加管理员id
+        $data['account'] = Session::get('account');               //添加管理员
+        $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
+        $data['guan_msg'] = $request->guan_msg;      //更新日期
+
+
+        $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
+
+        if($update==1)
+            return response()->json(['status'=>true],200);
+        else
+            return response()->json(['status'=>false,'msg'=>'修改违禁词失败'],200);
+    }
     //手动发送计画任务
     public function sendPlan(Request $request){
         $plan = $request->input('plan').'<br>';                    //计划推送

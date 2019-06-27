@@ -17,15 +17,21 @@ class AjaxStatusController extends Controller
         $files = Storage::disk('chatusrfd')->files();
         $onlineNum = 0;
         $onlineYKNum = 0;
+        $allOnline = [];
         foreach ($files as $key){
             if(Storage::disk('chatusrfd')->exists($key)){
                 $usr = @Storage::disk('chatusrfd')->get($key);
                 if(!empty($usr)){
                     $usr = (array)json_decode($usr);
-                    if(isset($usr['level']) && $usr['level']>0)
-                        $onlineNum++;
-                    else
-                        $onlineYKNum++;
+                    $md5User = md5($usr['userId']);
+                    if(!isset($allOnline[$usr['userId']])&&Storage::disk('chatusr')->exists('chatusr:'.$md5User)){
+                        $allOnline[$usr['userId']] = $md5User;
+                        if(isset($usr['level']) && $usr['level']>0){
+                            $onlineNum++;
+                        }else{
+                            $onlineYKNum++;
+                        }
+                    }
                 }
             }
         }

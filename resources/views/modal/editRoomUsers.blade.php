@@ -8,11 +8,12 @@
     var users;
     $(function(){
         users = $('#users').DataTable({
-            searching: false,
+            searching: true,
             ordering:false,     //禁止排序
             bLengthChange: false,
             processing: true,
             serverSide: true,
+            aLengthMenu: [[5]],
             ajax: {
                 url :'/chat/datatables/roomUsers/{{ request()->id }}',
                 data:{}
@@ -46,7 +47,9 @@
                     "last":       "尾页",
                     "next":       "下一页",
                     "previous":   "上一页"
-                }
+                },
+                "infoFiltered":" - 从 _MAX_ 记录中过滤",
+                "search": "过滤记录:"
             }
         });
     })

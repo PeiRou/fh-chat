@@ -279,9 +279,11 @@ join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on
 
         });
         $model->where('id', $id);
-        if(isset($request->start, $request->length))
-            $model->skip($request->start)->take($request->length);
         $resCount = $model->count();
+        if(empty($request->search["value"])){
+            if(isset($request->start, $request->length))
+                $model->skip($request->start)->take($request->length);
+        }
 
         $res = $model->orderBy('created_at', 'desc')->get();
 

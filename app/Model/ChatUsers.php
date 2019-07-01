@@ -19,9 +19,9 @@ class ChatUsers extends Base
                 isset($request->user_list) && $sql->whereNotIn('users_id',$request->user_list);
                 isset($request->level) && $sql->where('level',$request->level);
             });
+        $resCount = $model->count();
         if(isset($request->start, $request->length))
             $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
-        $resCount = $model->count();
 
         $res = $model->orderBy('created_at', 'desc')->get();
         return compact('resCount', 'res');

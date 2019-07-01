@@ -24,11 +24,14 @@ $(function () {
         },
         columns: [
             {data:function(data){
-                    return '<span id="ol_'+data.users_id+'" class="off-line-point">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+data.users_id+'</span>';
+                    if(data.online==1)
+                        return '<span id="ol_'+data.users_id+'" class="on-line-point">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+data.users_id+'</span>';
+                    else
+                        return '<span id="ol_'+data.users_id+'" class="off-line-point">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+data.users_id+'</span>';
                 }},
             {data:'username'},
             {data:'nickname'},
-            {data:'login_ip'},
+            // {data:'login_ip'},
             {data:'levelname'},
             {"render": function ( data, type, row ) {    //状态
                     var txt = '异常';
@@ -81,9 +84,9 @@ $(function () {
             }
         }
     })
-    .on('draw.dt', function (e, settings, data) {
-        checkAllOnline();
-    });
+    // .on('draw.dt', function (e, settings, data) {
+    //     checkAllOnline();
+    // });
     
     $('#btn_search').on('click',function () {
         dataTable.ajax.reload();

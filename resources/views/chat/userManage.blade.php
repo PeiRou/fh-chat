@@ -53,7 +53,7 @@
                 <th width="11.11%">用户ID</th>
                 <th width="11.11%">用户名</th>
                 <th width="11.11%">呢称</th>
-                <th width="11.11%">IP</th>
+                {{--<th width="11.11%">IP</th>--}}
                 <th width="11.11%">角色</th>
                 <th width="11.11%">状态</th>
                 <th width="11.11%">最近2天充值</th>

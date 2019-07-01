@@ -13,7 +13,6 @@
             bLengthChange: false,
             processing: true,
             serverSide: true,
-            aLengthMenu: [[5]],
             ajax: {
                 url :'/chat/datatables/roomUsers/{{ request()->id }}',
                 data:{}

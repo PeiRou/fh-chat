@@ -28,7 +28,7 @@ class DataController extends Controller
         //用户表join角色表
         $users = DB::table('chat_users')
             ->join('chat_roles', 'chat_users.level', '=', 'chat_roles.level')
-            ->select('users_id','username','nickname','login_ip','chat_roles.name as levelname','chat_status','recharge','bet','chat_users.level','chat_users.isnot_auto_count as unauto')
+            ->select('users_id','username','nickname','login_ip','chat_roles.name as levelname','chat_status','recharge','bet','chat_users.level','chat_users.isnot_auto_count as unauto',DB::raw("'' as online"))
             ->where('chat_role','>=',2)
             ->where(function ($query) use($parram){        //用户名/呢称
                 if(isset($parram['account']) && $parram['account']){
@@ -76,6 +76,13 @@ class DataController extends Controller
             ->editColumn('nickname',function ($users){
                 $nickname = empty($users->nickname)?substr($users->username,0,2).'******'.substr($users->username,-2,3):$users->nickname;
                 return $nickname;
+            })->editColumn('online',function ($users){
+                $usrKey = 'chatusr:'.md5($users->users_id);
+                if(Storage::disk('chatusr')->exists($usrKey)){
+                    return 1;
+                }else{
+                    return 0;
+                }
             })
             ->make(true);
     }
@@ -343,9 +350,11 @@ join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on
         $model = DB::table('chat_users')
             ->select('username as user_name', 'users_id')
             ->whereIn('users_id', explode(',', $admins));
-        if(isset($request->start, $request->length))
-            $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
         $resCount = $model->count();
+        if(empty($request->search["value"])) {
+            if (isset($request->start, $request->length))
+                $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
+        }
         $res = $model->orderBy('created_at', 'desc')->get();
         return DataTables::of($res)
             ->editColumn('control',function ($res)use($id){

@@ -34,6 +34,7 @@
                     "next":       "下一页",
                     "previous":   "上一页"
                 },
+                "infoFiltered":" - 从 _MAX_ 记录中过滤",
                 "search": "过滤记录:"
             }
         });

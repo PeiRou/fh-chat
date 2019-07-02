@@ -98,6 +98,9 @@ class ModalController extends Controller
         $data = explode("&",$data);
         $note = DB::table('chat_note')->select('room_id','rooms','content')->where('chat_note_idx',$data[0])->first();
         if($note==null){
+            $res = DB::table('chat_room')->select('room_id','room_name')->where('room_id',1)->first();
+            $data[1] = $res->room_name;
+            $data[2] = $res->room_id;
             $note = new \stdClass();
             $note->content = "";
             $roomid = $data[2];

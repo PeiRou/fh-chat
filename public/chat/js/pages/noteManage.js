@@ -32,7 +32,6 @@ $(function () {
                     var rooms = data.rooms.split(",");//4,5,6
                     var repTxt = [];
                     if(data.rooms!=""){
-                        console.log(allAooms)
                         $.each(rooms, function (index, value) {
                             $.each(allAooms, function (index1, value1) {
                                 if(value==value1.room_id)
@@ -50,8 +49,6 @@ $(function () {
             {data:'updated_at'},            // 修改时间
             {data:'upd_account'},           // 修改人
             {data:function (data) {         //操作
-                    roomid = data.room_id;
-                    name = data.room_name;
                     return "<ul class='control-menu'>" +
                         "<li onclick='updNoteInfo("+data.chat_note_idx+",\""+data.room_name+"\")'>修改</li>" +
                         "<li onclick='del("+data.chat_note_idx+",\"delNoteInfo\")'>删除</li>" +
@@ -116,7 +113,7 @@ function addNote() {
         title: '添加聊天室公告',
         closeIcon:true,
         boxWidth:'20%',
-        content: 'url:/chat/modal/editNoteInfo/0'+'&'+name+'&'+roomid,
+        content: 'url:/chat/modal/editNoteInfo/0',
         buttons: {
             confirm: {
                 text: '提交',

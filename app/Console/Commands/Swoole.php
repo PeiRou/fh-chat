@@ -435,6 +435,9 @@ class Swoole extends Command
             $iRoomInfo = $this->getUsersess($iSess,$fd);
             # 更新目前房客资讯
             $this->updUserInfo($fd,$iRoomInfo);
+            //回传自己的基本设置
+            if($iRoomInfo['setNickname']==0)
+                $iRoomInfo['nickname'] = '';
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->push($fd, $msg);
             # 历史讯息

@@ -335,8 +335,12 @@ class Room
     {
         $aMesgRep = base64_encode(str_replace('+', '%20', urlencode($msg)));
         # 所有在群里的会员
-        $userIds = ChatRoomDt::getRoomUserIds($roomId);
-        foreach ($userIds as $toUserId){
+//        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+        Storage::disk('home')->allFiles();
+        $userIds = Storage::disk('home')->allFiles('chatRoom/roomUserId/'.$roomId);
+        foreach ($userIds as $key => $toUserId){
+            $toUserId = explode("/",$toUserId);
+            $toUserId = $toUserId[3];
             $status = 2;
             if(Chat::getUserId($fd) == $toUserId)
                 $status = 4;

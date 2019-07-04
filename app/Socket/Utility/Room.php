@@ -336,16 +336,22 @@ class Room
         $aMesgRep = base64_encode(str_replace('+', '%20', urlencode($msg)));
         # 所有在群里的会员
 //        $userIds = ChatRoomDt::getRoomUserIds($roomId);
-        Storage::disk('home')->allFiles();
         $userIds = Storage::disk('home')->allFiles('chatRoom/roomUserId/'.$roomId);
+        #别人的消息包装
+        $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
+        #自己的消息包装
+        $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
         foreach ($userIds as $key => $toUserId){
             $toUserId = explode("/",$toUserId);
             $toUserId = $toUserId[3];
-            $status = 2;
-            if(Chat::getUserId($fd) == $toUserId)
-                $status = 4;
-            $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
-            Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
+            $bMsg = $bMsg2;
+            if($iRoomInfo['userId'] == $toUserId)
+                $bMsg = $bMsg4;
+//            $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
+            if(Storage::disk('home')->exists('chatRoom/roomUserId/'.$roomId.'/'.$toUserId)){
+                $fd = Storage::disk('home')->get('chatRoom/roomUserId/'.$roomId.'/'.$toUserId);
+                Push::pushUserMessageFast($bMsg,$fd);
+            }
         }
     }
 

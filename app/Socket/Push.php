@@ -17,6 +17,7 @@ use App\Socket\Utility\Room;
 use App\Socket\Utility\SortName;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
+use Illuminate\Support\Facades\Storage;
 
 class Push
 {
@@ -257,6 +258,14 @@ class Push
     }
 
     /**
+     * 推送消息 比较快
+     */
+    public static function pushUserMessageFast( $msg, $fd)
+    {
+        app('swoole')->push($fd, $msg);
+    }
+
+    /**
      * 推送删除消息
      * @param $type
      * @param $idx  删除消息的key
@@ -266,7 +275,7 @@ class Push
      */
     public static function pushDelChatLogAction($type, $idx, $userId, $toId, $roomId)
     {
-        self::pushDelChatLog($type, $idx, $userId, $toId, $roomId);
+        self::pushDelChatLogFast($type, $idx, $userId, $toId, $roomId);
         # 单聊特殊 toId 和user_id要反过来在通知一遍
         if($type == 'users')
             self::pushDelChatLog($type, $idx, $toId, $userId, $roomId);
@@ -296,6 +305,33 @@ class Push
             self::pushUserMessage($userId, $type, $toId, $msg, [], [
                 'isSetHistoryChatList' => false
             ]);
+        }
+    }
+
+    public static function pushDelChatLogFast($type, $idx, $userId, $toId, $roomId)
+    {
+        //获取需要推送的user
+        $users = [];
+        if($type == 'users'){
+            $users = [$userId];
+        }elseif($type == 'room'){
+            $users = $userIds = Storage::disk('home')->allFiles('chatRoom/roomList/'.$roomId);
+        }elseif($type == 'many'){
+            $users = ChatRoom::getRoomSas($roomId);
+            array_push($users, $toId);
+            array_unique($users);
+        }
+        $msg = app('swoole')->json(24, [
+            'type' => $type,
+            'idx' => $idx,
+            'toId' => $toId,
+            'roomId' => $roomId
+        ]);
+        # 推送这些人 只有打开这个页面的才推送 没打开的不推送
+        foreach ($users as $toFd){
+            $toFd = explode("/",$toFd);
+            $toFd = $toFd[3];
+            self::pushUserMessageFast($msg, $toFd);
         }
     }
 

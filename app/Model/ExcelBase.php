@@ -15,8 +15,8 @@ class ExcelBase extends Base
     protected $table = 'excel_base';
 
     private $aCategory = [
-        'car' => [80,82,99,801,802,804,901],
-        'ssc' => [81,113,114,803,902],
+        'car' => [80,82,99,801,802,804,901,905,906],
+        'ssc' => [81,113,114,803,902,907],
         'k3' => [86],
         'lhc' => [85,903,904],
     ];

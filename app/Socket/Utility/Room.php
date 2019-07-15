@@ -15,7 +15,9 @@ use App\Socket\Model\ChatUser;
 use App\Socket\Push;
 use App\Socket\Redis\Chat;
 use App\Socket\Utility\Tables\FdStatus;
+use App\Socket\Utility\Task\TaskManager;
 use Illuminate\Support\Facades\Storage;
+use SebastianBergmann\CodeCoverage\Report\PHP;
 
 class Room
 {
@@ -171,6 +173,11 @@ class Room
         }, $list);
     }
 
+    //获取所有在线会员
+    public static function getOnlineUsers()
+    {
+        return Chat::getUserIds();
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -337,22 +344,42 @@ class Room
         # 所有在群里的会员
 //        $userIds = ChatRoomDt::getRoomUserIds($roomId);
         $userIds = Storage::disk('home')->allFiles('chatRoom/roomUserId/'.$roomId);
+        foreach ($userIds as &$toUserId){
+           $toUserId = explode("/",$toUserId);
+            $toUserId = $toUserId[3];
+        }
         #别人的消息包装
         $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
         #自己的消息包装
         $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
-        foreach ($userIds as $key => $toUserId){
-            $toUserId = explode("/",$toUserId);
-            $toUserId = $toUserId[3];
-            $bMsg = $bMsg2;
-            if($iRoomInfo['userId'] == $toUserId)
-                $bMsg = $bMsg4;
-//            $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
-            if(Storage::disk('home')->exists('chatRoom/roomUserId/'.$roomId.'/'.$toUserId)){
-                $fd = Storage::disk('home')->get('chatRoom/roomUserId/'.$roomId.'/'.$toUserId);
-                Push::pushUserMessageFast($bMsg,$fd);
-            }
+        $u = array_chunk($userIds, 60);
+//        $u = [$userIds];
+        foreach ($u as $v){
+            TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4){
+                foreach ($v as $key =>$toUserId){
+                    go(function()use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$toUserId){
+                        $bMsg = $bMsg2;
+                        if(Chat::getUserId($fd) == $toUserId)
+                            $bMsg = $bMsg4;
+//                    $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
+                        Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
+                    });
+                }
+            });
         }
+
+//        foreach ($userIds as $key => $toUserId){
+//            $toUserId = explode("/",$toUserId);
+//            $toUserId = $toUserId[3];
+//            $bMsg = $bMsg2;
+//            if($iRoomInfo['userId'] == $toUserId)
+//                $bMsg = $bMsg4;
+////            $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
+//            if(Storage::disk('home')->exists('chatRoom/roomUserId/'.$roomId.'/'.$toUserId)){
+//                $fd = Storage::disk('home')->get('chatRoom/roomUserId/'.$roomId.'/'.$toUserId);
+//                Push::pushUserMessageFast($bMsg,$fd);
+//            }
+//        }
     }
 
     /**
@@ -364,7 +391,8 @@ class Room
      */
     public static function sendRoomSystemMsg($roomId, $msg, $lastMsg, $isSetLookNum = false)
     {
-        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+//        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+        $userIds = self::getOnlineUsers();
         foreach ($userIds as $toUserId){
             Push::pushUserMessage($toUserId, 'room', $roomId, $msg,['msg' => $lastMsg],['isSetLookNum'=>$isSetLookNum]);
         }

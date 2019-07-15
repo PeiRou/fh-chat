@@ -211,7 +211,6 @@ class Swoole extends Command
                 if(empty($iSess))
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
-
                 if(empty($iRoomInfo))
                     return false;
                 $rooms = $iRoomInfo['rooms'];
@@ -219,9 +218,9 @@ class Swoole extends Command
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
-
                 # 绑定userId fd
                 Chat::bindUser($iRoomInfo['userId'], $request->fd);
+                Users::checkFdToken($iRoomInfo['userId'], $iRoomInfo['sess']); # 验证用户的所有fd token 如果失效删除所有登录信息
                 //获取聊天室公告
                 $msg = $this->getChatNotice($iRoomInfo['room']);
                 $this->push($request->fd, $msg);
@@ -703,11 +702,6 @@ class Swoole extends Command
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    public function sendFd($fd, $status, $data)
-    {
-        $fd && $this->push($fd, $this->json($status, $data));
-    }
-
     //推送user
     public function sendUser($userId, $status, $data)
     {
@@ -940,6 +934,7 @@ class Swoole extends Command
                 $res['bg1'] = $iRoomCss->bg_color1;                //用户背景颜色1
                 $res['bg2'] = $iRoomCss->bg_color2;                //用户背景颜色2
                 $res['font'] = $iRoomCss->font_color;              //用户会话文字颜色
+                $res['sess'] = $iSess; # 保存sess 用来验证token失效
                 $this->autoInRoom($res, $fd); //进入房间
                 break;
         }

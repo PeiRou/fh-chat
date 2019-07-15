@@ -190,7 +190,7 @@ class PersonalLog extends Base
     {
         # 找出超过记录条数的
         $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log 
-                GROUP BY `type`,`user_map`, `room_id`
+                GROUP BY `type`,`user_map`, `room_id`, `to_id`,`user_id`
                 HAVING `num` > ".self::LOG_MAX_NUM;
         $res = $db->rawQuery($sql);
 
@@ -242,7 +242,8 @@ class PersonalLog extends Base
                     continue;
                 }
                 break;
-            }else{
+            }
+            else{
                 echo 'else--'.PHP_EOL;
                 $hisTxt = Storage::disk('home')->get($tmpTxt.$timeIdx);       //如果存在检查一下是不是同一个人
                 $hisTxt = json_decode($hisTxt,true);

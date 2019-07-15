@@ -11,7 +11,7 @@ return [
     'MAIN_SERVER' => [
         'SETTING' => [
             'worker_num' => 2,
-            'task_worker_num' => 4,
+            'task_worker_num' => 50,
             'max_request' => 5000,
             'task_max_request' => 1000,
             'enable_coroutine' => true,

@@ -101,6 +101,12 @@ class Chat extends Base
         return self::findUserIdByFd($redis, $fd);
     }
 
+    // 获取所有UserId
+    protected static function getUserIds($redis)
+    {
+        return $redis->Hkeys('userIdFdMap') ?? [];
+    }
+
     // 清除redis 用户在线信息
     protected static function clearAll($redis)
     {

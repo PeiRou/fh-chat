@@ -23,11 +23,9 @@ class Action extends BaseRepository
     public static function inUser($fd, $iRoomInfo, $toUser, $type)
     {
         $toUserId = (int)$toUser;
-
         $toUser = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($toUserId) {
             return $db->where('users_id', $toUserId)->getOne('chat_users');
         });
-
         if(empty($toUser))
             return false;
         # 推会员在这个房间的权限

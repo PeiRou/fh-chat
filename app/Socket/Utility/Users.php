@@ -10,6 +10,7 @@ use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
+use App\Socket\Redis\Chat;
 use App\Socket\Utility\Task\TaskManager;
 
 class Users
@@ -58,6 +59,18 @@ class Users
         return true;
     }
 
+    // 验证其它用户的所有fd token 如果失效删除所有登录信息
+    public static function checkFdToken(int $userId, string $sess)
+    {
+        $fds = Chat::getUserFd($userId);
+        foreach ($fds as $fd){
+            $userInfo = app('swoole')->getUserInfo($fd);
+            if(isset($userInfo['sess']) && $userInfo['sess'] !== $sess){
+                app('swoole')->sendToSerf($fd, 3, '登陆失效');
+                app('swoole')->ws->close($fd);  # 如果已经链接的fd保存的sess不对，就主动关闭链接
+            }
+        }
+    }
 
 
 }

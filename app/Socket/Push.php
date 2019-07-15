@@ -228,7 +228,7 @@ class Push
     public static function pushUserMessage($userId, $type, $id, $msg, $aParam = [], $flow = [])
     {
         $isSetHistoryChatList = true; //是否更新聊过的列表
-        $async = true; //是否异步推送
+        $async = false; //是否异步推送
         $isSetLookNum = true;
         extract($flow);
         /** ---------------------------------上面是参数------------------------------------- */

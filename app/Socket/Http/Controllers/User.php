@@ -13,6 +13,7 @@ use App\Socket\Http\Controllers\Traits\Login;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatFriendsLog;
 use App\Socket\Model\ChatUser;
+use App\Socket\Push;
 
 class User extends Base
 {
@@ -20,8 +21,13 @@ class User extends Base
     //申请添加好友
     public function addUserFriendsLog()
     {
-        if(!($toUserId = (int)$this->get('toUserId')))
+        if(!($toUserId = (int)$this->get('toUserId')) && !($toUserName = $this->get('toUserName')))
             return $this->show(1, '参数错误');
+
+        if(!$toUserId && $toUserName){
+            $toUserId = ChatUser::getUserValue(['username' => $toUserName], 'users_id');
+        }
+
         $res = ChatFriendsList::getUserFriend([
             'user_id' => $this->user['users_id'],
             'to_id' => $toUserId
@@ -33,7 +39,8 @@ class User extends Base
         if(!ChatFriendsLog::checkAddFriend($this->user['users_id'], $toUserId))
             return $this->show(1, '请等待对方同意');
         if($data = ChatFriendsLog::addFriend($this->user, $toUserId)){
-            app('swoole')->sendUser($toUserId, 21, $data);
+//            app('swoole')->sendUser($toUserId, 21, $data);
+            Push::pushUser($toUserId, 'FriendsLogList');
             return $this->show(0);
         }
 

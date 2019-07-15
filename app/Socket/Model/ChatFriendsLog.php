@@ -29,10 +29,13 @@ class ChatFriendsLog extends Base
     //根据id获取用户信息
     protected static function getUser($db, int $logId, $column = 'user_id')
     {
-        $userId = $db->where('id', $logId)->getValue('chat_friends_log', $column);
-        if($userId > 0)
-            return ChatUser::getUser(['users_id' => $userId]);
-        return null;
+        return self::HandleCacheData(function() use($db, $logId, $column){
+            $userId = $db->where('id', $logId)->getValue('chat_friends_log', $column);
+            if($userId > 0)
+                return ChatUser::getUser(['users_id' => $userId]);
+            return null;
+        }, 5, false);
+
     }
 
         /**

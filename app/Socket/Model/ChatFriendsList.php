@@ -59,4 +59,19 @@ class ChatFriendsList extends Base
             ]);
     }
 
+    //删除好友
+    protected static function delUserFriends($db, int $userId, int $toId)
+    {
+        $db->startTransaction();
+        try{
+            $db->where('user_id', $toId)->where('to_id', $userId)->delete('chat_friends_list');
+            $db->where('user_id', $userId)->where('to_id', $toId)->delete('chat_friends_list');
+            $db->commit();
+            return true;
+        }catch (\Throwable $e){
+            $db->rollback();
+            return false;
+        }
+    }
+
 }

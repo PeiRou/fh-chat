@@ -35,14 +35,16 @@ class Users
     }
 
     //单聊发消息
-    public static function sendMessage(array $user, $msg, $toUserId)
+    public static function sendMessage(array $user, $msg, $toUserId, $fd)
     {
         # 是不是好友
         if(!ChatFriendsList::getUserFriend([
             'user_id' => $user['userId'],
             'to_id' => $toUserId,
-        ]))
+        ])){
+            Push::pushFdTipMessage($fd, '你们不是好友');
             throw new SocketApiException('你们不是好友');
+        }
 
         $msg = htmlspecialchars($msg);
         $arr = Users::buildMsg(2, $msg, $user, $toUserId, 'users');

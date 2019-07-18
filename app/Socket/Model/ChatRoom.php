@@ -20,22 +20,22 @@ class ChatRoom extends Base
         return $db->get('chat_room', null, ['room_id', 'room_name','head_img']);
     }
 
-    protected static function getRoomValue($db, $param = [], $value)
+    protected static function getRoomValue($db, $param = [], $value, $isSaveCache = false)
     {
         return self::RedisCacheData(function()use($db, $param, $value){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room', [$value])[$value] ?? null;
-        }, 10); //10秒缓存
+        }, 1, false, $isSaveCache); //10秒缓存
     }
 
-    protected static function getRoomOne($db, $param = [])
+    protected static function getRoomOne($db, $param = [], $isSaveCache = false)
     {
         return self::RedisCacheData(function()use($db, $param){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room') ?? null;
-        }, 30, false);
+        }, 30, false, $isSaveCache);
     }
 
     //获取房间的说有管理员
@@ -205,6 +205,31 @@ class ChatRoom extends Base
 
         # 组成数组一次性修改所有的房间
         return self::batchUpdate($db, $data, 'users_id', 'chat_users');
+    }
+
+    //新建房间
+    protected static function buildRoom($db, $userId, $param)
+    {
+        $data = [
+            'is_auto' => $param['is_auto'] >= 1 ? 1 : 0,
+            'room_name' => $param['room_name'],
+//            'head_img' => $param['head_img'],
+            'roomtype' => $param['roomtype'] ?? 1,
+            'chat_sas' => $userId,
+            'room_founder' => $userId,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+        return $db->insert('chat_room', $data);
+    }
+    //修改
+    protected static function update($db, $where, $param)
+    {
+        foreach ($where as $k=>$v){
+            $db->where($k, $v);
+        }
+        !isset($param['updated_at']) && ($param['updated_at'] = date('Y-m-d H:i:s'));
+        return $db->update('chat_room', $param);
     }
 
     //获取需要推送跟单的房间

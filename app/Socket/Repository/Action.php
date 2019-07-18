@@ -34,6 +34,7 @@ class Action extends BaseRepository
         Push::pushPersonalLog($fd, $iRoomInfo['userId'], $toUserId);
         # 设置 未读条数改为0
         Room::setHistoryChatList($iRoomInfo['userId'], 'users', $toUserId, ['lookNum' => 0]);
+        return true;
     }
 
     //进入多对一页面
@@ -53,6 +54,7 @@ class Action extends BaseRepository
         Push::pushManyLog($fd, $iRoomInfo['userId'], $toUserId, $roomId);
         # 设置 未读条数改为0
         Room::setHistoryChatList($iRoomInfo['userId'], $type, $toUserId, ['lookNum' => 0]);
+        return true;
     }
 
     /**
@@ -74,11 +76,15 @@ class Action extends BaseRepository
         $msg = Message::filterMsg($msg, $iRoomInfo);
         # 单聊
         if($type == 'users') {
-            Users::sendMessage($iRoomInfo, $msg, $id);
+            Users::sendMessage($iRoomInfo, $msg, $id, $fd);
             # 群聊
         }elseif($type == 'room' || $type == 'many'){
-            if(ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking') === 0){
-                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');
+            if(($is_speaking = ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking', 1)) === 0){
+                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态');
+                return false;
+            }
+            if(empty($is_speaking)) {
+                app('swoole')->sendToSerf($fd,5,'此房间不存在！');
                 return false;
             }
 

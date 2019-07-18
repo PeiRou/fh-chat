@@ -186,6 +186,27 @@ class PersonalLog extends Base
         return $iRoomUsers;
     }
 
+    //清空日志
+    protected static function clearLog($db, $type, $userId, $toId, $roomId = 2)
+    {
+        # 清空数据库
+        if($type == 'room'){
+            $db->where('to_id', $toId);
+        }elseif($type == 'many'){
+            $db->where('room_id', $roomId);
+        }else{
+            $db->where('user_map', Users::getUserMap($userId, $toId));
+        }
+        $db->delete('chat_log');
+        # 清空日志文件
+        $path = self::getPath( $type, $userId, $toId, $roomId );
+        foreach (Storage::disk('home')->files($path) as $value){
+            if(Storage::disk('home')->exists($value))
+                Storage::disk('home')->delete($value);
+        }
+        Storage::disk('home')->deleteDirectory($path);
+    }
+
     protected static function delLog($db)
     {
         # 找出超过记录条数的

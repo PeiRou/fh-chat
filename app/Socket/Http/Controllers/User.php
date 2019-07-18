@@ -14,6 +14,8 @@ use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatFriendsLog;
 use App\Socket\Model\ChatUser;
 use App\Socket\Push;
+use App\Socket\Repository\UserFriendsRepository;
+use App\Socket\Utility\Room;
 
 class User extends Base
 {
@@ -88,5 +90,31 @@ class User extends Base
             return $this->show(1, '昵称太长啦');
         ChatFriendsList::setRemark($this->user['users_id'], $toId, $remark);
         return $this->show(0);
+    }
+
+    //删除一条聊天历史列表
+    public function delHistoryChatList()
+    {
+        if(empty($type = $this->get('type')) || ($id = (int)$this->get('id')) < 1){
+            return $this->show(1, '参数错误');
+        }
+        if(!Room::delHistoryChatList($this->user['users_id'], $type, $id)){
+            return $this->show(2, '失败');
+        }
+        # 更新列表
+        Push::pushUser($this->user['users_id'], 'HistoryChatList');
+        return $this->show(0);
+    }
+
+    //删除好友
+    public function delUserFriends()
+    {
+        if(($to_id = (int)$this->get('to_id')) < 1){
+            return $this->show(1, '参数错误');
+        }
+        if(UserFriendsRepository::delUserFriends($this->user['users_id'], $to_id)){
+            return $this->show(0);
+        }
+        return $this->show(1, '失败');
     }
 }

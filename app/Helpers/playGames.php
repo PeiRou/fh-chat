@@ -376,4 +376,19 @@ if(!function_exists('p')){
     }
 }
 
+//上传base64图片
+if(!function_exists('upImg')){
+    function upImg($path, $imageName, $base64)
+    {
+        $image = $base64;    //接收base64的图
+        $limit = strpos($image,'base64,');
+        $image = substr($image,$limit+7);
+        $image = str_replace(' ', '+', $image);
+        $docUrl = public_path().$path;
+        if(!file_exists($docUrl))                   //如果资料夹不存在，则创建资料夹
+            mkdir($docUrl);
+        return (\File::put(public_path().$path. $imageName, base64_decode($image)));
+    }
+}
+
 

@@ -33,7 +33,7 @@ class Push
 
     public static function pushUser($userId, $column = 'all', $async = true)
     {
-        $user = ChatUser::getUser(['users_id' => $userId]);
+        $user = ChatUser::getUser(['users_id' => $userId], true);
         if($user){
             $fds = Chat::getUserFd($userId);
             foreach ($fds as $fd){
@@ -61,8 +61,9 @@ class Push
                 is_string($user['rooms']) && $user['rooms'] = explode(',', $user['rooms']);
                 $data = [];
                 # 群组列表 房间列表
-                if(in_array('RoomList', $columns) || $column == 'all')
-                    $data['RoomList'] = ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]);
+                if(in_array('RoomList', $columns) || $column == 'all'){
+                    $data['RoomList'] = SortName::addPeople(ChatRoom::getRoomList(['is_open' => 1,'rooms' => $user['rooms']]), 'room_name');
+                }
                 # 聊过的列表
                 if(in_array('HistoryChatList', $columns) || $column == 'all')
                     $data['HistoryChatList'] = Room::getHistoryChatList($user['userId']);
@@ -333,6 +334,14 @@ class Push
             $toFd = $toFd[3];
             self::pushUserMessageFast($msg, $toFd);
         }
+    }
+
+    //提示消息 比如（'你们不是好友'、）
+    public static function pushFdTipMessage($fd, $msg)
+    {
+        app('swoole')->sendFd($fd, 26, [
+            'msg' => $msg
+        ]);
     }
 
 }

@@ -46,6 +46,18 @@ class Swoole
         $url = env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021").'/'.$action;
         return self::curl_get_content($url, $param);
     }
+    public static function post($url, $param = [],$data = [])
+    {
+        $ch = curl_init();
+        curl_setopt($ch,CURLOPT_URL,env('WS_CURL',"https://0.0.0.0").":".env('WS_PORT',"2021").'/'.$url."?".http_build_query($param));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过证书检查
+        curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch,CURLOPT_POST,1);
+        curl_setopt($ch,CURLOPT_POSTFIELDS,$data);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        return $output;
+    }
 
     public static function curl_get_content($url, $data = [], $conn_timeout=7, $timeout=10, $user_agent=null)
     {

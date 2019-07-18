@@ -14,13 +14,13 @@ class ChatUser extends Base
 {
 
     //用户信息
-    protected static function getUser($db, $param = [])
+    protected static function getUser($db, $param = [], $isSaveCache = false)
     {
-        return self::HandleCacheData(function()use($db, $param){
+        return self::RedisCacheData(function()use($db, $param){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_users');
-        }, 5);
+        }, 30, false, $isSaveCache);
     }
 
     //用户信息单个值

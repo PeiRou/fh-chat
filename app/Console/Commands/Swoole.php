@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
+use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Redis\Chat;
@@ -241,7 +242,7 @@ class Swoole extends Command
 
                 # 如果是老聊天室 默认打开1聊天室
                 if(!env('ISROOMS', false))
-                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);;
+                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
             }catch (\Exception $e){
                 Trigger::getInstance()->throwable($e);
 //                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
@@ -401,7 +402,9 @@ class Swoole extends Command
     private function httpParser($serv, $response)
     {
         try {
-            (new HttpParser($serv, $response))->run();
+            if(!(new HttpParser($serv, $response))->run()){
+
+            }
         }catch (\Throwable $e){
             Trigger::getInstance()->throwable($e);
             $response->end(json_encode([
@@ -455,6 +458,7 @@ class Swoole extends Command
                 $msg = $this->json(19,$data);
                 $this->push($fd, $msg);
             }
+            return true;
         }catch (\Throwable $e){
             if($e->getCode() == 203){
                 $msg = $this->json(17,$e->getMessage());
@@ -702,6 +706,11 @@ class Swoole extends Command
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
+    public function sendFd($fd, $status, $data)
+    {
+        $fd && $this->push($fd, $this->json($status, $data));
+    }
+
     //推送user
     public function sendUser($userId, $status, $data)
     {
@@ -915,7 +924,6 @@ class Swoole extends Command
                     return array();
                 $aUsers = $this->chkUserSpeak($res['userId'],$data);
                 $uLv = $aUsers->level;
-
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
                 $res['room'] = $aUsers->room_id;                   //取得房间id
                 $res['rooms'] = explode(',', $aUsers->rooms);                   //取得房间id
@@ -961,11 +969,22 @@ class Swoole extends Command
         //重新计算最近2天下注&充值
         $this->setBetRech($userid);
         //获取最近2天下注&充值
-        $aUsers = DB::connection('mysql::write')->table('chat_users')
-            ->select('chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak')
-            ->join('users', 'users.id', '=', 'chat_users.users_id')
-            ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
-            ->where('users_id',$userid)->first();
+//        $aUsers = DB::connection('mysql::write')->table('chat_users')
+//            ->select('chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak')
+//            ->join('users', 'users.id', '=', 'chat_users.users_id')
+//            ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
+//            ->where('users_id',$userid)->first();
+        $aUsers = (object)\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid) {
+            return $db->join('users', 'users.id = chat_users.users_id')
+                ->join('chat_room', 'chat_users.room_id = chat_room.room_id')
+                ->where('users_id',$userid)
+                ->getOne('chat_users', ['chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak']);
+        });
+        # 如果没找到可能房间被删除了，也可能这个会员是单聊还没加入房间 因为这里不知道怎么改先给个默认的
+        if(empty((array)$aUsers)){
+            $aUsers = (object)ChatUser::getUser(['users_id' => $userid], true);
+            $aUsers->is_speaking = 0;
+        }
         $chat_role = isset($aUsers->chat_role)?$aUsers->chat_role:1;
         $recharge  = isset($aUsers->recharge)?$aUsers->recharge:0;
         $bet       = isset($aUsers->bet)?$aUsers->bet:0;
@@ -982,10 +1001,18 @@ class Swoole extends Command
         }
         $uLv = $this->chkChat_level($chat_role,$recharge,$bet,$isnot_auto_count,$level);          //取得用户层级
 
-        DB::table('chat_users')->where('users_id',$userid)->update([
-            'level'=> $uLv,
-            'updated_at'=> date("Y-m-d H:i:s",time())
-        ]);
+//        DB::table('chat_users')->where('users_id',$userid)->update([
+//            'level'=> $uLv,
+//            'updated_at'=> date("Y-m-d H:i:s",time())
+//        ]);
+        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid, $uLv) {
+            $db->where('users_id',$userid)
+                ->update('chat_users', [
+                     'level'=> $uLv,
+                    'updated_at'=> date("Y-m-d H:i:s",time())
+                ]);
+        });
+
         //流水说话基准
         //检查是否符合平台的发言条件
         if(isset($aUsers->testFlag)){
@@ -1028,16 +1055,23 @@ class Swoole extends Command
         //重新计算最近2天下注
 //        $aUserBet_his = DB::table('bet_his')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())]);
 //        $aUserBet = DB::table('bet')->select(DB::raw('sum(`bet_money`) as aggregate'))->where('user_id',$userid)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->union($aUserBet_his)->first();
-        $aUserBet = DB::select("select sum(bet_money) as bet_money_all from bet where user_id = :user_id1 and created_at between :cr_start1 and :cr_end1 union select sum(bet_money) as bet_money_all from bet_his where user_id = :user_id2 and created_at between :cr_start2 and :cr_end2",
-            [
-                'user_id1'=>$userid,
-                'user_id2'=>$userid,
-                'cr_start1'=>date("Y-m-d H:i:s",strtotime("-2 day")),
-                'cr_end1'=>date("Y-m-d H:i:s"),
-                'cr_start2'=>date("Y-m-d H:i:s",strtotime("-2 day")),
-                'cr_end2'=>date("Y-m-d H:i:s")
-            ]);
-        $aUserBet = @$aUserBet[0]->bet_money_all;
+//        $aUserBet = DB::select("select sum(bet_money) as bet_money_all from bet where user_id = :user_id1 and created_at between :cr_start1 and :cr_end1 union select sum(bet_money) as bet_money_all from bet_his where user_id = :user_id2 and created_at between :cr_start2 and :cr_end2",
+//            [
+//                'user_id1'=>$userid,
+//                'user_id2'=>$userid,
+//                'cr_start1'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+//                'cr_end1'=>date("Y-m-d H:i:s"),
+//                'cr_start2'=>date("Y-m-d H:i:s",strtotime("-2 day")),
+//                'cr_end2'=>date("Y-m-d H:i:s")
+//            ]);
+//        $aUserBet = @$aUserBet[0]->bet_money_all;
+        # 最近2天下注
+        $aUserBet = \App\Socket\Model\Users::getUserBetDay([
+            'userId' => $userid,
+            'timeStart' => date("Y-m-d H:i:s", strtotime("-2 day")),
+            'timeEnd'=> date("Y-m-d H:i:s")
+        ], false);
+
         //重新计算最近2天充值
         $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
         DB::table('chat_users')->where('users_id',$userid)->update([

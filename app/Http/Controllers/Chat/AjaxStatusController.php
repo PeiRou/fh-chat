@@ -105,6 +105,10 @@ class AjaxStatusController extends Controller
     }
     public function chatapi(Request $request, $controller, $action)
     {
-        return Swoole::get($controller.'/'.$action, $request->all());
+        $Method = $request->getMethod();
+        if($Method == 'GET')
+            return Swoole::get($controller.'/'.$action, $request->all());
+        elseif($Method == 'POST')
+            return Swoole::post($controller.'/'.$action, $request->query(), $request->post());
     }
 }

@@ -9,7 +9,9 @@
 namespace App\Socket\Repository;
 
 
+use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Model\ChatRoom;
+use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Utility\Room;
 
@@ -69,7 +71,6 @@ class ChatRoomRepository extends BaseRepository
     //删除房间
     public static function delRoom($roomId)
     {
-
         # 获取在这个房间的会员
         $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
         # 删除房间
@@ -79,9 +80,58 @@ class ChatRoomRepository extends BaseRepository
                 # 更新些人房间列表
                 Push::pushUser($user, 'RoomList');
             }
+            # 清日志
+//            PersonalLog::clearLog('room', 0, $roomId);
             return true;
         }
         return false;
     }
 
+    public static function userDelRoom($user, $roomId)
+    {
+        if(!($roomInfo = ChatRoom::getRoomOne([
+            'room_id'=> $roomId,
+            'room_founder' => $user['userId']
+        ])))
+            ThrowOut(2, '您不是房主！');
+
+        # 删除房间
+        return self::delRoom($roomId);
+    }
+
+    //新建房间
+    public static function buildRoom($user, $param = [])
+    {
+        $data = [
+            'is_auto' => (isset($param['is_auto']) && (int)$param['is_auto'] >= 1) ? 1 : 0,
+            'room_name' => $param['room_name'],
+//            'head_img' => $param['head_img'],
+            'chat_sas' => $user['userId'],
+            'room_founder' => $user['userId'],
+        ];
+        if($res = ChatRoom::getRoomOne(['room_founder' => $user['userId']], true)){
+            ThrowOut(1, '您已经创建过房间');
+        }
+        if(!$roomId = ChatRoom::buildRoom($user['userId'], $data)){
+            return false;
+        }
+        # 保存并修改头像
+        isset($param['head_img']) && self::upRoomHeadImg($roomId, $param['head_img']);
+
+        # 将自己加入房间映射
+        ChatRoomRepository::addRoomUser($roomId, $user['userId']);
+        return $roomId;
+    }
+
+    //上传聊天室头像
+    public static function upRoomHeadImg($roomid, $base64)
+    {
+        $path = "/roomImg/";
+        $imgName = md5($roomid).".jpg";
+        if(upImg($path, $imgName, $base64)){
+            $img = $path . $imgName;
+            return ChatRoom::update(['room_id' => $roomid], ['head_img' => '/upchat'. $img."?t=".time().rand(111,22222)]);
+        }
+        return false;
+    }
 }

@@ -128,6 +128,17 @@
                     <input type="text" placeholder="" name="ipBlacklist" value="{{ $base->ip_blacklist }}">
                 </div>
             </div>
+            @if(env('ISROOMS',false)==true)
+            <div class="inline fields">
+                <div class="six wide field">
+                    <label style="width :150px;text-align: right;" class="notEmpty">会员建群</label>
+                    <select class="ui dropdown" name="is_build_room">
+                        <option value="1" @if($base->is_build_room == "1") selected="selected" @endif>开</option>
+                        <option value="0" @if($base->is_build_room != "1") selected="selected" @endif>关</option>
+                    </select>
+                </div>
+            </div>
+            @endif
             <div class="inline fields">
                 <div class="three wide field">
                     <label style="width :114px;"></label>

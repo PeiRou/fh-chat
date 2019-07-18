@@ -279,6 +279,14 @@ class Room
             return $param;
         return $param[$value] ?? null;
     }
+
+    //删除一个用户聊过的
+    public static function delHistoryChatList($userId, $type, $id)
+    {
+        $disk = 'home';
+        $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
+        return self::del($filekey, $disk);
+    }
     //获取用户聊过的列表
     public static function getHistoryChatList($userId)
     {

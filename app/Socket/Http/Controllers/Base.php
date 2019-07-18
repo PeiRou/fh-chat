@@ -25,7 +25,7 @@ class Base
         $this->mysqlPool->recycleObj($this->db);
     }
 
-    public function onException(\Throwable $throwable):void
+    public function onException(\Throwable $throwable)
     {
         throw $throwable;
     }
@@ -46,6 +46,13 @@ class Base
             return $this->parser->request->get;
         if(isset($this->parser->request->get[$key]))
             return $this->parser->request->get[$key];
+        return null;
+    }
+    public function post($key = ''){
+        if(empty($key))
+            return $this->parser->request->post;
+        if(isset($this->parser->request->post[$key]))
+            return $this->parser->request->post[$key];
         return null;
     }
 

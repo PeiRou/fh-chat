@@ -43,7 +43,7 @@ class HttpParser
             }
             $res = call_user_func([$instance, $this->action]);
         }catch (\Throwable $e){
-            call_user_func([$instance, 'onException'], $e);
+            $res = call_user_func([$instance, 'onException'], $e);
         }
         return $res ?? false;
     }

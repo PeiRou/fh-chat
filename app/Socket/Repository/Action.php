@@ -10,6 +10,7 @@ namespace App\Socket\Repository;
 
 
 use App\Socket\Exception\SocketApiException;
+use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Push;
 use App\Socket\Utility\Message;
@@ -28,8 +29,17 @@ class Action extends BaseRepository
         });
         if(empty($toUser))
             return false;
-        # 推会员在这个房间的权限
+        # 推会员在这个房间的权限  为了不让房间的权限影响
         Push::pushSpeak($type, $iRoomInfo);
+        # 是不是好友
+        $UserFriend = ChatFriendsList::getUserFriend([
+            'to_id' => $iRoomInfo['userId'],
+            'user_id' => $toUserId,
+        ]);
+        if(empty($UserFriend)){
+            $msg = app('swoole')->msg(5,'你们不是好友');
+            app('swoole')->push($fd, $msg);
+        }
         # 推单聊历史记录
         Push::pushPersonalLog($fd, $iRoomInfo['userId'], $toUserId);
         # 设置 未读条数改为0

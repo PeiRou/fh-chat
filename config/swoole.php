@@ -16,6 +16,7 @@ return [
             'task_max_request' => 1000,
             'enable_coroutine' => true,
             'task_enable_coroutine' => true,
+//            'package_max_length' => 1024 * 1024 * 20
         ],
     ],
     'mysql' => [

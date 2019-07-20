@@ -27,7 +27,7 @@ class Users extends Base
             $sql = "SELECT SUM(`bet_money_all`) AS `bet_money_all` FROM (SELECT
                     SUM( bet_money ) AS `bet_money_all` 
                 FROM
-                    `bet` 
+                    `bet`  
                 WHERE 1
                     {$where}
                 UNION
@@ -78,7 +78,7 @@ class Users extends Base
     /**
      * @param $db
      * @param $userId 会员id
-     * @param int $day
+     * @param int  $day
      * @param bool $isSaveCache 是否更新缓存
      * @return mixed
      */

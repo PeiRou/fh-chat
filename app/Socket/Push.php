@@ -191,7 +191,7 @@ class Push
     }
 
     //推权限
-    public static function pushSpeak($type, $iRoomInfo, $async = true)
+    public static function pushSpeak($type, $iRoomInfo,$async = false)
     {
         $closure = function()use($iRoomInfo, $type){
             if($type == 'users'){

@@ -20,6 +20,7 @@ use App\Socket\Utility\Room;
 class User extends Base
 {
     use Login;
+
     //申请添加好友
     public function addUserFriendsLog()
     {

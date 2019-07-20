@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
@@ -331,6 +332,11 @@ class Swoole extends Command
                 }
 
             }catch (\Exception $e){
+                # 在这里捕获SocketApi的异常 推送给客户端
+                if($e instanceof SocketApiException){
+                    $this->sendToSerf($request->fd, 26, $e->getMessage());
+                    return '';
+                }
                 Trigger::getInstance()->throwable($e);
             }
         });
@@ -461,7 +467,9 @@ class Swoole extends Command
             return true;
         }catch (\Throwable $e){
             if($e->getCode() == 203){
-                $msg = $this->json(17,$e->getMessage());
+//                $msg = $this->json(17,$e->getMessage());
+//                $this->push($fd, $msg);
+                $msg = $this->msg(5,$e->getMessage());
                 $this->push($fd, $msg);
             }else{
                 throw $e;
@@ -583,7 +591,7 @@ class Swoole extends Command
     //推送给自己消息
     public function sendToSerf($fd,$status=13,$msg,$userinfo=array()){
         $msg = $this->msg($status,$msg,$userinfo);
-        $this->ws->push($fd, $msg);
+        $this->push($fd, $msg);
     }
 
     //更新个人信息

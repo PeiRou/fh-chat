@@ -238,7 +238,10 @@ class Room
             # 注：type = many 的情况比较特殊 需要根据房间的名称组合 所以在上面写了闭包来设置
             if(empty($param['name']) || ($param['update_name_at'] < time() - 3600)){
                 if($type == 'users'){
-                    $toUser = ChatFriendsList::getUserFriendList($userId, $id)[0];
+                    $UserFriendList = ChatFriendsList::getUserFriendList($userId, $id);
+                    if(!count($UserFriendList))
+                        throw new \Exception('没有这个好友', 400);
+                    $toUser = $UserFriendList[0];
                     $param['name'] = $toUser['remark'] ?? $toUser['nickname'];
                     $param['head_img'] = $toUser['img'];
                 }elseif($type == 'room'){
@@ -263,6 +266,8 @@ class Room
             }
             return true;
         }catch (\Throwable $e){
+            if($e->getCode() == 400)
+                return false;
             Trigger::getInstance()->throwable($e);
         }
         return false;

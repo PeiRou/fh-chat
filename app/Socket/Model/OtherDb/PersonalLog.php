@@ -18,7 +18,7 @@ class PersonalLog extends Base
 
     const FILEPATH = 'userChatLog/';
     const LOG_MAX_NUM = 80;  //聊天记录保存条数
-    const page_size = 20;
+    const page_size = 80;
 
 
     //用户聊天记录

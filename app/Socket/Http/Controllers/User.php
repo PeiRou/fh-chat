@@ -35,8 +35,8 @@ class User extends Base
             'user_id' => $this->user['users_id'],
             'to_id' => $toUserId
         ]);
-//        if($toUserId == $this->user['users_id'])
-//            return $this->show(1, '您不能添加自己');
+        if($toUserId == $this->user['users_id'])
+            return $this->show(1, '您不能添加自己');
         if(count($res))
             return $this->show(1, '你们已经是好友了');
         if(!ChatFriendsLog::checkAddFriend($this->user['users_id'], $toUserId))

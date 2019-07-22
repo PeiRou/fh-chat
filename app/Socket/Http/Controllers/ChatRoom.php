@@ -15,7 +15,7 @@ use App\Socket\Repository\ChatRoomRepository;
 
 class ChatRoom extends Base
 {
-    use Login,ApiException;
+    use Login;
 
     //房间踢人
     public function deleteUser()

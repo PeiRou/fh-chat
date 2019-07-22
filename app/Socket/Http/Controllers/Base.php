@@ -27,7 +27,13 @@ class Base
 
     public function onException(\Throwable $throwable)
     {
-        throw $throwable;
+        if($throwable instanceof \App\Exceptions\ApiException){
+            $getMessage = $throwable->getMessage();
+            $json = json_decode($getMessage, 1) ?? $getMessage;
+            $this->show($json['code'], $json['msg'], $json['data']);
+        }else{
+            throw $throwable;
+        }
     }
     public function __get($name)
     {

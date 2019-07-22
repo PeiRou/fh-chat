@@ -276,7 +276,7 @@ class Push
      */
     public static function pushDelChatLogAction($type, $idx, $userId, $toId, $roomId)
     {
-        self::pushDelChatLogFast($type, $idx, $userId, $toId, $roomId);
+        self::pushDelChatLog($type, $idx, $userId, $toId, $roomId);
         # 单聊特殊 toId 和user_id要反过来在通知一遍
         if($type == 'users')
             self::pushDelChatLog($type, $idx, $toId, $userId, $roomId);
@@ -295,12 +295,17 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        $msg = app('swoole')->json(24, [
-            'type' => $type,
-            'idx' => $idx,
-            'toId' => $toId,
-            'roomId' => $roomId
-        ]);
+        if(env('ISROOMS',false)==true){
+            $msg = app('swoole')->json(24, [
+                'type' => $type,
+                'idx' => $idx,
+                'toId' => $toId,
+                'roomId' => $roomId
+            ]);
+        } else{
+            $msg = app('swoole')->msg(10, $idx);
+        }
+
         # 推送这些人 只有打开这个页面的才推送 没打开的不推送
         foreach ($users as $userId){
             self::pushUserMessage($userId, $type, $toId, $msg, [], [
@@ -322,12 +327,16 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        $msg = app('swoole')->json(24, [
-            'type' => $type,
-            'idx' => $idx,
-            'toId' => $toId,
-            'roomId' => $roomId
-        ]);
+        if(env('ISROOMS',false)==true){
+            $msg = app('swoole')->json(24, [
+                'type' => $type,
+                'idx' => $idx,
+                'toId' => $toId,
+                'roomId' => $roomId
+            ]);
+        } else{
+            $msg = app('swoole')->msg(10, $idx);
+        }
         # 推送这些人 只有打开这个页面的才推送 没打开的不推送
         foreach ($users as $toFd){
             $toFd = explode("/",$toFd);

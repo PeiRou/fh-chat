@@ -14,7 +14,7 @@ trait Login
     public $user;
     public function onRequest(?string $action): ?bool
     {
-        if(!$token = $this->get('token'))
+        if(!$token = $this->get('token') || !$token = $this->post('token') )
             return false;
         $this->user = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($token) {
             return $db->where('sess', $token)->getOne('chat_users');

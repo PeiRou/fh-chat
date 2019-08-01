@@ -94,4 +94,17 @@ class ChatUser extends Base
             return $db->rawQuery($sql, $aParam);
         }, 60); # redis60秒缓存 这样一样的搜索条件不会一直请求数据库
     }
+
+    //搜索用户-用户详细信息
+    protected static function searchUserInfo($db, $userId, int $toUserId)
+    {
+        return self::RedisCacheData(function() use($db, $userId, $toUserId){
+            $sql = " SELECT `u`.`users_id`, `u`.`username`, `u`.`nickname`, `u`.`img`, !ISNULL(`l`.`to_id`) AS `is_friend`, IFNULL(`l`.`remark`, '') AS `remark`, IFNULL(`l`.`status`, 0) AS `status` 
+                FROM `chat_users` as `u`
+                LEFT JOIN `chat_friends_list` AS `l` ON `l`.`to_id` = `u`.`users_id` AND `l`.`user_id` = {$userId}
+                WHERE `u`.`users_id` = {$toUserId} ";
+            return $db->rawQuery($sql)[0] ?? null;
+        }, 30, false);
+
+    }
 }

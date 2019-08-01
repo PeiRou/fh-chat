@@ -118,4 +118,25 @@ class User extends Base
         }
         return $this->show(1, '失败');
     }
+
+    //搜索用户-用户详细信息
+    public function searchUserInfo()
+    {
+        if(($toUserId = $this->get('toUserId')) < 1){
+            return $this->show(1, '参数错误');
+        }
+        if(!$res = ChatUser::searchUserInfo($this->user['users_id'], $toUserId)){
+            return $this->show(1, '没有这个用户！');
+        }
+        return $this->show(0, '', [
+            'users_id' => $res['users_id'],
+            'username' => $res['username'],
+            'nickname' => $res['nickname'],
+            'img' => $res['img'],
+            'is_friend' => $res['is_friend'],
+            'remark' => $res['remark'],
+            'status' => $res['status'],
+        ]);
+    }
+
 }

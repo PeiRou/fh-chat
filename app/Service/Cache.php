@@ -72,7 +72,7 @@ trait Cache
         $key = md5((string)$res . $time . $nullIsCache . json_encode($param) . json_encode($args));
         return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($isSaveCache, $key, $closure, $nullIsCache, $args, $time) {
             $redis->select(12);
-            if($redis->exists($key) && $data = unserialize($redis->get($key)) && $isSaveCache === false){
+            if($redis->exists($key) && ($data = unserialize($redis->get($key))) && $isSaveCache === false){
                 return $data;
             }else{
                 $val = call_user_func($closure, ...$args);

@@ -207,29 +207,46 @@ class PersonalLog extends Base
         Storage::disk('home')->deleteDirectory($path);
     }
 
+    protected static function delLogTimeOut($db)
+    {
+        # 找出过期的
+        $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log 
+                	WHERE `idx` < ".((int)(microtime(true)*1000*10000*10000) - (7200*1000*10000*10000))."
+                GROUP BY `type`,`user_map`, `room_id`, `to_id`,`user_id`";
+        $res = $db->rawQuery($sql);
+        self::delFileDb($db, $res);
+    }
+
     protected static function delLog($db)
     {
+        # 删掉过期的
+        self::delLogTimeOut($db);
+
         # 找出超过记录条数的
-        $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log 
+        $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log
                 GROUP BY `type`,`user_map`, `room_id`, `to_id`,`user_id`
                 HAVING `num` > ".self::LOG_MAX_NUM;
         $res = $db->rawQuery($sql);
+        self::delFileDb($db, $res, self::LOG_MAX_NUM);
+    }
 
-        # 删掉文件 删掉表
+    // 删掉文件 删掉表
+    protected static function delFileDb($db, $res, $offsetNum = 0)
+    {
         foreach ($res as $v){
             $num = $v['num'];
             unset($v['num']);
             foreach ($v as $kk=>$vv){
                 $db->where($kk, $vv);
             }
-            $arr = $db->get('chat_log', $num);
+            $arr = $db->get('chat_log', ($num - $offsetNum)); //获得超出来的
             foreach ($arr as $vv){
                 $path = self::getPath($vv['type'], $vv['user_id'], $vv['to_id'], $vv['room_id']);
                 $file = $path.$vv['idx'];
                 if(Storage::disk('home')->exists($file))
                     Storage::disk('home')->delete($file);
                 # 删数据库
-                $db->whereOr('( `type` = "'.$vv['type'].'" AND `user_id` = "'.$vv['user_id'].'" AND `to_id` = '.$vv['to_id'].' AND `room_id` = '.$vv['room_id'].' ) ');
+                $db->whereOr('( `type` = "'.$vv['type'].'" AND `user_id` = "'.$vv['user_id'].'" AND `to_id` = '.$vv['to_id'].' AND `room_id` = '.$vv['room_id'].' AND `idx` = '.$vv['idx'].' ) ');
             }
             $db->delete('chat_log');
         }

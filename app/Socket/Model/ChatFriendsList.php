@@ -20,7 +20,7 @@ class ChatFriendsList extends Base
                 FROM
                 `chat_users` AS `u`
                 LEFT JOIN `chat_friends_list` AS `l` ON `u`.`users_id` = `l`.`to_id`
-                WHERE `l`.`to_id` = {$userId} {$where}";
+                WHERE `l`.`user_id` = {$userId} {$where}";
 
         return $db->rawQuery($sql);
     }

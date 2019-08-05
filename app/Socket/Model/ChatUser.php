@@ -44,7 +44,7 @@ class ChatUser extends Base
     }
 
     //搜索
-    protected static function search($db, $param = [], int $userId, int $len = 20)
+    protected static function search($db, $param = [], int $userId, int $len = 20, $nocache = false)
     {
         return self::RedisCacheData(function() use($db, $param, $userId, $len){
             $chatUsersWhere = ' 1 AND `chat_users`.`users_id` <> '.$userId;
@@ -92,7 +92,7 @@ class ChatUser extends Base
                         {$limit} )
                     ";
             return $db->rawQuery($sql, $aParam);
-        }, 60); # redis60秒缓存 这样一样的搜索条件不会一直请求数据库
+        }, 60, true, $nocache); # redis60秒缓存 这样一样的搜索条件不会一直请求数据库
     }
 
     //搜索用户-用户详细信息

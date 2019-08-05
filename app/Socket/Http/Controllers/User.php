@@ -78,7 +78,7 @@ class User extends Base
         # （前期不需要这个限制）
 //        if($chat_role !== 3)
 //            $param['chat_role'] = 3;
-        $users = ChatUser::search($param, $this->user['users_id']);
+        $users = ChatUser::search($param, $this->user['users_id'], 20, (boolean)$this->get('nocache'));
         return $this->show(0, '', $users ?? []);
     }
 

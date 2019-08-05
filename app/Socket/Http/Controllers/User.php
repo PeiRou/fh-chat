@@ -89,7 +89,10 @@ class User extends Base
             return $this->show(1, '参数错误');
         if(mb_strlen($remark) > 10)
             return $this->show(1, '昵称太长啦');
-        ChatFriendsList::setRemark($this->user['users_id'], $toId, $remark);
+        if(!ChatFriendsList::setRemark($this->user['users_id'], $toId, $remark))
+            return $this->show(1, '修改失败');
+        # 更新历史列表
+        Room::setHistoryChatList($this->user['users_id'], 'users', $toId, ['name' => $remark]);
         return $this->show(0);
     }
 

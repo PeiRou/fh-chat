@@ -125,7 +125,7 @@ class User extends Base
         if(($toUserId = $this->get('toUserId')) < 1){
             return $this->show(1, '参数错误');
         }
-        if(!$res = ChatUser::searchUserInfo($this->user['users_id'], $toUserId)){
+        if(!$res = ChatUser::searchUserInfo($this->user['users_id'], $toUserId, (boolean)$this->get('nocache'))){
             return $this->show(1, '没有这个用户！');
         }
         return $this->show(0, '', [

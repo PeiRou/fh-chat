@@ -62,12 +62,13 @@ class Base
         return null;
     }
 
-    public function show($code, $msg = '', $data = [], int $httpCode = 200)
+    public function show($code, $msg = '', $data = [], $isObject = true, int $httpCode = 200)
     {
+        $isObject && ($data = (count($data) ? collect($data) : (object)[]));
         $data = [
             'code' => $code,
             'msg' => $msg,
-            'data' => count($data) ? collect($data) : (object)[],
+            'data' => $data,
         ];
 
         $this->response->status($httpCode);

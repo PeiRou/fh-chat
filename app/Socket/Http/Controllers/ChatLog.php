@@ -9,6 +9,8 @@ class ChatLog extends Base
 {
     use Login;
 
+    public $is_role = false;
+
     //获取日志
     public function getList()
     {
@@ -16,7 +18,7 @@ class ChatLog extends Base
             return $this->show(1, '参数错误');
         }
         $param = [];
-        $param['page_size'] = (int)$this->get('page_size') ?: 20;
+        $param['page_size'] = (int)$this->get('page_size') ?: 5;
         $this->get('index') && $param['index'] = $this->get('index');
         if($w = $this->get('w')){
             if($w == 'GT'){
@@ -44,7 +46,7 @@ class ChatLog extends Base
             else
                 $list[$k]['status'] = 2;
         }
-        return $this->show(0, '', $list);
+        return $this->show(0, '', array_values($list), false);
     }
 
 }

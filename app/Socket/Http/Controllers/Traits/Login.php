@@ -17,7 +17,7 @@ trait Login
         if(empty($this->user)){
             return false;
         }
-        if($this->user['chat_role'] == 1)
+        if($this->user['chat_role'] == 1 && $this->is_role)
             ThrowOut(3, '游客无法使用此功能！');
         $this->user['userId'] = $this->user['users_id'];
         $this->iRoomInfo = app('swoole')->getUsersess($token);

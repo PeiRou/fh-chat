@@ -12,6 +12,7 @@ use App\Socket\Utility\HttpParser;
 
 class Base
 {
+    protected $is_role = true;
     public $parser;
     public function __construct(HttpParser $Parser)
     {

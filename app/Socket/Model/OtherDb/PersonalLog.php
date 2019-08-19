@@ -25,12 +25,11 @@ class PersonalLog extends Base
     protected static function getPersonalLog($db, $user_id, $to_id, $param = [])
     {
         $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
-        return self::getPersonalLogfile($db, $path, [
+        return self::getPersonalLogfile($db, $path, array_merge([
             'type' => 'users',
 //            'toId' => $to_id,
             'user_map' => Users::getUserMap($user_id, $to_id),
-            'page' => $param['page'] ?? 1,
-        ]);
+        ], $param));
     }
 
     /**
@@ -45,22 +44,20 @@ class PersonalLog extends Base
     protected static function getManyLog($db, $user_id, $to_id, $roomId, $param = [])
     {
         $path = self::FILEPATH.'many'.'/'.$roomId.'/'.$to_id.'/';
-        return self::getPersonalLogfile($db, $path, [
+        return self::getPersonalLogfile($db, $path, array_merge([
             'type' => 'many',
             'toId' => $to_id,
             'roomId' => $roomId,
-            'page' => $param['page'] ?? 1,
-        ]);
+        ], $param));
     }
     //聊天室历史记录
     protected static function getRoomLog($db, $roomId, $param = [])
     {
         $path = self::FILEPATH.'room'.'/'.$roomId.'/';
-        return self::getPersonalLogfile($db, $path, [
+        return self::getPersonalLogfile($db, $path, array_merge([
             'type' => 'room',
             'toId' => $roomId,
-            'page' => $param['page'] ?? 1,
-        ]);
+        ], $param));
     }
 
     //存聊天信息 数组
@@ -152,6 +149,7 @@ class PersonalLog extends Base
         isset($param['roomId']) && $db->where('room_id', $param['roomId']);
         isset($param['user_map']) && $db->where('user_map', $param['user_map']);
         $page = $param['page'] ?? 1;
+        isset($param['index']) && $param['index'] && $db->where('idx', [ '<' => $param['index']]);
         $page_size = $param['page_size'] ?? self::page_size;
         $db->orderBy ("idx","desc");
         return $db->get('chat_log', [($page-1)*$page_size,$page_size], ['idx']);

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2019/5/27
- * Time: 20:57
- */
 
 namespace App\Socket\Http\Controllers;
 

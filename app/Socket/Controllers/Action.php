@@ -79,11 +79,11 @@ class Action extends Base
         if(!$id)
             return false;
         if($type == 'room'){ # 群聊
-            Push::pushRoomLog($this->request->fd, $this->iRoomInfo, $id, ['page'=> $this->page ?? 1]);
+            Push::pushRoomLog($this->request->fd, $this->iRoomInfo, $id, []);
         }elseif($type == 'users'){ #  单聊
-            Push::pushPersonalLog($this->request->fd,$this->iRoomInfo['userId'], $id, ['page'=> $this->page ?? 1]);
+            Push::pushPersonalLog($this->request->fd,$this->iRoomInfo['userId'], $id, []);
         }elseif($type == 'many'){ # 多对一
-            Push::pushManyLog($this->request->fd,$this->iRoomInfo['userId'], $id, $this->roomId ?? 2, ['page'=> $this->page ?? 1]);
+            Push::pushManyLog($this->request->fd,$this->iRoomInfo['userId'], $id, $this->roomId ?? 2, []);
         }
     }
 }

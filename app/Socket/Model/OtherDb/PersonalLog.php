@@ -149,7 +149,7 @@ class PersonalLog extends Base
         isset($param['roomId']) && $db->where('room_id', $param['roomId']);
         isset($param['user_map']) && $db->where('user_map', $param['user_map']);
         $page = $param['page'] ?? 1;
-        isset($param['index']) && $param['index'] && $db->where('idx', [ '<' => $param['index']]);
+        isset($param['index']) && $param['index'] && $db->where('idx', [ ($param['w'] ?? '<') => $param['index']]);
         $page_size = $param['page_size'] ?? self::page_size;
         $db->orderBy ("idx","desc");
         return $db->get('chat_log', [($page-1)*$page_size,$page_size], ['idx']);

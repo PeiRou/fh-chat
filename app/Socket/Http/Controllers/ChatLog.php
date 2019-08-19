@@ -18,7 +18,13 @@ class ChatLog extends Base
         $param = [];
         $param['page_size'] = (int)$this->get('page_size') ?: 20;
         $this->get('index') && $param['index'] = $this->get('index');
-
+        if($w = $this->get('w')){
+            if($w == 'GT'){
+                $param['w'] = '>';
+            }elseif($w == 'LT'){
+                $param['w'] = '<';
+            }
+        }
         if($type == 'room'){ # 群聊
             if($id !== 2){
                 $list = PersonalLog::getRoomLog($id, $param);

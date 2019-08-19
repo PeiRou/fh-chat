@@ -449,7 +449,7 @@ class Swoole extends Command
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->push($fd, $msg);
             # 历史讯息
-            Push::pushRoomLog($fd, $iRoomInfo, $roomId);
+//            Push::pushRoomLog($fd, $iRoomInfo, $roomId);
             # 如果进入的房间是2把快速进入的房间列表显示出来
             if($roomId == 2){
                 $data = [];

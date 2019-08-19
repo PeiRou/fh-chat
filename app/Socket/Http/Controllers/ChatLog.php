@@ -16,6 +16,7 @@ class ChatLog extends Base
             return $this->show(1, '参数错误');
         }
         $param = [];
+        $param['page_size'] = (int)$this->get('page_size') ?: 20;
         $this->get('index') && $param['index'] = $this->get('index');
 
         if($type == 'room'){ # 群聊

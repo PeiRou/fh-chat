@@ -36,15 +36,19 @@ class ChatLog extends Base
         }elseif($type == 'users'){ #  单聊
             $list = PersonalLog::getPersonalLog($this->user['userId'], $id, $param);
         }elseif($type == 'many'){ # 多对一
-            $list = PersonalLog::getManyLog($this->user['userId'], $id, $this->roomId ?? 2, []);
+            $list = PersonalLog::getManyLog($this->user['userId'], $id, $this->roomId ?? 2, $param);
         }else{
             return $this->show(1, '类型错误');
         }
         foreach ($list as $k => $v){
-            if($v['k']==md5($this->user['userId']))
-                $list[$k]['status'] = 4;
-            else
-                $list[$k]['status'] = 2;
+            if(isset($v['status']) && !in_array($v['status'],array(8,9))) {         //状态非红包
+                if($v['k']==md5($this->user['userId']))
+                    $list[$k]['status'] = 4;
+                else
+                    $list[$k]['status'] = 2;
+            }else{
+                $list[$k]['msg'] = base64_encode(str_replace('+', '%20', urlencode($v['msg'])));
+            }
         }
         return $this->show(0, '', array_values($list), false);
     }

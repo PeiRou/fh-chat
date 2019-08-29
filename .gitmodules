@@ -1,0 +1,3 @@
+[submodule "sameClass"]
+	path = sameClass
+	url = ssh://root@gowx.dohub.cn:49574/laomumeme/wx-same-class.git

@@ -53,6 +53,11 @@ return [
             'root' => public_path('static'),
         ],
 
+        'source' => [
+            'driver' => 'local',
+            'root' => storage_path('source'),
+        ],
+
         'chathis' => [
             'driver' => 'local',
             'root' => storage_path('chathis'),

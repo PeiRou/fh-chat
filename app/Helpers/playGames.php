@@ -391,4 +391,13 @@ if(!function_exists('upImg')){
     }
 }
 
+//上传图片可以上传的格式
+if(!function_exists('checkImg')) {
+    function checkImg($type = '')
+    {
+        return in_array(trim($type, '.'), [
+            'png', 'jpeg', 'bmp', 'jpg', 'gif'
+        ]);
+    }
+}
 

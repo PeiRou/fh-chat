@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') - 管理后台</title>
 
-    <link rel="shortcut icon" type="image/png" href="{{ env('ICON') }}"/>
+    <link rel="shortcut icon" type="image/png" href=""/>
     <link rel="stylesheet" href="/vendor/Semantic/semantic.min.css">
     <link rel="stylesheet" href="/vendor/formvalidation/dist/css/formValidation.min.css">
     <link rel="stylesheet" href="/vendor/confirm/dist/jquery-confirm.min.css">
@@ -30,7 +30,7 @@
 </div>
 <div class="nav-top">
     <div class="nav-logo">
-        <a href="{{ url('/chat/dash') }}"><img style="width: {{ env('BACK_LOGO_WIDTH') }}px;" src="{{ env('BACK_LOGO','') }}"></a>
+        <a href="{{ url('/chat/dash') }}"><img src="{{ Session::get('BACK_LOGO') }}"></a>
     </div>
     <div class="nav-user-info">
         <ul style="margin-top: 20px;">

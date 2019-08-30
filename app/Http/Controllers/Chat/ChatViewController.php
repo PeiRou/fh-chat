@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Home\CaptchaController;
+use Illuminate\Support\Facades\Session;
+use SameClass\Config\AdSource\AdSource;
 
 class ChatViewController extends Controller
 {
@@ -13,7 +15,12 @@ class ChatViewController extends Controller
     public function AdminLogin()
     {
         $captcha = CaptchaController::makeCaptcha();
-        return view('chat.O_adminLogin',compact('captcha'));
+        $AdSource = new AdSource();
+//        $FRONT_LOGO = '';
+        $FRONT_LOGO = $AdSource->getOneSource('color_217X160');
+        $BACK_LOGO = $AdSource->getOneSource('color_311X105');
+        Session::put('BACK_LOGO', $BACK_LOGO);
+        return view('chat.O_adminLogin',compact('captcha','FRONT_LOGO'));
     }
     //控制台
     public function Dash(Request $request)

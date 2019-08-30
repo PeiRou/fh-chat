@@ -16,7 +16,6 @@ class ChatViewController extends Controller
     {
         $captcha = CaptchaController::makeCaptcha();
         $AdSource = new AdSource();
-//        $FRONT_LOGO = '';
         $FRONT_LOGO = $AdSource->getOneSource('color_217X160');
         $BACK_LOGO = $AdSource->getOneSource('color_311X105');
         Session::put('BACK_LOGO', $BACK_LOGO);

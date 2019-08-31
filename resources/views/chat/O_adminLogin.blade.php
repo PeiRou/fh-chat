@@ -33,7 +33,7 @@
 
     <div class="loginbox">
         <div style="position: absolute;width: 220px;height: 315px">
-            <img style="width: 150px;position: absolute;left: 15px;right: 0;top: 0;bottom: 0;margin: auto" src="{{ $FRONT_LOGO }}">
+            <img style="width: 210px;position: absolute;left: 10px;right: 0;top: 0;bottom: 0;margin: auto" src="{{ $FRONT_LOGO }}">
         </div>
         <ul>
             <li><input id="userName" type="text" class="loginuser" value="" onclick="javascript:this.value=''" /></li>

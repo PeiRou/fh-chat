@@ -4,6 +4,7 @@
 namespace App\Socket\Model;
 
 
+use App\Socket\Push;
 use App\Socket\Repository\ChatFriendsRepository;
 
 class ChatFriendsLog extends Base
@@ -66,6 +67,9 @@ class ChatFriendsLog extends Base
                     throw new \Exception('add list error', 123);
             }
             $db->commit();
+            # 更新这个人好友列表
+            Push::pushUser($user['users_id'], ['FriendsList', 'FriendsLogList']);
+            Push::pushUser($toUser['users_id'], ['FriendsList', 'FriendsLogList']);
             return false;
         }catch (\Throwable $e){
             $db->rollback();

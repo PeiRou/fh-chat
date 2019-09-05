@@ -128,7 +128,7 @@
                     <input type="text" placeholder="" name="ipBlacklist" value="{{ $base->ip_blacklist }}">
                 </div>
             </div>
-            @if(env('ISROOMS',false)==true)
+            @if($ISROOMS)
             <div class="inline fields">
                 <div class="six wide field">
                     <label style="width :150px;text-align: right;" class="notEmpty">会员建群</label>

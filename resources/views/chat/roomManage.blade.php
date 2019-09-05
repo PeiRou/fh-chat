@@ -1,7 +1,7 @@
 @extends('chat.master')
 
 @section('top-buttons')
-    @if(env('ISROOMS',false)==true)<span class="ui green button" onclick="addRoom()">添加房间</span>@endif
+    @if(Session::get('ISROOMS'))<span class="ui green button" onclick="addRoom()">添加房间</span>@endif
 @endsection
 
 @section('title','房间管理')
@@ -37,7 +37,7 @@
 @section('page-js')
     <script>
         var is_rooms=0;
-        @if(env('ISROOMS',false)==true)
+        @if(Session::get('ISROOMS'))
             is_rooms = 1;
         @endif
     </script>

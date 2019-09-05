@@ -18,7 +18,9 @@ class ChatViewController extends Controller
         $AdSource = new AdSource();
         $FRONT_LOGO = $AdSource->getOneSource('color_217X160');
         $BACK_LOGO = $AdSource->getOneSource('color_311X105');
+        $ISROOMS = $AdSource->getOneSource('chatType');
         Session::put('BACK_LOGO', $BACK_LOGO);
+        Session::put('ISROOMS', $ISROOMS);
         return view('chat.O_adminLogin',compact('captcha','FRONT_LOGO'));
     }
     //控制台
@@ -123,6 +125,7 @@ class ChatViewController extends Controller
         }
         return view('chat.baseManage')
             ->with('base',$baseSetting)
+            ->with('ISROOMS',Session::get('ISROOMS'))
             ->with('PK10',$planSendGamePK10)
             ->with('CQSSC',$planSendGameCQSSC)
             ->with('JSKS',$planSendGameJSKS)

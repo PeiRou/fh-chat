@@ -327,7 +327,7 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        if(env('ISROOMS',false)==true){
+        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
                 'idx' => $idx,

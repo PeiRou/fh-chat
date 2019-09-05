@@ -1,7 +1,7 @@
 <form id="updUserForm" class="ui mini form" action="{{ url('/chat/action/updNoteInfo') }}">
     <div class="field">
         <label>房间</label>
-        @if(env('ISROOMS',false)==true)
+        @if(Session::get('ISROOMS'))
             @foreach($allRooms as $item => $val)
                 <div class="ui checkbox"style="margin-right: 5px">
                     <input type="checkbox" name="rooms[]" value="{{$val->room_id}}" @if(in_array($val->room_id,$rooms))) checked="checked" @endif>

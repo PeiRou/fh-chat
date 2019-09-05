@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Yajra\DataTables\Contracts\DataTable;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
 class DataController extends Controller
@@ -104,7 +105,7 @@ class DataController extends Controller
     //房间管理-表格数据
     public function roomManage()
     {
-        $is_rooms = env('ISROOMS', false)?1:0;
+        $is_rooms = Session::get('ISROOMS');
 //        $users = DB::table('chat_room')->select('*',DB::raw("'".$is_rooms."' as is_rooms"))
 //            ->whereIn('roomtype',[1,2])->get();
         $orgUsers = DB::select("select chat_room.*,x.countUsers,'".$is_rooms."' as is_rooms,'0' as online from chat_room
@@ -126,12 +127,15 @@ left join (select id,count(user_id) as countUsers from chat_room_dt group by id)
             ->editColumn('head_img',function ($data){
                 return substr($data->head_img,7);
             })
+            ->editColumn('countUsers',function ($data){
+                return $data->countUsers==null?0:$data->countUsers;
+            })
             ->make(true);
     }
     //公告管理-表格数据
     public function noteManage()
     {
-        $is_rooms = env('ISROOMS', false)?1:0;
+        $is_rooms = Session::get('ISROOMS');
         $users = DB::table('chat_note')
             ->select('chat_note.*','room_name',DB::raw("'".$is_rooms."' as is_rooms"))
             ->join('chat_room', 'chat_room.room_id', '=', 'chat_note.room_id')->get();

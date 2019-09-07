@@ -8,7 +8,7 @@
     <meta name="_token" content="{{ csrf_token() }}"/>
     <title>欢迎登录聊天室管理系统</title>
 
-    <link rel="shortcut icon" type="image/png" href="{{ env('ICON') }}"/>
+    <link rel="shortcut icon" type="image/png" href=""/>
     <script src="/js/jquery.min.js"></script>
     <script src="/chat/js/pages/cloud.js"></script>
     <script src="/chat/js/pages/login.js"></script>

@@ -32,7 +32,7 @@ class PlanTaskController extends BaseController
         return $this->viewReturn(compact('aData'));
     }
 
-    public function edit(EditValidate $request,$id){
+    public function edit(Request $request,$id){
         if($request->isMethod('post'))
             return $this->repository->edit($request->except('_token'),$id);
         $aData = $this->repository->indexSelect();

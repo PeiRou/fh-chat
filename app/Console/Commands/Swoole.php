@@ -242,7 +242,7 @@ class Swoole extends Command
                 $this->push($request->fd, $msg);
 
                 # 如果是老聊天室 默认打开1聊天室
-                if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType'))
+                if(!Storage::disk('source')->exists('chatType') || Storage::disk('source')->get('chatType')!=1)
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
             }catch (\Exception $e){
                 Trigger::getInstance()->throwable($e);

@@ -39,12 +39,12 @@
         </div>
     </div>
 
-    <div class="field">
-        <label>计划中奖概率(%)</label>
-        <div class="ui input icon">
-            <input type="text" name="planned_probability" id="planned_probability" style="height: 38px;"/>
-        </div>
-    </div>
+    {{--<div class="field">--}}
+        {{--<label>计划中奖概率(%)</label>--}}
+        {{--<div class="ui input icon">--}}
+            {{--<input type="text" name="planned_probability" id="planned_probability" style="height: 38px;"/>--}}
+        {{--</div>--}}
+    {{--</div>--}}
 
 </form>
 <script>
@@ -71,21 +71,21 @@
                     }
                 }
             },
-            planned_probability:{
-                validators: {
-                    notEmpty: {
-                        message: '计划中奖概率不能为空'
-                    },
-                    greaterThan: {
-                        value: 0,
-                        message: '数字请控制在0~100之间'
-                    },
-                    lessThan: {
-                        value: 100,
-                        message: '数字请控制在0~100之间'
-                    }
-                }
-            }
+            // planned_probability:{
+            //     validators: {
+            //         notEmpty: {
+            //             message: '计划中奖概率不能为空'
+            //         },
+            //         greaterThan: {
+            //             value: 0,
+            //             message: '数字请控制在0~100之间'
+            //         },
+            //         lessThan: {
+            //             value: 100,
+            //             message: '数字请控制在0~100之间'
+            //         }
+            //     }
+            // }
         }
     }).on('success.form.fv', function(e) {
         e.preventDefault();

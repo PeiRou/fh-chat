@@ -421,6 +421,9 @@ class Swoole extends Command
     public function inRoom($roomId, $fd, $iRoomInfo, $iSess)
     {
         try{
+            //获取聊天室公告
+            $msg = $this->getChatNotice($roomId);
+            $this->push($fd, $msg);
             # 房间信息
             $roomInfo = $rooms = DB::table('chat_room')->where('room_id', $roomId)->first();
             if((!$roomInfo || $roomInfo->is_open !== 1) && $roomId !== 1)
@@ -443,9 +446,6 @@ class Swoole extends Command
             //回传自己的基本设置
             if($iRoomInfo['setNickname']==0)
                 $iRoomInfo['nickname'] = '';
-            //获取聊天室公告
-            $msg = $this->getChatNotice($roomId);
-            $this->push($fd, $msg);
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->push($fd, $msg);
             # 历史讯息

@@ -223,9 +223,6 @@ class Swoole extends Command
                 # 绑定userId fd
                 Chat::bindUser($iRoomInfo['userId'], $request->fd);
                 Users::checkFdToken($iRoomInfo['userId'], $iRoomInfo['sess']); # 验证用户的所有fd token 如果失效删除所有登录信息
-                //获取聊天室公告
-                $msg = $this->getChatNotice($iRoomInfo['room']);
-                $this->push($request->fd, $msg);
                 foreach ($rooms as $room){
                     //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
                     if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
@@ -446,6 +443,9 @@ class Swoole extends Command
             //回传自己的基本设置
             if($iRoomInfo['setNickname']==0)
                 $iRoomInfo['nickname'] = '';
+            //获取聊天室公告
+            $msg = $this->getChatNotice($roomId);
+            $this->push($fd, $msg);
             $msg = $this->msg(7,'fstInit',$iRoomInfo);
             $this->push($fd, $msg);
             # 历史讯息
@@ -848,7 +848,7 @@ class Swoole extends Command
     //取得聊天室公告
     private function getChatNotice($room = 1){
         if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType'))
-            $aNoteceData = DB::select("select content from chat_note where FIND_IN_SET('{$room}',rooms)");
+            $aNoteceData = DB::select("select content from chat_note where `room_id` = {$room} OR FIND_IN_SET('{$room}',rooms)");
         else
             $aNoteceData = DB::table('chat_note')->select('content')->where('room_id',$room)->get();
         $msg = array();

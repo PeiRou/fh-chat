@@ -729,7 +729,7 @@ class Swoole extends Command
     }
 
     public function getUuid($name=''){
-        $timess = (int)(microtime(true)*1000*10000*10000);
+        $timess = (int)((microtime(true)*10000-15147360000000)*10000);
         return array('timess'=>$timess,'uuid'=>(string)$timess);
     }
     //检查公告异动
@@ -1277,7 +1277,7 @@ class Swoole extends Command
         $iRoomHisTxt = PersonalLog::getRoomLog($iRoomInfo['room']);
 //        ksort($iRoomHisTxt);
         //控制两个小时内的数据
-//        $timess = (int)(microtime(true)*1000*10000*10000);
+//        $timess = (int)((microtime(true)*10000-15147360000000)*10000);
         //控制聊天室数据
 //        $needDelnum = count($iRoomHisTxt)-80;
 //        $needDelnum = $needDelnum > 0 ? $needDelnum : 0;

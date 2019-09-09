@@ -161,7 +161,8 @@ class PersonalLog extends Base
         $storage = Storage::disk('home');
         $iRoomUsers = array();
         $files = Storage::disk('home')->files($path);
-        $timess = (int)(microtime(true)*1000*10000*10000);
+//        $timess = (int)(microtime(true)*1000*10000*10000);
+        $timess = (int)((microtime(true)*10000-15147360000000)*10000);
 
         //控制数据
         $needDelnum = count($files)-self::LOG_MAX_NUM;
@@ -209,7 +210,7 @@ class PersonalLog extends Base
     {
         # 找出过期的
         $sql = "SELECT COUNT(*) AS `num`,`type`,`to_id`, `room_id`, `user_id` FROM chat_log 
-                	WHERE `idx` < ".((int)(microtime(true)*1000*10000*10000) - (7200*1000*10000*10000))."
+                	WHERE `idx` < ".((int)((microtime(true)*10000-15147360000000)*10000) - (7200*10000*10000))."
                 GROUP BY `type`,`user_map`, `room_id`, `to_id`,`user_id`";
         $res = $db->rawQuery($sql);
         self::delFileDb($db, $res);

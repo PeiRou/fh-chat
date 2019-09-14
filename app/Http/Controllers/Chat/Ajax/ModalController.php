@@ -110,7 +110,7 @@ class ModalController extends Controller
             $rooms = explode(',',$note->rooms);
         }
         //如果是多房间，则获取所有房间
-        if(env('ISROOMS',false)==true)
+        if(Session::get('ISROOMS'))
             $allRooms = $this->getAllRooms('array');
         else
             $allRooms = [];

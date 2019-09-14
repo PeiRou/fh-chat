@@ -420,7 +420,7 @@ class ChatSettingController extends Controller
         $data['account'] = Session::get('account');               //添加管理员
         $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
         $data['guan_msg'] = $request->guan_msg;      //更新日期
-        $data['is_build_room'] = env('ISROOMS',false)==true ? (int)$request->is_build_room : 0; //会员是否可以建群，只有多聊天室模式下可以开
+        $data['is_build_room'] = Session::get('ISROOMS')? (int)$request->is_build_room : 0; //会员是否可以建群，只有多聊天室模式下可以开
 
         $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
 

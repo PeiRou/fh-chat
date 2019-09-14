@@ -89,14 +89,28 @@ class Action extends BaseRepository
             Users::sendMessage($iRoomInfo, $msg, $id, $fd);
             # 群聊
         }elseif($type == 'room' || $type == 'many'){
-            if(($is_speaking = ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking', 1)) === 0){
-                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态');
-                return false;
-            }
-            if(empty($is_speaking)) {
+            $room = ChatRoom::getRoomOne(['room_id' => $id], 1);
+            if(empty($room)){
                 app('swoole')->sendToSerf($fd,5,'此房间不存在！');
                 return false;
             }
+            if($room['is_speaking'] === 0){
+                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态');
+                return false;
+            }
+            if($room['is_open'] !== 1){
+                app('swoole')->sendToSerf($fd,5,'聊天室已关闭');
+                return false;
+            }
+
+//            if(($is_speaking = ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking', 1)) === 0){
+//                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态');
+//                return false;
+//            }
+//            if(empty($is_speaking)) {
+//                app('swoole')->sendToSerf($fd,5,'此房间不存在！');
+//                return false;
+//            }
 
             if(($type == 'room' && $id == 2) || $type == 'many'){
                 (new ManyToOne($fd, $iRoomInfo['userId'], $id, $msg, $type, $iRoomInfo))->sendMessage();

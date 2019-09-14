@@ -848,7 +848,7 @@ class Swoole extends Command
     //取得聊天室公告
     private function getChatNotice($room = 1){
         if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType'))
-            $aNoteceData = DB::select("select content from chat_note where `room_id` = {$room} OR FIND_IN_SET('{$room}',rooms)");
+            $aNoteceData = DB::select("select content from chat_note where (`room_id` = {$room}) OR FIND_IN_SET('{$room}',rooms)");
         else
             $aNoteceData = DB::table('chat_note')->select('content')->where('room_id',$room)->get();
         $msg = array();

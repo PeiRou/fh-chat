@@ -426,7 +426,7 @@ class Swoole extends Command
             $this->push($fd, $msg);
             # 房间信息
             $roomInfo = $rooms = DB::table('chat_room')->where('room_id', $roomId)->first();
-            if((!$roomInfo || $roomInfo->is_open !== 1) && $roomId !== 1)
+            if((!$roomInfo || $roomInfo->is_open !== 1))
                 throw new \Exception('房间暂未开启', 203);
             if(array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false){# 不在房间
                 # 是否可以快速加入

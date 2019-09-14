@@ -99,7 +99,7 @@ class Action extends BaseRepository
                 return false;
             }
             if($room['is_open'] !== 1){
-                app('swoole')->sendToSerf($fd,5,'聊天室已关闭');
+                app('swoole')->sendToSerf($fd,5,'房间暂未开启');
                 return false;
             }
 

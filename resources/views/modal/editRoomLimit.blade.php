@@ -23,6 +23,7 @@
             @endif
         </div>
     </div>
+    @if($id!=2)
     <div class="inline field">
         <label>计划推送游戏</label>
         <br>
@@ -76,6 +77,7 @@
                 </script>
         </div>
     </div>
+    @endif
     <div class="field">
         <label>充值要求</label>
         <div class="ui input icon">

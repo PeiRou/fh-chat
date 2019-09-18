@@ -33,6 +33,7 @@ class ModalController extends Controller
     private $roomType = array(
         '1'=>'平台聊天室',
         '2'=>'多人聊天室',
+        '4'=>'客服.快速引导房',
 //        '3'=>'1对1'
     );
 
@@ -46,7 +47,7 @@ class ModalController extends Controller
     }
     //取得所有房间ID跟名称
     public function getAllRooms($type='json'){
-        $res = DB::table('chat_room')->select('room_id','room_name')->whereNotIn('room_id',[2,3])->orderby('room_id')->get();
+        $res = DB::table('chat_room')->select('room_id','room_name')->whereNotIn('room_id',[3])->orderby('room_id')->get();
         if($type=='json')
             return json_encode($res);
         else

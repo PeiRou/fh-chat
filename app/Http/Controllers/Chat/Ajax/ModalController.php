@@ -28,11 +28,24 @@ class ModalController extends Controller
         '902' => '三分时时彩',
         '905' => '匈牙利赛车',
         '906' => '匈牙利飞艇',
-        '907' => '匈牙利时时彩');
+        '907' => '匈牙利时时彩',
+        '908' => '一分赛车',
+        '909' => '一分时时彩',
+        '910' => '一分六合彩',
+        '911' => '二分赛车',
+        '912' => '二分时时彩',
+        '913' => '二分六合彩',
+        '914' => '五分赛车',
+        '915' => '五分时时彩',
+        '916' => '五分六合彩',
+        '917' => '十分赛车',
+        '918' => '十分时时彩',
+        '919' => '十分六合彩');
 
     private $roomType = array(
         '1'=>'平台聊天室',
         '2'=>'多人聊天室',
+        '4'=>'客服.快速引导房',
 //        '3'=>'1对1'
     );
 
@@ -46,7 +59,7 @@ class ModalController extends Controller
     }
     //取得所有房间ID跟名称
     public function getAllRooms($type='json'){
-        $res = DB::table('chat_room')->select('room_id','room_name')->whereNotIn('room_id',[2,3])->orderby('room_id')->get();
+        $res = DB::table('chat_room')->select('room_id','room_name')->whereNotIn('room_id',[3])->orderby('room_id')->get();
         if($type=='json')
             return json_encode($res);
         else

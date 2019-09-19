@@ -746,12 +746,14 @@ class Swoole extends Command
         $uuid = isset($serv->post['uuid'])?$serv->post['uuid']:(isset($serv->get['uuid'])?$serv->get['uuid']:$sUuid);
         if(empty($uuid))
             return false;
-        if(!empty($sUuid))
+        if(!empty($sUuid)){
             PersonalLog::delRawLog([
-                'type' => $serv->post['type'] ?? $serv->get['type'] ?? 'room',
-                'toId' => $serv->post['toId'] ?? $serv->get['toId'] ?? 1,
+//                'type' => $serv->post['type'] ?? $serv->get['type'] ?? 'room',
+//                'toId' => $serv->post['toId'] ?? $serv->get['toId'] ?? 1,
                 'idx' => $uuid,
             ]);
+        }
+
 //            $this->delHisInfo('his'.$room_id.'='.$sUuid);
 
         $rsKeyH = 'delH';

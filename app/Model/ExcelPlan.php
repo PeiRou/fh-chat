@@ -41,6 +41,7 @@ class ExcelPlan extends Base
             'game_id' => $aParam['game_id'],
             'type' => $aParam['type'],
             'play_name' => $aParam['play_name'],
+            'plan_num' => $aParam['plan_num'],
             'num_digits' => empty($aParam['num_digits'])?0:$aParam['num_digits'],
             'planned_probability' => 40,
             'Winning_count' => 0,
@@ -54,6 +55,7 @@ class ExcelPlan extends Base
     public function edit($aParam,$id){
         return $this->where('id',$id)->update([
             'play_name' => $aParam['play_name'],
+            'plan_num' => $aParam['plan_num'],
             'planned_probability' => 40,
             'Winning_count' => 0,
             'total_count' => 1,

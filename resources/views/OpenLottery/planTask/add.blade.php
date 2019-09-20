@@ -39,6 +39,13 @@
         </div>
     </div>
 
+    <div class="field">
+        <label>计划个数</label>
+        <div class="ui input icon">
+            <input type="text" name="plan_num" id="plan_num" style="height: 38px;"/>
+        </div>
+    </div>
+
     {{--<div class="field">--}}
         {{--<label>计划中奖概率(%)</label>--}}
         {{--<div class="ui input icon">--}}
@@ -71,6 +78,21 @@
                     }
                 }
             },
+            plan_num:{
+                validators: {
+                    notEmpty: {
+                        message: '计划个数不能为空'
+                    },
+                    greaterThan: {
+                        value: 1,
+                        message: '数字请控制在1~8之间'
+                    },
+                    lessThan: {
+                        value: 8,
+                        message: '数字请控制在1~8之间'
+                    }
+                }
+            }
             // planned_probability:{
             //     validators: {
             //         notEmpty: {

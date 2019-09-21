@@ -37,7 +37,8 @@ class ModalController extends Controller
         '914' => '五分赛车',
         '915' => '五分时时彩',
         '917' => '十分赛车',
-        '918' => '十分时时彩');
+        '918' => '十分时时彩',
+        '920' => '香港快三');
 
     private $roomType = array(
         '1'=>'平台聊天室',

@@ -47,7 +47,7 @@ class ModalController extends Controller
 //        '3'=>'1对1'
     );
 
-    //取得计画任务彩种
+    //取得计划任务彩种
     public function getLottery(){
         return json_encode($this->lottery);
     }
@@ -155,7 +155,7 @@ class ModalController extends Controller
         $room = DB::table('chat_room')->select('room_id as roomid','room_name')->get();
         return view('modal.addHongbao')->with('room',$room);
     }
-    //显示手动发送计画任务-弹窗表单
+    //显示手动发送计划任务-弹窗表单
     public function manualPlan()
     {
         return view('modal.manualPlan');

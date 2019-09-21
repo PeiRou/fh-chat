@@ -47,7 +47,7 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/closeHongbao/{id}', 'Chat\ChatSettingController@closeHongbao');        //关闭红包
         Route::post('/chat/action/openHongbao/{id}', 'Chat\ChatSettingController@openHongbao');          //开启红包
         Route::post('/chat/action/updBaseInfo', 'Chat\ChatSettingController@updBaseInfo');               //修改平台配置
-        Route::post('/chat/action/sendPlan', 'Chat\ChatSettingController@sendPlan');                     //手动发送计画任务
+        Route::post('/chat/action/sendPlan', 'Chat\ChatSettingController@sendPlan');                     //手动发送计划任务
         Route::post('/chat/action/updLevelInfo', 'Chat\ChatSettingController@updLevelInfo');               //修改层级信息
         Route::post('/chat/action//changeGoogleCode', 'Chat\ChatSettingController@changeGoogleCode');//更换子账号的google验证码
         Route::post('/chat/action/setPushBet', 'Chat\ChatSettingController@setPushBet');//跟单设置
@@ -66,10 +66,10 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('chat/modal/editAdminInfo/{id}', 'Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
         Route::get('chat/modal/editForbidInfo/{id}', 'Chat\Ajax\ModalController@editForbidInfo');        //显示修改违禁词-弹窗表单
         Route::get('chat/modal/addHongbao', 'Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
-        Route::get('chat/modal/manualPlan', 'Chat\Ajax\ModalController@manualPlan');                //显示手动发送计画任务-弹窗表单
+        Route::get('chat/modal/manualPlan', 'Chat\Ajax\ModalController@manualPlan');                //显示手动发送计划任务-弹窗表单
         Route::get('/chat/modal/googleSubAccount/{id}', 'Chat\Ajax\ModalController@googleSubAccount');  //子账号google验证码
         Route::get('/chat/modal/getRoomType', 'Chat\Ajax\ModalController@getRoomType');                   //获取房间类型
-        Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                   //取得计画任务彩种
+        Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                   //取得计划任务彩种
         Route::get('/chat/modal/getAllRooms', 'Chat\Ajax\ModalController@getAllRooms');                   //取得所有房间ID跟名称
 
     //datatable

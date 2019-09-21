@@ -64,7 +64,7 @@
             {data:'game_name',title:'游戏名称'},
             {data:'play_name',title:'计划名称显示'},
             {data:'num_digits',title:'选取的号码位数'},
-            {data:'plan_num',title:'计画个数'},
+            {data:'plan_num',title:'计划个数'},
             {data:'created_at',title:'新增时间'},
             {data:'updated_at',title:'修改时间'},
             {data:'control',title:'操作'},

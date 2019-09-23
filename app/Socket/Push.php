@@ -39,6 +39,7 @@ class Push
             foreach ($fds as $fd){
                 self::pushList($fd, $user, $column, $async);
             }
+            return true;
         }else{
             return false;
         }

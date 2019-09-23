@@ -91,6 +91,8 @@ class Action extends BaseRepository
         }elseif($type == 'room' || $type == 'many'){
             $room = ChatRoom::getRoomOne(['room_id' => $id], 1);
             if(empty($room)){
+                # 删除房间信息
+                ChatRoomRepository::delRoom($id);
                 app('swoole')->sendToSerf($fd,5,'此房间不存在！');
                 return false;
             }
@@ -102,16 +104,6 @@ class Action extends BaseRepository
                 app('swoole')->sendToSerf($fd,5,'房间暂未开启');
                 return false;
             }
-
-//            if(($is_speaking = ChatRoom::getRoomValue(['room_id' => $id], 'is_speaking', 1)) === 0){
-//                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态');
-//                return false;
-//            }
-//            if(empty($is_speaking)) {
-//                app('swoole')->sendToSerf($fd,5,'此房间不存在！');
-//                return false;
-//            }
-
             if(($type == 'room' && $id == 2) || $type == 'many'){
                 (new ManyToOne($fd, $iRoomInfo['userId'], $id, $msg, $type, $iRoomInfo))->sendMessage();
             }else{

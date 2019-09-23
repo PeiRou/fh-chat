@@ -8,7 +8,6 @@
 
 namespace App\Socket\Controllers;
 
-
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
@@ -16,7 +15,6 @@ use App\Socket\Utility\Room;
 
 class Action extends Base
 {
-
     //打开窗口
     public function openWindow()
     {

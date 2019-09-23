@@ -194,7 +194,6 @@ class ChatRoom extends Base
     {
         # 找出所有在这个房间的用户映射
         $arr = $db->where('FIND_IN_SET("'.$roomId.'",rooms)')->get('chat_users', null, ['rooms', 'users_id']);
-
         $data = [];
         foreach ($arr as $k=>$v){
             $data[] = [

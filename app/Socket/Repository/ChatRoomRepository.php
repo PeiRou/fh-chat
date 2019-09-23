@@ -77,8 +77,13 @@ class ChatRoomRepository extends BaseRepository
         if(ChatRoom::delRoom($roomId)){
             # 更新这些人的房间列表
             foreach ($users as $user){
+                # 删除历史列表
+                $pushs = ['RoomList'];
+                if(Room::delHistoryChatList($user, 'room', $roomId)){
+                    array_push($pushs, 'HistoryChatList');
+                }
                 # 更新些人房间列表
-                Push::pushUser($user, 'RoomList');
+                Push::pushUser($user, $pushs);
             }
             # 清日志
 //            PersonalLog::clearLog('room', 0, $roomId);

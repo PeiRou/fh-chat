@@ -100,7 +100,7 @@ class User extends Base
             return $this->show(2, '失败');
         }
         # 更新列表
-        Push::pushUser($this->user['users_id'], 'HistoryChatList');
+//        Push::pushUser($this->user['users_id'], 'HistoryChatList');
         return $this->show(0);
     }
 
@@ -134,6 +134,19 @@ class User extends Base
             'remark' => $res['remark'],
             'status' => $res['status'],
         ]);
+    }
+
+    //置顶
+    public function setSort()
+    {
+        $sort = (int)$this->get('sort');
+        if(empty($type = $this->get('type')) || ($id = (int)$this->get('id')) < 1){
+            return $this->show(1, '参数错误');
+        }
+        if(!Room::setHistoryChatList($this->user['users_id'], $type, $id, ['sort' => $sort])){
+            return $this->show(2, '失败');
+        }
+        return $this->show(0);
     }
 
 }

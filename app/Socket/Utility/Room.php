@@ -44,6 +44,8 @@ class Room
         self::setHistoryChatList($iRoomInfo['userId'], 'room', $roomId, ['lookNum' => 0]);
         # 设置用户状态 打开的群组还是单人 和id
         Room::setFdStatus($iRoomInfo['userId'], $roomId, 'room', $fd);
+        # 推送群组列表
+        Push::pushUser($iRoomInfo['userId'], 'RoomList');
     }
 
     //离开房间 - 只是更换房间 不退出房间
@@ -194,7 +196,6 @@ class Room
         try{
             $disk = 'home';
             $filekey = 'chatList/'.$userId.'/'.$type.'_'.$id;
-
             if((is_null($param = self::get($filekey, $disk)) || !$param) || !$param = @json_decode($param, 1)){
                 # 没有的话创建默认值
                 $param = [];
@@ -205,6 +206,7 @@ class Room
                 $param['lookNum'] = 0;
                 $param['lastMsg'] = '';
                 $param['lastTime'] = time();
+                $param['sort'] = 0;
             }
             $param['update_at'] = date('Y-m-d H:i:s');
             $param['lookNum'] = $param['lookNum'] ?? 0;
@@ -262,9 +264,9 @@ class Room
                 return false;
             if(self::set($filekey, $json, $disk)){
                 # 每次设置就将信息推送前端改变 因为异步里面不能使用异步 改为同步
-                return Push::pushUser($userId, 'HistoryChatList', false);
+                Push::pushUser($userId, 'HistoryChatList', false);
+                return true;
             }
-            return true;
         }catch (\Throwable $e){
             if($e->getCode() == 400)
                 return false;
@@ -298,13 +300,26 @@ class Room
         $disk = 'home';
         $files = Storage::disk($disk)->allFiles('chatList/'.$userId.'/');
         $list = [];
+        $list1 = [];
         foreach ($files as $k=>$v){
-            array_push($list,json_decode(self::get($v, $disk), 1));
+            $json = json_decode(self::get($v, $disk), 1);
+            if(isset($json['sort']) && $json['sort']){
+                array_push($list1, $json);
+            }else{
+                array_push($list, $json);
+            }
         }
         $list = array_reverse(array_values(array_sort($list, function ($value) {
             return $value['lastTime'];
         })));
-        return $list;
+        #
+        $list1 = array_reverse(array_values(array_sort($list1, function ($value) {
+            return $value['sort'];
+        })));
+        $list1 = array_reverse(array_values(array_sort($list1, function ($value) {
+            return $value['lastTime'];
+        })));
+        return array_merge($list1, $list);
     }
 
     //-----------------------------------------------------------------------------------

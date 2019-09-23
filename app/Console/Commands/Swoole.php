@@ -11,6 +11,7 @@ use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Redis\Chat;
 use App\Socket\Repository\Action;
+use App\Socket\Repository\ChatRoomRepository;
 use App\Socket\SwooleEvevts;
 use App\Socket\Utility\HttpParser;
 use App\Socket\Utility\Parser;
@@ -426,8 +427,12 @@ class Swoole extends Command
             $this->push($fd, $msg);
             # 房间信息
             $roomInfo = $rooms = DB::table('chat_room')->where('room_id', $roomId)->first();
-            if((!$roomInfo || $roomInfo->is_open !== 1))
+            if((!$roomInfo || $roomInfo->is_open !== 1)){
+                # 删除房间信息
+                Room::delHistoryChatList($iRoomInfo['userId'], 'room', $roomId);
+                ChatRoomRepository::delRoom($roomId);
                 throw new \Exception('房间暂未开启', 203);
+            }
             if(array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false){# 不在房间
                 # 是否可以快速加入
                 if($roomInfo->is_auto || $roomId == 1){

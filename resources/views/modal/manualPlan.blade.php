@@ -1,6 +1,6 @@
 <form id="updForm" class="ui mini form" action="{{ url('/chat/action/sendPlan') }}">
     <div class="field">
-        <label>计画内容</label>
+        <label>计划内容</label>
         <div class="ui input icon">
             <textarea name="plan" rows="6"></textarea>
         </div>
@@ -19,7 +19,7 @@
                 plan: {
                     validators: {
                         notEmpty: {
-                            message: '计画内容不能为空'
+                            message: '计划内容不能为空'
                         }
                     }
                 }

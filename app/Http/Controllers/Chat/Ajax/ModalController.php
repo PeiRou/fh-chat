@@ -31,16 +31,14 @@ class ModalController extends Controller
         '907' => '匈牙利时时彩',
         '908' => '一分赛车',
         '909' => '一分时时彩',
-        '910' => '一分六合彩',
         '911' => '二分赛车',
         '912' => '二分时时彩',
         '913' => '二分六合彩',
         '914' => '五分赛车',
         '915' => '五分时时彩',
-        '916' => '五分六合彩',
         '917' => '十分赛车',
         '918' => '十分时时彩',
-        '919' => '十分六合彩');
+        '920' => '香港快三');
 
     private $roomType = array(
         '1'=>'平台聊天室',
@@ -49,7 +47,7 @@ class ModalController extends Controller
 //        '3'=>'1对1'
     );
 
-    //取得计画任务彩种
+    //取得计划任务彩种
     public function getLottery(){
         return json_encode($this->lottery);
     }
@@ -157,7 +155,7 @@ class ModalController extends Controller
         $room = DB::table('chat_room')->select('room_id as roomid','room_name')->get();
         return view('modal.addHongbao')->with('room',$room);
     }
-    //显示手动发送计画任务-弹窗表单
+    //显示手动发送计划任务-弹窗表单
     public function manualPlan()
     {
         return view('modal.manualPlan');

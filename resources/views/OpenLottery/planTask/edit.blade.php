@@ -4,6 +4,10 @@
         <div class="ui input icon">
             <input type="text" name="play_name" id="play_name" style="height: 38px;" value="{{ $iInfo->play_name }}"/>
         </div>
+        <label>计划个数</label>
+        <div class="ui input icon">
+            <input type="text" name="plan_num" id="plan_num" style="height: 38px;" value="{{ $iInfo->plan_num }}"/>
+        </div>
     </div>
 
     {{--<div class="field">--}}
@@ -30,6 +34,21 @@
                     }
                 }
             },
+            plan_num:{
+                validators: {
+                    notEmpty: {
+                        message: '计划个数不能为空'
+                    },
+                    greaterThan: {
+                        value: 1,
+                        message: '数字请控制在1~8之间'
+                    },
+                    lessThan: {
+                        value: 8,
+                        message: '数字请控制在1~8之间'
+                    }
+                }
+            }
             // planned_probability:{
             //     validators: {
             //         notEmpty: {

@@ -429,7 +429,7 @@ class ChatSettingController extends Controller
         else
             return response()->json(['status'=>false,'msg'=>'修改违禁词失败'],200);
     }
-    //手动发送计画任务
+    //手动发送计划任务
     public function sendPlan(Request $request){
         $plan = $request->input('plan').'<br>';                    //计划推送
         $session_id = md5(time().rand(1,10));

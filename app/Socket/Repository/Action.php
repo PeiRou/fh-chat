@@ -12,6 +12,7 @@ namespace App\Socket\Repository;
 use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoom;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Push;
 use App\Socket\Utility\Message;
 use App\Socket\Utility\Room;
@@ -105,9 +106,9 @@ class Action extends BaseRepository
                 return false;
             }
             if(($type == 'room' && $id == 2) || $type == 'many'){
-                (new ManyToOne($fd, $iRoomInfo['userId'], $id, $msg, $type, $iRoomInfo))->sendMessage();
+                return (new ManyToOne($fd, $iRoomInfo['userId'], $id, $msg, $type, $iRoomInfo))->sendMessage();
             }else{
-                Room::sendMessage($fd, $iRoomInfo, $msg, $id);
+                return Room::sendMessage($fd, $iRoomInfo, $msg, $id);
             }
         }
 

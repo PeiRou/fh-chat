@@ -77,6 +77,6 @@ class ChatRoomDt extends Base
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room_dt') ?? null;
-        }, 30, false);
+        }, 30, true);
     }
 }

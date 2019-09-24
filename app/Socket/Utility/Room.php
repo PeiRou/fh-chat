@@ -352,8 +352,10 @@ class Room
         if(!ChatRoomDt::getOne([
             'id' => $roomId,
             'user_id' => $iRoomInfo['userId']
-        ]))
-            throw new SocketApiException('您不在当前房间，请先加入房间');
+        ])){
+            app('swoole')->sendToSerf($fd,5,'您已不在当前房间！');
+            return false;
+        }
         //发送消息
         if(!is_array($iRoomInfo))
             $iRoomInfo = (array)$iRoomInfo;

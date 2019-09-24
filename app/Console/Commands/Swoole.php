@@ -826,7 +826,7 @@ class Swoole extends Command
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
         if($game!=0){
             //判断时间内不开启计划 低于此时间不开启
-            if(time() < strtotime(date('Y-m-d '.$baseSetting->send_starttime)) && (time() > strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
+            if(time() > strtotime(date('Y-m-d '.$baseSetting->send_starttime)) || (time() < strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
         }
 
         $rsKeyH = 'pln';

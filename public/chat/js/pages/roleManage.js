@@ -24,7 +24,7 @@ $(function () {
                         var postMsg = "<div style='border-radius: 3px; color: #"+data.font+"; font-size: 12px; padding: 5px;  background: -webkit-linear-gradient(left, #"+data.bg1+",#"+data.bg2+"); background: -o-linear-gradient(right, #"+data.bg1+",#"+data.bg2+"); background: -moz-linear-gradient(right, #"+data.bg1+",#"+data.bg2+"); background: linear-gradient(to right, #"+data.bg1+",#"+data.bg2+");'>"+data.msg+"</div>";
                     return postMsg;
                 }},
-            {data:'length'},                //消息最大长度
+            // {data:'length'},                //消息最大长度
             {data:function (data){          //权限 permission
                     arrayPer = data.permission.split(',');
                     var allli = "";
@@ -46,13 +46,14 @@ $(function () {
                     });
                     return "<ul class='control-menu'>" + allli + "</ul>";
                 }},
-            {data:'description'},           //描述
+            // {data:'description'},           //描述
             {data:function (data) {         //操作
                     var delEnabel = '';
-                    if(data.id=="1" || data.id=="2"|| data.id=="4"|| data.id=="7")
-                        delEnabel = "class='disabled'";
-                    else
-                        delEnabel = "onclick='del("+data.id+",\"delRoleInfo\")'";
+                    delEnabel = "class='disabled'";
+                    // if(data.id=="1" || data.id=="2"|| data.id=="4"|| data.id=="7")
+                    //     delEnabel = "class='disabled'";
+                    // else
+                    //     delEnabel = "onclick='del("+data.id+",\"delRoleInfo\")'";
                     return "<ul class='control-menu'>" +
                         "<li onclick='updRoleInfo("+data.id+")'>修改</li>" +
                         "<li "+delEnabel+"'>删除</li>" +

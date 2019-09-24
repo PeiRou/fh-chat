@@ -1,7 +1,7 @@
 @extends('chat.master')
 
 @section('top-buttons')
-    <span class="ui green button" onclick="addRole()">添加角色</span>
+    {{--<span class="ui green button" onclick="addRole()">添加角色</span>--}}
 @endsection
 
 @section('title','角色管理')

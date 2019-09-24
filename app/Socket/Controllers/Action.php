@@ -22,6 +22,7 @@ class Action extends Base
         $type = $this->type;
         if(!$id)
             return false;
+        $this->exitWindow();
         # 设置用户状态 打开的群组还是单人 和id
         Room::setFdStatus($this->iRoomInfo['userId'], $id, $type, $this->request->fd);
 

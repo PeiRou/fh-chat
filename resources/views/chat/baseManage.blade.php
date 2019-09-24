@@ -107,27 +107,27 @@
                     </div>
                 </div>
             </div>
-            <div class="inline fields">
-                <div class="six wide field">
-                    <label style="width :150px;text-align: right;" class="notEmpty">是否展开聊天室</label>
-                    <select class="ui dropdown" name="isOpenAuto">
-                        <option value="1" @if($base->is_open_auto == "1") selected="selected" @endif>自动展开(适合用户量少的平台)</option>
-                        <option value="0" @if($base->is_open_auto != "1") selected="selected" @endif>不自动展开</option>
-                    </select>
-                </div>
-            </div>
+            {{--<div class="inline fields">--}}
+                {{--<div class="six wide field">--}}
+                    {{--<label style="width :150px;text-align: right;" class="notEmpty">是否展开聊天室</label>--}}
+                    {{--<select class="ui dropdown" name="isOpenAuto">--}}
+                        {{--<option value="1" @if($base->is_open_auto == "1") selected="selected" @endif>自动展开(适合用户量少的平台)</option>--}}
+                        {{--<option value="0" @if($base->is_open_auto != "1") selected="selected" @endif>不自动展开</option>--}}
+                    {{--</select>--}}
+                {{--</div>--}}
+            {{--</div>--}}
             <div class="inline fields">
                 <div class="six wide field">
                     <label style="width :150px;text-align: right;" class="notEmpty">下注最低推送额</label>
                     <input type="text" placeholder="" name="betMin" value="{{ $base->bet_min_amount }}">
                 </div>
             </div>
-            <div class="inline fields">
-                <div class="six wide field">
-                    <label style="width :150px;text-align: right;">IP黑名单</label>
-                    <input type="text" placeholder="" name="ipBlacklist" value="{{ $base->ip_blacklist }}">
-                </div>
-            </div>
+            {{--<div class="inline fields">--}}
+                {{--<div class="six wide field">--}}
+                    {{--<label style="width :150px;text-align: right;">IP黑名单</label>--}}
+                    {{--<input type="text" placeholder="" name="ipBlacklist" value="{{ $base->ip_blacklist }}">--}}
+                {{--</div>--}}
+            {{--</div>--}}
             @if($ISROOMS)
             <div class="inline fields">
                 <div class="six wide field">

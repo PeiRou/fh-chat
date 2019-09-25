@@ -41,7 +41,7 @@ class Base
     {
         try {
             if (empty($update)) {
-                return false;
+                return true;
             }
             $tableName = $table; // 表名
             $firstRow  = current($update);

@@ -82,7 +82,7 @@ class ChatSettingController extends Controller
             $image = substr($image,$limit+7);
             $image = str_replace(' ', '+', $image);
             $path = "/roomImg/";
-            $imageName = $path.md5($roomid).".jpg";                       //MD5图片名称
+            $imageName = $path.md5($roomid.time()).".jpg";                       //MD5图片名称
 
             $arr = array();
             $arr['path'] = $path;

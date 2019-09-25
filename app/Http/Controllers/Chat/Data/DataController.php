@@ -108,8 +108,14 @@ class DataController extends Controller
         $is_rooms = Session::get('ISROOMS');
 //        $users = DB::table('chat_room')->select('*',DB::raw("'".$is_rooms."' as is_rooms"))
 //            ->whereIn('roomtype',[1,2])->get();
-        $orgUsers = DB::select("select chat_room.*,x.countUsers,'".$is_rooms."' as is_rooms,'0' as online from chat_room
-left join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on  chat_room.room_id = x.id where room_id in (1,2) Or roomtype = 2");
+        $sql = "select chat_room.*,x.countUsers,'".$is_rooms."' as is_rooms,'0' as online from chat_room
+left join (select id,count(user_id) as countUsers from chat_room_dt group by id) x on  chat_room.room_id = x.id where 1";
+        if($is_rooms)
+            $sql .= " and room_id in (1,2) Or roomtype = 2";
+        else
+            $sql .= " and room_id = 1";
+
+        $orgUsers = DB::select($sql);
         $users = [];
         foreach ($orgUsers as $key => $val){
             $countOnline = 0;

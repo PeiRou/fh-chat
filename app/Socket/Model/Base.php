@@ -68,7 +68,8 @@ class Base
             $whereIn   = rtrim(str_repeat('?,', count($whereIn)), ',');
             $updateSql = rtrim($updateSql, ", ") . " WHERE `" . $referenceColumn . "` IN (" . $whereIn . ")";
             // 传入预处理sql语句和对应绑定数据
-            return $db->rawQuery($updateSql, $bindings);
+            $db->rawQuery($updateSql, $bindings);
+            return true;
         } catch (\Exception $e) {
             return false;
         }

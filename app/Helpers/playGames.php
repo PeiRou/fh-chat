@@ -340,8 +340,8 @@ if(!function_exists('writeLog')) {
             $paths = explode('/',$file);
             array_pop($paths);
             $p = '';
-            foreach ($paths as $path){
-                $p .= '/'.$path;
+            foreach ($paths as $pa){
+                $p .= '/'.$pa;
                 if(!file_exists($p))
                     mkdir($p);
             }

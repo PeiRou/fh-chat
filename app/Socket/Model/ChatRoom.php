@@ -55,6 +55,9 @@ class ChatRoom extends Base
     {
         $db->startTransaction();
         try{
+            if(!ChatRoom::getRoomOne($db, ['room_id' => $roomId])){
+                throw new \Exception('没有这个房间');
+            }
             isset($param['user_id']) && $db->where('users_id', $param['user_id']);
             $uModel = clone $db;
             $user = $db->getOne('chat_users');

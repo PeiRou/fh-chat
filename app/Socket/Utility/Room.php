@@ -421,8 +421,8 @@ class Room
      */
     public static function sendRoomSystemMsg($roomId, $msg, $lastMsg, $isSetLookNum = false)
     {
-//        $userIds = ChatRoomDt::getRoomUserIds($roomId);
-        $userIds = self::getOnlineUsers();
+        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+//        $userIds = self::getOnlineUsers();
         foreach ($userIds as $toUserId){
             Push::pushUserMessage($toUserId, 'room', $roomId, $msg,['msg' => $lastMsg],['isSetLookNum'=>$isSetLookNum]);
         }

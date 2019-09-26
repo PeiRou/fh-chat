@@ -71,6 +71,10 @@ class ChatRoomRepository extends BaseRepository
     //删除房间
     public static function delRoom($roomId)
     {
+        if(in_array($roomId, [1, 2])){
+            writeLog('error', '此房间不能删除');
+            return false;
+        }
         # 获取在这个房间的会员
         $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
         # 删除房间

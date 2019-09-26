@@ -439,9 +439,6 @@ class Swoole extends Command
                     if(!$this->addRoom($roomId, $iRoomInfo, $fd))
                         throw new \Exception('加入房间失败', 203);
                 }else{
-                    if(Room::delHistoryChatList($iRoomInfo['userId'], 'room', $roomId)){
-                        Push::pushUser($iRoomInfo['userId'], 'HistoryChatList');
-                    }
                     throw new \Exception('您不在当前房间中', 203);
                 }
             }

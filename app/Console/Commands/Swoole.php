@@ -428,9 +428,11 @@ class Swoole extends Command
             # 房间信息
             $roomInfo = $rooms = DB::table('chat_room')->where('room_id', $roomId)->first();
             if((!$roomInfo || $roomInfo->is_open !== 1)){
-                # 删除房间信息
-                Room::delHistoryChatList($iRoomInfo['userId'], 'room', $roomId);
-                ChatRoomRepository::delRoom($roomId);
+                if(!$roomInfo){
+                    # 删除房间信息
+                    Room::delHistoryChatList($iRoomInfo['userId'], 'room', $roomId);
+                    ChatRoomRepository::delRoom($roomId);
+                }
                 throw new \Exception('房间暂未开启', 203);
             }
             if(array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false){# 不在房间

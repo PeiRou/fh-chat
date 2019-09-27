@@ -71,7 +71,7 @@ class ChatRoomRepository extends BaseRepository
     //删除房间
     public static function delRoom($roomId)
     {
-        if(in_array($roomId, [1, 2])){
+        if(in_array($roomId, [1, 2, 3])){
             writeLog('error', '此房间不能删除');
             return false;
         }

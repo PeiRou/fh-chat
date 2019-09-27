@@ -92,8 +92,6 @@ class Action extends BaseRepository
         }elseif($type == 'room' || $type == 'many'){
             $room = ChatRoom::getRoomOne(['room_id' => $id], 1);
             if(empty($room)){
-                # 删除房间信息
-                ChatRoomRepository::delRoom($id);
                 app('swoole')->sendToSerf($fd,5,'此房间不存在！');
                 return false;
             }

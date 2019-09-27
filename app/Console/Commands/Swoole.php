@@ -431,7 +431,9 @@ class Swoole extends Command
                 if(!$roomInfo){
                     # 删除房间信息
                     Room::delHistoryChatList($iRoomInfo['userId'], 'room', $roomId);
-                    ChatRoomRepository::delRoom($roomId);
+                    # 更新些人房间列表
+                    Push::pushUser($iRoomInfo['userId'], 'HistoryChatList');
+//                    ChatRoomRepository::delRoom($roomId);
                 }
                 throw new \Exception('房间暂未开启', 203);
             }

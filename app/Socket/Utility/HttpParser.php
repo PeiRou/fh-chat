@@ -38,7 +38,7 @@ class HttpParser
         $instance = new $controller($this);
         try{
             if(!$instance->onRequest($this->action)){
-                $instance->show(403, '', [], 403);
+                $instance->show(403, '登录失效', [], 403);
                 return false;
             }
             $res = call_user_func([$instance, $this->action]);

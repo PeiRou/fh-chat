@@ -74,6 +74,19 @@ class BackAction extends Base
         return $this->show(1, 'error');
     }
 
+    //置顶房间(不改数据库)
+    public function setSortRoom()
+    {
+        if(!($roomId = (int)$this->get('roomId'))){
+            return $this->show(1, '参数错误');
+        }
+        $top_sort = (int)$this->get('top_sort');
+        if($r = ChatRoomRepository::setSortRoom($roomId, $top_sort)){
+            return $this->show(1, $r);
+        }
+        return $this->show(0);
+    }
+
 
 
 }

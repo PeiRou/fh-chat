@@ -138,6 +138,15 @@
                     </select>
                 </div>
             </div>
+            <div class="inline fields">
+                <div class="six wide field">
+                    <label style="width :150px;text-align: right;" class="notEmpty">非管理员搜索好友/加好友</label>
+                    <select class="ui dropdown" name="is_add_friends">
+                        <option value="1" @if($base->is_add_friends == "1") selected="selected" @endif>开</option>
+                        <option value="0" @if($base->is_add_friends != "1") selected="selected" @endif>关</option>
+                    </select>
+                </div>
+            </div>
             @endif
             <div class="inline fields">
                 <div class="three wide field">

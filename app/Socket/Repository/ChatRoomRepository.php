@@ -13,7 +13,10 @@ use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
+use App\Socket\Utility\Component\Timer;
 use App\Socket\Utility\Room;
+use App\Socket\Utility\Task\TaskManager;
+use App\Socket\Utility\Trigger;
 
 class ChatRoomRepository extends BaseRepository
 {
@@ -142,5 +145,27 @@ class ChatRoomRepository extends BaseRepository
             return ChatRoom::update(['room_id' => $roomid], ['head_img' => '/upchat'. $img."?t=".time().rand(111,22222)]);
         }
         return false;
+    }
+
+    //置顶房间(不改数据库)
+    public static function setSortRoom($roomId,int $top_sort = 0)
+    {
+        try{
+            # 获取在这个房间的会员
+            $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
+            if(count($users)) {
+                TaskManager::async(function () use ($users, $roomId, $top_sort) {
+                    foreach ($users as $user_id){
+                        Room::setHistoryChatList($user_id, 'room', $roomId, ['top_sort' => $top_sort]);
+                    }
+                });
+            }
+        }catch (\Throwable $e){
+            if($e->getCode()){
+                return $e->getMessage();
+            }
+            Trigger::getInstance()->throwable($e);
+            return '出错了';
+        }
     }
 }

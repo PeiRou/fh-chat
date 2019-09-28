@@ -1056,7 +1056,7 @@ class Swoole extends Command
             $betSpeak = 0;
         }
         if($isnot_auto_count==0)
-            $aUsers-> chat_status = $betSpeak?$aUsers-> chat_status:1;
+            $aUsers->chat_status = $betSpeak?$aUsers->chat_status:1;
         //检查平台是否开放聊天
         $aUsers->chat_status = $aUsers->is_speaking==1?$aUsers->chat_status:1;
         if($uLv==99){   //管理员不受限制

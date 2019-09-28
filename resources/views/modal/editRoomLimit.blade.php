@@ -98,6 +98,12 @@
         <textarea style="display: none" name="head_img" id="head_img" ></textarea>
         <img id="head_img_img" src="{{ str_replace('/upchat', '', (@$roomInfo->head_img ?? '')) ?? '' }}" alt="" style="max-height: 50px; max-width: 50px">
     </div>
+    <div class="field" >
+        <label>置顶（0:关闭，数值越大排名越前）</label>
+        <div class="ui input icon" >
+            <input type="number"  name="top_sort"  min="0" max="999" value="{{@$roomInfo->top_sort ?? 0}}">
+        </div>
+    </div>
     <input type="hidden" value="{{ $id }}" name="id">
 </form>
 

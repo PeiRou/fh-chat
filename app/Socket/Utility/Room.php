@@ -207,6 +207,7 @@ class Room
                 $param['lastMsg'] = '';
                 $param['lastTime'] = time();
                 $param['sort'] = 0;
+                $param['top_sort'] = 0;
             }
             $param['update_at'] = date('Y-m-d H:i:s');
             $param['lookNum'] = $param['lookNum'] ?? 0;
@@ -238,7 +239,7 @@ class Room
 
             # name 如果没有的话自己根据id查  24小时更新一次
             # 注：type = many 的情况比较特殊 需要根据房间的名称组合 所以在上面写了闭包来设置
-            if(empty($param['name']) || ($param['update_name_at'] < time() - 60)){
+            if(empty($param['name']) || ($param['update_name_at'] < (time() - 60))){
                 if($type == 'users'){
                     $UserFriendList = ChatFriendsList::getUserFriendList($userId, $id);
                     if(!count($UserFriendList))
@@ -250,6 +251,7 @@ class Room
                     $room = ChatRoom::getRoomOne(['room_id' => $id]);
                     $param['name'] = $room['room_name'];
                     $param['head_img'] = $room['head_img'];
+                    $param['top_sort'] = $room['top_sort'];
                 }
                 $param['update_name_at'] = time();
             }
@@ -301,9 +303,12 @@ class Room
         $files = Storage::disk($disk)->allFiles('chatList/'.$userId.'/');
         $list = [];
         $list1 = [];
+        $list2 = [];
         foreach ($files as $k=>$v){
             $json = json_decode(self::get($v, $disk), 1);
-            if(isset($json['sort']) && $json['sort']){
+            if(isset($json['top_sort']) && $json['top_sort']){
+                array_push($list2, $json);
+            }elseif(isset($json['sort']) && $json['sort']){
                 array_push($list1, $json);
             }else{
                 array_push($list, $json);
@@ -312,14 +317,16 @@ class Room
         $list = array_reverse(array_values(array_sort($list, function ($value) {
             return $value['lastTime'];
         })));
-        #
+        $list2 = array_reverse(array_values(array_sort($list2, function ($value) {
+            return $value['top_sort'];
+        })));
         $list1 = array_reverse(array_values(array_sort($list1, function ($value) {
             return $value['sort'];
         })));
         $list1 = array_reverse(array_values(array_sort($list1, function ($value) {
             return $value['lastTime'];
         })));
-        return array_merge($list1, $list);
+        return array_merge($list2, $list1, $list);
     }
 
     //-----------------------------------------------------------------------------------

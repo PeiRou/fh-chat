@@ -4,6 +4,7 @@ namespace App\Socket\Http\Controllers;
 
 
 use App\Socket\Http\Controllers\Traits\Login;
+use App\Socket\Model\ChatBase;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatFriendsLog;
 use App\Socket\Model\ChatUser;
@@ -20,6 +21,12 @@ class User extends Base
     {
         if(!($toUserId = (int)$this->get('toUserId')) && !($toUserName = $this->get('toUserName')))
             return $this->show(1, '参数错误');
+
+        if($this->user['chat_role'] !== 3){
+            if(ChatBase::getValue('is_add_friends') === 0){
+                return $this->show(1, '功能暂未开放');
+            }
+        }
 
         if(!$toUserId && $toUserName){
             $toUserId = ChatUser::getUserValue(['username' => $toUserName], 'users_id');
@@ -61,15 +68,19 @@ class User extends Base
     public function searchUser()
     {
         if(empty($name = $this->get('name')))
-            return $this->show(0, '', []);
+            return $this->show(0, '', [], false);
         # 查聊天室权限
-        $chat_role = ChatUser::getUserRole([
-            'users_id' => $this->user['users_id']
-        ]);
+//        $chat_role = ChatUser::getUserRole([
+//            'users_id' => $this->user['users_id']
+//        ]);
         $param = [
             'name' => $name
         ];
-        # （前期不需要这个限制）
+        if($this->user['chat_role'] !== 3){
+            if(ChatBase::getValue('is_add_friends') === 0){
+                return $this->show(1, '功能暂未开放', [], false);
+            }
+        }
 //        if($chat_role !== 3)
 //            $param['chat_role'] = 3;
         $users = ChatUser::search($param, $this->user['users_id'], 20, (boolean)$this->get('nocache'));

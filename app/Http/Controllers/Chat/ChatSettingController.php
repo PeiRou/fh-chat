@@ -75,7 +75,7 @@ class ChatSettingController extends Controller
         $request->input('bet')!='' && $data['bet'] = $request->input('bet');                //打码要求
         isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
         isset($request->pushBetGames) && $data['pushBetGame'] = implode(',', $request->pushBetGames);
-
+        isset($request->top_sort) && $data['top_sort'] = (int)$request->top_sort;
         if(isset($request->head_img)){
             $image = $request->head_img;    //接收base64的图
             $limit = strpos($image,'base64,');
@@ -99,10 +99,25 @@ class ChatSettingController extends Controller
             $data['created_at'] = date('Y-m-d H:i:s');      //新增时间
             $u = DB::table('chat_room')->insert($data);
         }else{
+            $top_sort = DB::table('chat_room')->where('room_id',$roomid)->value('top_sort');
             $u = DB::table('chat_room')->where('room_id',$roomid)->update($data);
         }
-        if($u==1)
+        if($u==1){
+            if(isset($data['top_sort']) && $data['top_sort'] !== $top_sort){
+                # 修改了置顶 修改所有会员的历史列表
+                if(!($res = Swoole::getSwoole('BackAction/setSortRoom', [
+                        'roomId' => $roomid,
+                        'top_sort' => $data['top_sort'],
+                        'token' => Session::getId()
+                    ])) || $res['code'] !== 0){
+                    return response()->json([
+                        'status'=>false,
+                        'msg'=> '修改房间成功，推送失败'
+                    ]);
+                }
+            }
             return response()->json(['status'=>true],200);
+        }
         else
             return response()->json(['status'=>false,'msg'=>'修改房间信息失败'],200);
     }
@@ -419,8 +434,9 @@ class ChatSettingController extends Controller
         $data['sa_id'] = Session::get('account_id');              //添加管理员id
         $data['account'] = Session::get('account');               //添加管理员
         $data['updated_at'] = date("Y-m-d H:i:s",time());      //更新日期
-        $data['guan_msg'] = $request->guan_msg;      //更新日期
+        $data['guan_msg'] = $request->guan_msg;      //
         $data['is_build_room'] = Session::get('ISROOMS')? (int)$request->is_build_room : 0; //会员是否可以建群，只有多聊天室模式下可以开
+        $data['is_add_friends'] = (int)$request->is_add_friends;      //
 
         $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
 

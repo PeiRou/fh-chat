@@ -19,15 +19,10 @@ class ModalController extends Controller
 //        '3'=>'1对1'
     );
 
+    //更新计划任务彩种
     private function setlottery(){
-        $dbGames = DB::table('game')->select('game_id','game_name')->get();
         $Games = new Games();
-        $games = $Games->games;
-        $gameIdtoCode = $Games->getGameData('gameIdtoCode');
-        foreach ($dbGames as $k => $v){
-            if(isset($gameIdtoCode[$v->game_id])&&$games[$gameIdtoCode[$v->game_id]]['havePlan']==true)
-                $this->lottery[$v->game_id] = $v->game_name;
-        }
+        $this->lottery = $Games->setlottery('havePlan');
     }
     //取得计划任务彩种
     public function getLottery(){

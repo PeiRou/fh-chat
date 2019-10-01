@@ -91,21 +91,70 @@
                     </div>
                 </div>
             </div>
-            <div class="inline fields">
+            {{--<div class="inline fields">--}}
+                {{--<label style="width :119px;text-align: right;" class="notEmpty">发布时段</label>--}}
+                {{--<div class="ui calendar" id="starttime">--}}
+                    {{--<div class="ui input left icon">--}}
+                        {{--<i class="time icon"></i>--}}
+                        {{--<input type="text" placeholder="" name="starttime" value="{{ $base->send_starttime }}">--}}
+                    {{--</div>--}}
+                {{--</div>--}}
+                {{--<label style="width :50px;text-align: right;">~次日</label>--}}
+                {{--<div class="ui calendar" id="endtime">--}}
+                    {{--<div class="ui input left icon">--}}
+                        {{--<i class="time icon"></i>--}}
+                        {{--<input type="text" placeholder="" name="endtime" value="{{ $base->send_endtime }}">--}}
+                    {{--</div>--}}
+                {{--</div>--}}
+            {{--</div>--}}
+            <div  class="inline fields" style="color:#ff0000;padding-left :132px;">发布时段不设置为不发计划，如果想24小时请设置0:00 - 23:59</div>
+            <div class="inline fields" >
                 <label style="width :119px;text-align: right;" class="notEmpty">发布时段</label>
-                <div class="ui calendar" id="starttime">
-                    <div class="ui input left icon">
-                        <i class="time icon"></i>
-                        <input type="text" placeholder="" name="starttime" value="{{ $base->send_starttime }}">
-                    </div>
+                <div id="SendConfig">
+                    @foreach($chat_send_config as $vavue)
+                        <div style="display: flex">
+                            <div class="ui calendar starttime">
+                                <div class="ui input left icon">
+                                    <i class="time icon"></i>
+                                    <input type="text" placeholder="" name="starttime[]" value="{{ $vavue->send_starttime }}">
+                                </div>
+                            </div>
+                            <label style="font-weight: 700; text-align: right; display: flex; align-items: center"> - </label>
+                            <div class="ui calendar endtime">
+                                <div class="ui input left icon">
+                                    <i class="time icon"></i>
+                                    <input type="text" placeholder="" name="endtime[]" value="{{ $vavue->send_endtime }}">
+                                </div>
+                            </div>
+                            <button class="ui button" id=""  type="button" onclick="delSendConfig(this)">
+                                删除
+                            </button>
+                        </div>
+                    @endforeach
                 </div>
-                <label style="width :50px;text-align: right;">~次日</label>
-                <div class="ui calendar" id="endtime">
-                    <div class="ui input left icon">
-                        <i class="time icon"></i>
-                        <input type="text" placeholder="" name="endtime" value="{{ $base->send_endtime }}">
+                <script type="text/html" id="SendConfigText">
+                    <div style="display: flex">
+                        <div class="ui calendar starttime" >
+                            <div class="ui input left icon">
+                                <i class="time icon"></i>
+                                <input type="text" placeholder="" name="starttime[]" value="">
+                            </div>
+                        </div>
+                        <label style="font-weight: 700; text-align: right; display: flex; align-items: center"> - </label>
+                        <div class="ui calendar endtime">
+                            <div class="ui input left icon">
+                                <i class="time icon"></i>
+                                <input type="text" placeholder="" name="endtime[]" value="">
+                            </div>
+                        </div>
+                        <button class="ui button" type="button" onclick="delSendConfig(this)">
+                            删除
+                        </button>
                     </div>
-                </div>
+                </script>
+                <button class="ui primary button" style="" id="addSendConfig" type="button">
+                    添加
+                </button>
             </div>
             {{--<div class="inline fields">--}}
                 {{--<div class="six wide field">--}}

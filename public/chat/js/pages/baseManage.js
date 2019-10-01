@@ -14,6 +14,7 @@ $(function () {
         ampm: false,
         type: 'time'
     });
+    reloadCalendar();
     $('#chkOpenStatus').change(function () {
         if($(this).prop( "checked" )==true){
             $('#dvOpenStatusOn').show();
@@ -45,7 +46,32 @@ $(function () {
     $('#dspPlan').click(function () {
         manual();
     });
+    $('#addSendConfig').click(function(event){
+        event.preventDefault();
+        $('#SendConfig').append($('#SendConfigText').text())
+        reloadCalendar();
+    })
 });
+//
+// function delSendConfig()
+// {
+//     alert()
+// }
+function delSendConfig(dom){
+    $(dom).parent('div').remove();
+}
+function reloadCalendar()
+{
+    $('#SendConfig .starttime').calendar({
+        ampm: false,
+        type: 'time'
+    });
+    $('#SendConfig .endtime').calendar({
+        ampm: false,
+        type: 'time'
+    });
+}
+
 $('#dspPlan').click(function () {
    console.log(1);
 });
@@ -109,6 +135,8 @@ $('#updUserForm').formValidation({
         }
     });
 });
+
+
 //手动发送计画任务
 function manual() {
     jc = $.confirm({

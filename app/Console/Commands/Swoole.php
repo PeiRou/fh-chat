@@ -6,6 +6,7 @@ use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
+use App\Socket\Model\ChatSendConfig;
 use App\Socket\Model\ChatUser;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
@@ -22,6 +23,7 @@ use App\Socket\Utility\Users;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use SebastianBergmann\CodeCoverage\Report\PHP;
 
 class Swoole extends Command
 {
@@ -828,10 +830,10 @@ class Swoole extends Command
         }
         //判断是否可以发送
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
-        if($game!=0){
-            //判断时间内不开启计划 低于此时间不开启
-            if(time() > strtotime(date('Y-m-d '.$baseSetting->send_starttime)) || (time() < strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
-        }
+//        if($game!=0){
+//            //判断时间内不开启计划 低于此时间不开启
+//            if(time() > strtotime(date('Y-m-d '.$baseSetting->send_starttime)) || (time() < strtotime(date('Y-m-d '.$baseSetting->send_endtime)))) return;
+//        }
 
         $rsKeyH = 'pln';
 
@@ -843,18 +845,40 @@ class Swoole extends Command
         }
         $valHis = json_decode($valHis, 1);
         foreach ($rooms as $v){
-            $valHis['room']= $v->room_id;
-            //检查计划消息
-            error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
-            $iRoomInfo = $this->getUsersess($valHis, '', 'plan');     //包装计划消息
-            $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
-            unset($iRoomInfo['plans']);
-            //计划消息组合底部固定信息
-            $iMsg .= urlencode($baseSetting->plan_msg);
-            $msg = $this->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
-            Room::sendRoomSystemMsg($valHis['room'], $msg, '计划消息');
+            if($game!=0){
+                //判断时间内不开启计划 低于此时间不开启
+                if(!$this->checkoutSendPlan((int)$v->room_id)){
+                    continue;
+                }
+            }
+           TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis){
+               //检查计划消息
+               error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
+               $iRoomInfo = app('swoole')->getUsersess($valHis, '', 'plan');     //包装计划消息
+               $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
+               unset($iRoomInfo['plans']);
+               //计划消息组合底部固定信息
+               $iMsg .= urlencode($baseSetting->plan_msg);
+               $msg = app('swoole')->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
+               Room::sendRoomSystemMsg($valHis['room'], $msg, '计划消息');
+           });
 //            $this->sendToAll($valHis['room'], $msg);
         }
+    }
+    //检查发布计划时间
+    public function checkoutSendPlan($roomId)
+    {
+        $list = ChatSendConfig::get($roomId);
+        $pdate = date('Y-m-d ');
+        $time = time();
+        foreach ($list as $v){
+            $start = strtotime($pdate.$v['send_starttime'].':00');
+            $end =  strtotime($pdate.$v['send_endtime'].':00');
+            if($time <= $end && $time >= $start){
+                return true;
+            }
+        }
+        return false;
     }
     //取得聊天室公告
     private function getChatNotice($room = 1){

@@ -6,43 +6,11 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use SameClass\Config\LotteryGames\Games;
 
 class ModalController extends Controller
 {
-    private $lottery = array(
-        '50'=>'北京赛车',
-        '1'=>'重庆时时彩',
-        '10'=>'江苏快三',
-        '55'=>'幸运飞艇',
-        '66'=>'PC蛋蛋',
-        '801'=>'快速赛车',
-        '802'=>'快速飞艇',
-        '803'=>'快速时时彩',
-        '80' => '秒速赛车',
-        '82' => '秒速飞艇',
-        '81' => '秒速时时彩',
-        '86' => '秒速快三',
-        '99' => '香港跑马',
-        '113' => 'QQ分分彩',
-        '901' => '三分赛车',
-        '902' => '三分时时彩',
-        '905' => '匈牙利赛车',
-        '906' => '匈牙利飞艇',
-        '907' => '匈牙利时时彩',
-        '908' => '一分赛车',
-        '909' => '一分时时彩',
-        '911' => '二分赛车',
-        '912' => '二分时时彩',
-        '913' => '二分六合彩',
-        '914' => '五分赛车',
-        '915' => '五分时时彩',
-        '917' => '十分赛车',
-        '918' => '十分时时彩',
-        '920' => '香港快三',
-        '921' => '一分快三',
-        '922' => '二分快三',
-        '923' => '三分快三',
-        '924' => '五分快三');
+    private $lottery = [];
 
     private $roomType = array(
         '1'=>'平台聊天室',
@@ -51,8 +19,19 @@ class ModalController extends Controller
 //        '3'=>'1对1'
     );
 
+    private function setlottery(){
+        $dbGames = DB::table('game')->select('game_id','game_name')->get();
+        $Games = new Games();
+        $games = $Games->games;
+        $gameIdtoCode = $Games->getGameData('gameIdtoCode');
+        foreach ($dbGames as $k => $v){
+            if(isset($gameIdtoCode[$v->game_id])&&$games[$gameIdtoCode[$v->game_id]]['havePlan']==true)
+                $this->lottery[$v->game_id] = $v->game_name;
+        }
+    }
     //取得计划任务彩种
     public function getLottery(){
+        $this->setlottery();
         return json_encode($this->lottery);
     }
     //获取房间类型
@@ -105,6 +84,7 @@ class ModalController extends Controller
         $roomInfo = DB::table('chat_room')->where('room_id', @$data[0])->first();
         $pushBetGames = !empty($roomInfo)?explode(',',$roomInfo->pushBetGame):[];
         $openGames = DB::table('game')->where('status',1)->get();
+        $this->setlottery();
         return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType)->with('openGames',$openGames)->with('pushBetGames',$pushBetGames);
     }
     //显示修改聊天室公告-弹窗表单

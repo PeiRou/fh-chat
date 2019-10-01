@@ -8,6 +8,7 @@ $(function () {
     $.ajax({
         url :'/chat/modal/getLottery',
         type: 'GET',
+        async: false,
         success: function(result) {
             lottery = jQuery.parseJSON(result);
         }
@@ -15,6 +16,7 @@ $(function () {
     $.ajax({
         url :'/chat/modal/getRoomType',
         type: 'GET',
+        async: false,
         success: function(result) {
             roomType = jQuery.parseJSON(result);
         }

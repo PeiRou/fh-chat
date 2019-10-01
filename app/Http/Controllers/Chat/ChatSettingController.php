@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Common\Reward;
 use App\Model\ChatRoom;
+use App\Model\ChatSendConfig;
 use App\Repository\ChatRoomRepository;
 use App\Swoole;
 use Illuminate\Http\Request;
@@ -426,8 +427,8 @@ class ChatSettingController extends Controller
 //        if($planSendGame=="on")
 //            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."803";
         $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
-        $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
-        $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
+//        $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
+//        $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
         $data['is_open_auto'] = $request->input('isOpenAuto')=="1"?1:0;                      //是否展开聊天室
         $data['bet_min_amount'] = $request->input('betMin');                        //下注最低推送额
         $data['ip_blacklist'] = $request->input('ipBlacklist');                     //IP黑名单
@@ -437,6 +438,10 @@ class ChatSettingController extends Controller
         $data['guan_msg'] = $request->guan_msg;      //
         $data['is_build_room'] = Session::get('ISROOMS')? (int)$request->is_build_room : 0; //会员是否可以建群，只有多聊天室模式下可以开
         $data['is_add_friends'] = (int)$request->is_add_friends;      //
+
+        if($i = ChatSendConfig::editConfigBefore($request, 0)){
+            return response()->json(['status'=>false,'msg'=>'发布时段更新失败：'.$i],200);
+        }
 
         $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
 

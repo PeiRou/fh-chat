@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Model\ChatSendConfig;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,7 @@ class ChatViewController extends Controller
         $planSendGameKSFT = 0;         //快速飞艇
         $planSendGameKSSSC = 0;         //快速时时彩
 
+        $chat_send_config = ChatSendConfig::getConfig(['room_id' => 0]);
         foreach ($plan_send_game as& $key){
             switch ($key){
                 case 50:            //北京pk10
@@ -125,6 +127,7 @@ class ChatViewController extends Controller
         }
         return view('chat.baseManage')
             ->with('base',$baseSetting)
+            ->with('chat_send_config',$chat_send_config)
             ->with('ISROOMS',Session::get('ISROOMS'))
             ->with('PK10',$planSendGamePK10)
             ->with('CQSSC',$planSendGameCQSSC)

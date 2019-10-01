@@ -4,10 +4,11 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use SameClass\Service\Cache;
 
 class Base extends Model
 {
-
+    use Cache;
     /**
      * 更新一个表
      * @param array $update 要更新的数据

@@ -8,18 +8,12 @@
 
 namespace App\Model;
 
+use SameClass\Config\LotteryGames\Games;
 
 class ExcelBase extends Base
 {
 
     protected $table = 'excel_base';
-
-    private $aCategory = [
-        'car' => [80,82,99,801,802,804,901,905,906,908,911,914,917],
-        'ssc' => [81,113,114,803,902,907,909,912,915,918],
-        'k3' => [86,920,921,922,923,924],
-        'lhc' => [85,903,904,910,913,916,919],
-    ];
 
     public $aType = [
         1 => '定位档',
@@ -67,11 +61,10 @@ class ExcelBase extends Base
             ->where('game.status',1)
             ->where('excel_base.is_user',1)
             ->get();
+        $Games = new Games();
+        $gameType = $Games->getGameData('gameIdtoType');
         foreach ($aData as $kData => $iData){
-            foreach ($this->aCategory as $kCateGory => $iCateGory){
-                if(in_array($iData->game_id,$iCateGory))
-                    $aData[$kData]->category = $kCateGory;
-            }
+            $aData[$kData]->category = isset($gameType[$iData->game_id])?$gameType[$iData->game_id]:'';
         }
         return $aData;
     }

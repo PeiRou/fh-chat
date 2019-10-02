@@ -851,6 +851,7 @@ class Swoole extends Command
                     continue;
                 }
             }
+            $valHis['room']= $v->room_id;
            TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis){
                //检查计划消息
                error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');

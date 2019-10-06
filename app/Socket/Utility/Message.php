@@ -38,7 +38,7 @@ class Message
             $aRegex = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db){
                 return $db->get('chat_regex', null, ['regex']);
             });
-            count($aRegex) && cache(['chat_regex_regex' => $aRegex], 60 * 60 * 2);
+            count($aRegex) && cache(['chat_regex_regex' => $aRegex], 1);
         }
         if(count($aRegex)){
             $aRegStr = "";

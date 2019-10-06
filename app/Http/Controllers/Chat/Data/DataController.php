@@ -172,7 +172,9 @@ left join (select id,count(user_id) as countUsers from chat_room_dt group by id)
     {
         $users = DB::table('chat_regex')
             ->select('chat_regex.*','room_name')
-            ->join('chat_room', 'chat_room.room_id', '=', 'chat_regex.room_id')->get();
+            ->join('chat_room', 'chat_room.room_id', '=', 'chat_regex.room_id')
+            ->orderBy('chat_regex_idx', 'desc')
+            ->get();
         return DataTables::of($users)
             ->make(true);
     }

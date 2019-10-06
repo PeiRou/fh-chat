@@ -816,6 +816,8 @@ class Swoole extends Command
     }
     //检查计划任务
     private function chkPlan($room_id,$serv){
+        writeLog('chkPlan', 'post:'.json_encode($serv->post, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        writeLog('chkPlan', 'get:'.json_encode($serv->get, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         $id = isset($serv->post['id'])?$serv->post['id']:$serv->get['id'];
         $valHis = isset($serv->post['pln'])?$serv->post['pln']:$serv->get['pln'];
         $game = isset($serv->post['game'])?$serv->post['game']:$serv->get['game'];
@@ -836,6 +838,7 @@ class Swoole extends Command
 //        }
 
         $rsKeyH = 'pln';
+        error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
 
         # 拿所有要推送的房间
         $key = 'planSendGame'.$game;
@@ -844,6 +847,7 @@ class Swoole extends Command
             cache([$key=>$rooms], 1); # 缓存
         }
         $valHis = json_decode($valHis, 1);
+        writeLog('chkPlan', '$rooms'.json_encode($rooms, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         foreach ($rooms as $v){
             if($game!=0){
                 //判断时间内不开启计划 低于此时间不开启
@@ -854,7 +858,6 @@ class Swoole extends Command
             $valHis['room']= $v->room_id;
            TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis){
                //检查计划消息
-               error_log(date('Y-m-d H:i:s', time()) . " 计划发消息every=> " . $rsKeyH . '++++' . json_encode($valHis) . PHP_EOL, 3, '/tmp/chat/plan.log');
                $iRoomInfo = app('swoole')->getUsersess($valHis, '', 'plan');     //包装计划消息
                $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
                unset($iRoomInfo['plans']);

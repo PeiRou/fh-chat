@@ -25,9 +25,17 @@ class Message
         $aMesgRep = addslashes ($aMesgRep);
         $aMesgRep = str_replace('&amp;', '&', $aMesgRep);
         //消息处理违禁词
-        if(empty($iRoomInfo['level']) || $iRoomInfo['level'] != 99)
+        if((empty($iRoomInfo['level']) || $iRoomInfo['level'] != 99) && self::regSpeaking($aMesgRep))
             $aMesgRep = self::regSpeaking($aMesgRep);
         return $aMesgRep;
+    }
+
+    public static function regSpeaking($msg)
+    {
+        if(preg_match('/^img=\/upchat\/dataimg\//', $msg)){
+            return false;
+        }
+        return true;
     }
 
     //消息处理违禁词

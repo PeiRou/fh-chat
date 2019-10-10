@@ -68,6 +68,13 @@ class ChatSettingController extends Controller
 
     //修改房间信息
     public function updRoomInfo(Request $request){
+        $redis = Redis::connection();
+        $redis->select(1);
+        $key = 'chat_updRoomInfo';
+        if($redis->exists($key))
+            return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
+        $redis->setex($key , 30, 'no');
+
         $roomid = $request->input('id');
         $data = [];
         $request->input('roomName') && $data['room_name'] = $request->input('roomName');                //房间名称
@@ -104,7 +111,7 @@ class ChatSettingController extends Controller
             $u = DB::table('chat_room')->where('room_id',$roomid)->update($data);
         }
         if($u==1){
-            if(isset($data['top_sort']) && $data['top_sort'] !== $top_sort){
+            if(isset($data['top_sort']) && isset($top_sort) && $data['top_sort'] !== $top_sort){
                 # 修改了置顶 修改所有会员的历史列表
                 if(!($res = Swoole::getSwoole('BackAction/setSortRoom', [
                         'roomId' => $roomid,

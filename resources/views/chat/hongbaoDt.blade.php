@@ -34,6 +34,9 @@
                     <div class="one wide field">
                         <input type="text" id="account" placeholder="用户名">
                     </div>
+                    <div class="one wide field">
+                        <input type="text" id="agent_account" placeholder="代理账号">
+                    </div>
                     <div style="line-height: 32px;">状态</div>
                     <div class="one wide field">
                         <select class="ui dropdown" id="status" style='height:32px !important'>
@@ -61,6 +64,7 @@
         </div>
         <table id="dtTable" class="ui small table" cellspacing="0" width="100%">
             <thead>
+                <th>代理账号</th>
                 <th>用户名</th>
                 <th>红包ID</th>
                 <th>订单号</th>

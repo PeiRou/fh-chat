@@ -220,52 +220,64 @@ left join (select id,count(user_id) as countUsers from chat_room_dt group by id)
         $id = $request->get('id');
         $or_id = $request->get('or_id');
         $account = $request->get('account');
+        $agent_account = $request->get('agent_account');
         $status = $request->get('status');
         $min_amount = $request->get('min_amount');
         $max_amount = $request->get('max_amount');
 
         $users = DB::table('chat_hongbao_dt')
+            ->leftjoin('users', 'chat_hongbao_dt.users_id', '=', 'users.id')
+            ->leftjoin('agent', 'users.agent', '=', 'agent.a_id')
             ->where(function ($query) use($starttime){        //发送时间(开始)
                 if(isset($starttime) && $starttime){
-                    $query->where('getdatetimes','>=',strtotime($starttime.' 00:00:00'));
+                    $query->where('chat_hongbao_dt.getdatetimes','>=',strtotime($starttime.' 00:00:00'));
                 }
             })
             ->where(function ($query) use($endtime){        //发送时间(结束)
                 if(isset($endtime) && $endtime){
-                    $query->where('getdatetimes','<=',strtotime($endtime.' 23:59:59'));
+                    $query->where('chat_hongbao_dt.getdatetimes','<=',strtotime($endtime.' 23:59:59'));
                 }
             })
             ->where(function ($query) use($id){        //红包id
                 if(isset($id) && $id>0){
-                    $query->where('hongbao_idx',$id);
+                    $query->where('chat_hongbao_dt.hongbao_idx',$id);
                 }
             })
             ->where(function ($query) use($or_id){        //订单号
                 if(isset($or_id) && !empty($or_id)){
-                    $query->where('hongbao_dt_orderno',$or_id);
+                    $query->where('chat_hongbao_dt.hongbao_dt_orderno',$or_id);
                 }
             })
             ->where(function ($query) use($account){        //用户名
                 if(isset($account) && !empty($account)){
-                    $query->where('username',$account);
+                    $query->where('chat_hongbao_dt.username',$account);
+                }
+            })
+            ->where(function ($query) use($agent_account){        //代理账号
+                if(isset($agent_account) && !empty($agent_account)){
+                    $query->where('agent.account',$agent_account);
                 }
             })
             ->where(function ($query) use($status){        //红包状态
                 if(isset($status) && $status>0){
-                    $query->where('hongbao_status',$status);
+                    //$query->where('chat_hongbao_dt.hongbao_status',$status);
+                    $query->where('chat_hongbao_dt.hongbao_dt_status',$status);
                 }
             })
             ->where(function ($query) use($min_amount){        //最小金额
                 if(isset($min_amount) && $min_amount){
-                    $query->where('amount','>=',$min_amount);
+                    $query->where('chat_hongbao_dt.amount','>=',$min_amount);
                 }
             })
             ->where(function ($query) use($max_amount){        //最大金额
                 if(isset($max_amount) && $max_amount){
-                    $query->where('amount',"<=",$max_amount);
+                    $query->where('chat_hongbao_dt.amount',"<=",$max_amount);
                 }
             })->get();
         return DataTables::of($users)
+            ->editColumn('account',function ($users){
+                return $users->account.'('.$users->name.')';
+            })
             ->make(true);
     }
     //平台配置-表格数据

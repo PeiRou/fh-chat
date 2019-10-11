@@ -68,12 +68,14 @@ $(function () {
                 d.id = $('#id').val();              //红包id
                 d.or_id = $('#or_id').val();              //订单号
                 d.account = $('#account').val();              //用户名
+                d.agent_account = $('#agent_account').val();              //代理账号
                 d.status = $('#status').val();      //状态
                 d.min_amount = $('#min_amount').val();      //最小金额
                 d.max_amount = $('#max_amount').val();      //最大金额
             }
         },
         columns: [
+            {data:'account'},        //代理账号
             {data:'username'},        //用户名
             {data:'hongbao_idx'},        //红包ID
             {data:'hongbao_dt_orderno'},        //订单号
@@ -122,6 +124,7 @@ $(function () {
         $('#id').val("");
         $('#or_id').val("");              //订单号
         $('#account').val("");              //用户名
+        $('#agent_account').val("");              //代理账号
         $('#status').val("");
         $('#status').val("");               //状态
         $('#min_amount').val("");           //最小金额

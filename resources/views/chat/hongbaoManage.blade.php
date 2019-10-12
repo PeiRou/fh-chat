@@ -65,7 +65,7 @@
                 <th width="9%">总金额</th>
                 <th width="9%">红包个数</th>
                 <th width="9%">剩馀馀额</th>
-                <th width="13.5%">抢红包条件(最近2天)</th>
+                <th width="13.5%">抢红包条件(当天)</th>
                 <th width="9%">发送时间</th>
                 <th width="9%">操作人</th>
                 <th width="13.5%">操作</th>

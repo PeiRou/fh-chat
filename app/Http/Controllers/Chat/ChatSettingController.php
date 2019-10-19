@@ -81,7 +81,12 @@ class ChatSettingController extends Controller
         $request->input('roomType') && $data['roomType'] = $request->input('roomType');                //房间类型
         $request->input('rech')!='' && $data['recharge'] = $request->input('rech');              //充值要求
         $request->input('bet')!='' && $data['bet'] = $request->input('bet');                //打码要求
-        isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
+        if(empty($request->planSendGames)){
+            $data['planSendGame'] = '';
+        }else{
+            $data['planSendGame'] = implode(',', $request->planSendGames);
+        }
+//        isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
         isset($request->pushBetGames) && $data['pushBetGame'] = implode(',', $request->pushBetGames);
         isset($request->top_sort) && $data['top_sort'] = (int)$request->top_sort;
         if(isset($request->head_img)){

@@ -8,7 +8,8 @@
 
 namespace App\Repository\OpenLottery;
 
-
+use App\Model\ExcelBase;
+use SameClass\Config\LotteryGames\Games;
 use Yajra\DataTables\DataTables;
 
 class PlanTaskRepository extends BaseRepository
@@ -28,6 +29,11 @@ class PlanTaskRepository extends BaseRepository
 
     public function index($aParam)
     {
+        $ExcelBase = new ExcelBase();
+        $aParam['plan_type'] = $ExcelBase->aType;
+        $Games = new Games();
+        $aParam['gameIdtoType'] = $Games->getGameData('gameIdtoType');
+        $aParam['cnLotteryType'] = $Games->cnLotteryType;
         $aData = $this->model->indexData($aParam);
         return DataTables::of($aData['aData'])
             ->editColumn('fact_probability',function ($aData){
@@ -40,6 +46,18 @@ class PlanTaskRepository extends BaseRepository
                     $txt = '<span class="status-2">'.$fact_probability . '%' .'</span>';
                 }
                 return $txt;
+            })
+            ->editColumn('lotteryType',function ($aData) use ($aParam) {
+                if(isset($aParam['gameIdtoType'][$aData->game_id])&&isset($aParam['cnLotteryType'][$aParam['gameIdtoType'][$aData->game_id]]))
+                    return $aParam['cnLotteryType'][$aParam['gameIdtoType'][$aData->game_id]];
+                else
+                    return '';
+            })
+            ->editColumn('type',function ($aData) use ($aParam) {
+                if(isset($aParam['plan_type'][$aData->type]))
+                    return $aParam['plan_type'][$aData->type];
+                else
+                    return $aData->type;
             })
             ->editColumn('num_digits', function ($aData){
                 return '第'.$aData->num_digits.'位';

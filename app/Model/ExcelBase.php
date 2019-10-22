@@ -17,7 +17,9 @@ class ExcelBase extends Base
 
     public $aType = [
         1 => '定位档',
+        11 => '定位档大小',
         2 => '和值类',
+        3 => '平特码生肖',
     ];
 
     public $timestamps = false;
@@ -29,9 +31,6 @@ class ExcelBase extends Base
             ->join('game', 'game.game_id', '=', 'excel_base.game_id')
             ->where('game.status',1)
             ->where('excel_base.is_user',1);
-//            ->where(function ($aSql) use($aParam){
-//
-//            });
         return [
             'iCount' => $iModel->count(),
             'aData' => $iModel

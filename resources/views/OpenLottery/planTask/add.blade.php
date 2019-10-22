@@ -5,11 +5,41 @@
         <div class="ui input icon">
             <select class="ui fluid dropdown" name="game_id" id="game_id">
                 <option value="">请选择游戏</option>
-                @foreach($aData['game']  as $iGame)
-                    @if(!($iGame->category == 'lhc'))
-                        <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
-                    @endif
-                @endforeach
+                <optgroup label="赛车、飞艇、跑马">
+                    @foreach($aData['game']  as $iGame)
+                        @if(($iGame->category == 'car'))
+                            <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
+                        @endif
+                    @endforeach
+                </optgroup>
+                <optgroup label="时时彩">
+                    @foreach($aData['game']  as $iGame)
+                        @if(($iGame->category == 'ssc'))
+                            <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
+                        @endif
+                    @endforeach
+                </optgroup>
+                <optgroup label="快三">
+                    @foreach($aData['game']  as $iGame)
+                        @if(($iGame->category == 'k3'))
+                            <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
+                        @endif
+                    @endforeach
+                </optgroup>
+                <optgroup label="六合彩">
+                    @foreach($aData['game']  as $iGame)
+                        @if(($iGame->category == 'lhc'))
+                            <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
+                        @endif
+                    @endforeach
+                </optgroup>
+                <optgroup label="快乐八">
+                    @foreach($aData['game']  as $iGame)
+                        @if(($iGame->category == 'kl8'))
+                            <option value="{{ $iGame->game_id }}" data-category="{{ $iGame->category }}">{{ $iGame->game_name }}</option>
+                        @endif
+                    @endforeach
+                </optgroup>
             </select>
         </div>
     </div>
@@ -39,7 +69,7 @@
         </div>
     </div>
 
-    <div class="field">
+    <div class="field" id="play_name_div">
         <label>计划个数</label>
         <div class="ui input icon">
             <input type="text" name="plan_num" id="plan_num" style="height: 38px;"/>
@@ -133,10 +163,13 @@
         var html = '<option value="">请选择玩法类型</option>';
         if(category === 'car'){
             html = '<option value="1">定位胆</option>';
+            html += '<option value="11">定位胆大小</option>';
         }else if(category === 'ssc'){
             html = '<option value="1">定位胆</option>';
         }else if(category === 'k3'){
             html = '<option value="2">和值类</option>';
+        }else if(category === 'lhc'){
+            html = '<option value="3">平特码生肖</option>';
         }
         $('#type').html(html);
         isType();
@@ -164,7 +197,7 @@
             html+= '<option value="3">百位</option>';
             html+= '<option value="4">十位</option>';
             html+= '<option value="5">个位</option>';
-        }else if(category === 'k3'){
+        }else if(category === 'k3' || category === 'lhc'){
             html = '<option value=""></option>';
         }
         $('#num_digits').html(html);
@@ -176,17 +209,29 @@
         var num_digits = $(this).find("option:selected").text();
             $('#play_name').val(num_digits);
     });
+    $('#type').on('change',function () {
+        isType();
+    });
 
 
     function isType() {
         var type = $('#type').find("option:selected").val();
         var num_digits = $('#num_digits').find("option:selected").text();
+        $('#play_name_div').show();
         if(type == 1){
             $('#num_div').show();
             $('#play_name').val(num_digits);
+        }else if(type == 11){
+            $('#num_div').show();
+            $('#plan_num').val('1');
+            $('#play_name_div').hide();
+            $('#play_name').val(num_digits+'大小');
         }else if(type == 2){
             $('#num_div').hide();
             $('#play_name').val('总和');
+        }else if(type == 3){
+            $('#num_div').hide();
+            $('#play_name').val('平特码生肖');
         }else{
             $('#play_name').val('');
         }

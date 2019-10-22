@@ -8,8 +8,8 @@
 
 namespace App\Model;
 
-
 use Illuminate\Support\Facades\DB;
+use SameClass\Config\LotteryGames\Games;
 
 class ExcelPlan extends Base
 {
@@ -20,14 +20,23 @@ class ExcelPlan extends Base
 
     public function indexData($aParam)
     {
-        $iModel = $this->select('excel_plan.*','game.game_name')
+        $sqlLottery = '(CASE ';
+        $Games = new Games();
+        $gameIdtoType = $Games->getGameData('gameIdtoType');
+        foreach ($gameIdtoType as $game_id => $type){
+            $sqlLottery .= " WHEN excel_plan.`game_id` = ".$game_id." THEN '".$type."'";
+        }
+        $sqlLottery .= " ELSE '' END) AS `enlotteryType`";
+        $iModel = $this->select(DB::raw($sqlLottery),'excel_plan.*','game.game_name')
             ->where(function ($aSql) use($aParam){
                 if(isset($aParam['game_id']) && array_key_exists('game_id',$aParam))
                     $aSql->where('excel_plan.game_id',$aParam['game_id']);
             })
             ->join('excel_base','excel_base.game_id','=','excel_plan.game_id')
             ->leftJoin('game', 'game.game_id', '=', 'excel_base.game_id')
-            ->orderBy('excel_plan.game_id','asc')->orderBy('excel_plan.num_digits','asc');
+            ->orderBy('enlotteryType','asc')
+            ->orderBy('excel_plan.game_id','asc')
+            ->orderBy('excel_plan.num_digits','asc');
         return [
             'iCount' => $iModel->count(),
             'aData' => $iModel

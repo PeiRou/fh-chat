@@ -27,54 +27,6 @@
                 <div id="bet_push_statusUn" class="red" @if($base->bet_push_status == "1")style="display: none"@endif>关闭中</div>
             </div>
 
-            {{--<div class="inline fields">--}}
-                {{--<div class="six wide field">--}}
-                    {{--<label style="width :150px;text-align: right;" class="notEmpty">计划发布方式</label>--}}
-                    {{--<select class="ui dropdown" name="planSendMode" id="planSendMode">--}}
-                        {{--<option value="1" @if($base->plan_send_mode == "1") selected="selected" @endif>软件发布</option>--}}
-                        {{--<option value="0" @if($base->plan_send_mode != "1") selected="selected" @endif>手动发布</option>--}}
-                    {{--</select>--}}
-                {{--</div>--}}
-                {{--<div class="two wide field">--}}
-                    {{--<a class="ui teal button" id="dspPlan" style="display: none">点击显示输入框</a>--}}
-                {{--</div>--}}
-            {{--</div>--}}
-            {{--<div class="inline fields">--}}
-                {{--<label style="width :119px;text-align: right;">计划推送游戏</label>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGamePK10" @if($PK10 == "1") checked="checked" @endif>--}}
-                    {{--<label>北京赛车&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameCQSSC" @if($CQSSC == "1") checked="checked" @endif>--}}
-                    {{--<label>重庆时时彩&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameJSKS" @if($JSKS == "1") checked="checked" @endif>--}}
-                    {{--<label>江苏快三&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameXYFT" @if($XYFT == "1") checked="checked" @endif>--}}
-                    {{--<label>幸运飞艇&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGamePCDD" @if($PCDD == "1") checked="checked" @endif>--}}
-                    {{--<label>PC蛋蛋&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameKSSC" @if($KSSC == "1") checked="checked" @endif>--}}
-                    {{--<label>快速赛车&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameKSFT" @if($KSFT == "1") checked="checked" @endif>--}}
-                    {{--<label>快速飞艇&nbsp;</label>--}}
-                {{--</div>--}}
-                {{--<div class="ui checkbox"style="margin-right: 5px">--}}
-                    {{--<input type="checkbox" name="planSendGameKSSSC" @if($KSSSC == "1") checked="checked" @endif>--}}
-                    {{--<label>快速时时彩&nbsp;</label>--}}
-                {{--</div>--}}
-            {{--</div>--}}
-
             <div class="inline fields">
                 <div class="six wide field">
                     <label style="width :150px;text-align: right;">引导群欢迎语</label>
@@ -91,22 +43,6 @@
                     </div>
                 </div>
             </div>
-            {{--<div class="inline fields">--}}
-                {{--<label style="width :119px;text-align: right;" class="notEmpty">发布时段</label>--}}
-                {{--<div class="ui calendar" id="starttime">--}}
-                    {{--<div class="ui input left icon">--}}
-                        {{--<i class="time icon"></i>--}}
-                        {{--<input type="text" placeholder="" name="starttime" value="{{ $base->send_starttime }}">--}}
-                    {{--</div>--}}
-                {{--</div>--}}
-                {{--<label style="width :50px;text-align: right;">~次日</label>--}}
-                {{--<div class="ui calendar" id="endtime">--}}
-                    {{--<div class="ui input left icon">--}}
-                        {{--<i class="time icon"></i>--}}
-                        {{--<input type="text" placeholder="" name="endtime" value="{{ $base->send_endtime }}">--}}
-                    {{--</div>--}}
-                {{--</div>--}}
-            {{--</div>--}}
             <div  class="inline fields" style="color:#ff0000;padding-left :132px;">发布时段不设置为不发计划，如果想24小时请设置0:00 - 23:59</div>
             <div class="inline fields" >
                 <label style="width :119px;text-align: right;" class="notEmpty">发布时段</label>

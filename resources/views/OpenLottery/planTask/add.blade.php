@@ -169,7 +169,8 @@
         }else if(category === 'k3'){
             html = '<option value="2">和值类</option>';
         }else if(category === 'lhc'){
-            html = '<option value="3">平特码生肖</option>';
+            html = '<option value="1">定位胆</option>';
+            html += '<option value="3">平特码生肖</option>';
         }
         $('#type').html(html);
         isType();
@@ -178,9 +179,10 @@
 
     //选取号码
     $('#game_id').on('change',function () {
+        var type = $('#type').find("option:selected").val();
         var category = $(this).find("option:selected").attr('data-category');
         var html = '<option value="">请选取号码</option>';
-        if(category === 'car'){
+        if(category === 'car' && type ==1){
             html = '<option value="1">冠军</option>';
             html+= '<option value="2">亚军</option>';
             html+= '<option value="3">季军</option>';
@@ -191,14 +193,22 @@
             html+= '<option value="8">第八名</option>';
             html+= '<option value="9">第九名</option>';
             html+= '<option value="10">第十名</option>';
-        }else if(category === 'ssc'){
+        }else if(category === 'ssc' && type ==1){
             html = '<option value="1">万位</option>';
             html+= '<option value="2">千位</option>';
             html+= '<option value="3">百位</option>';
             html+= '<option value="4">十位</option>';
             html+= '<option value="5">个位</option>';
-        }else if(category === 'k3' || category === 'lhc'){
+        }else if((category === 'k3' && type ==2) || (category === 'lhc' && type ==3)){
             html = '<option value=""></option>';
+        }else if(category === 'lhc' && type ==1){
+            html = '<option value="1">正码一</option>';
+            html += '<option value="2">正码二</option>';
+            html += '<option value="3">正码三</option>';
+            html += '<option value="4">正码四</option>';
+            html += '<option value="5">正码五</option>';
+            html += '<option value="6">正码六</option>';
+            html += '<option value="7">特码</option>';
         }
         $('#num_digits').html(html);
         isType();

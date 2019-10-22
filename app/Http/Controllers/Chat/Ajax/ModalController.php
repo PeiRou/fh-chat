@@ -10,7 +10,9 @@ use SameClass\Config\LotteryGames\Games;
 
 class ModalController extends Controller
 {
-    private $lottery = [];
+    protected $lottery = [];
+    protected $gameIdtoType = [];
+    protected $cnLotteryType = [];
 
     private $roomType = array(
         '1'=>'平台聊天室',
@@ -23,6 +25,8 @@ class ModalController extends Controller
     private function setlottery(){
         $Games = new Games();
         $this->lottery = $Games->setlottery('havePlan');
+        $this->gameIdtoType = $Games->getGameFileData('gameIdtoType');
+        $this->cnLotteryType = $Games->cnLotteryType;
     }
     //取得计划任务彩种
     public function getLottery(){
@@ -80,7 +84,14 @@ class ModalController extends Controller
         $pushBetGames = !empty($roomInfo)?explode(',',$roomInfo->pushBetGame):[];
         $openGames = DB::table('game')->where('status',1)->get();
         $this->setlottery();
-        return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)->with('games',$games)->with('lotterys',$this->lottery)->with('roomTypes',$this->roomType)->with('openGames',$openGames)->with('pushBetGames',$pushBetGames);
+        return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)
+            ->with('games',$games)
+            ->with('lotterys',$this->lottery)
+            ->with('gameIdtoType',$this->gameIdtoType)
+            ->with('cnLotteryType',$this->cnLotteryType)
+            ->with('roomTypes',$this->roomType)
+            ->with('openGames',$openGames)
+            ->with('pushBetGames',$pushBetGames);
     }
     //显示修改聊天室公告-弹窗表单
     public function editNoteInfo($data)

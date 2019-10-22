@@ -16,8 +16,8 @@ class ExcelBase extends Base
     protected $table = 'excel_base';
 
     public $aType = [
-        1 => '定位档',
-        11 => '定位档大小',
+        1 => '定位胆',
+        11 => '定位胆大小',
         2 => '和值类',
         3 => '平特码生肖',
     ];

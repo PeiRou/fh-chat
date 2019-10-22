@@ -28,10 +28,17 @@
         <label>计划推送游戏</label>
         <br>
         <div class="ui icon">
-            @foreach($lotterys as $item => $itemname)
-                <div class="ui checkbox"style="margin-right: 5px">
-                    <input type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
-                    <label>{{$itemname}}&nbsp;</label>
+            @foreach($cnLotteryType as $type => $typename)
+                <a class="ui teal tag label pushGame" id="{{$type}}">{{$typename}}</a>
+                <div class="ui message">
+                @foreach($lotterys as $item => $itemname)
+                    @if(isset($gameIdtoType[$item])&&$gameIdtoType[$item]==$type)
+                        <div class="ui checkbox"style="margin-right: 5px">
+                            <input class="{{$type}}" type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
+                            <label>{{$itemname}}&nbsp;</label>
+                        </div>
+                    @endif
+                @endforeach
                 </div>
             @endforeach
         </div>
@@ -49,13 +56,19 @@
                 <input id="select_reverse" type="checkbox">
                 <label>反选&nbsp;</label>
             </div><br/>
-            @foreach($openGames as $k => $v)
-                <div class="ui checkbox"style="">
-                    <input type="checkbox" class="pushBetGames" name="pushBetGames[]" value="{{$v->game_id}}" @if(in_array($v->game_id,$pushBetGames)) checked @endif>
-                    <label>{{$v->game_name}}&nbsp;</label>
+            @foreach($cnLotteryType as $type => $typename)
+                <a class="ui teal tag label pushGame" id="{{$type}}">{{$typename}}</a>
+                <div class="ui message">
+                @foreach($openGames as $k => $v)
+                    @if(isset($gameIdtoType[$v->game_id])&&$gameIdtoType[$v->game_id]==$type)
+                        <div class="ui checkbox"style="">
+                            <input type="checkbox" class="pushBetGames" name="pushBetGames[]" value="{{$v->game_id}}" @if(in_array($v->game_id,$pushBetGames)) checked @endif>
+                            <label>{{$v->game_name}}&nbsp;</label>
+                        </div>
+                    @endif
+                @endforeach
                 </div>
             @endforeach
-
                 <script>
                     $(function () {
 
@@ -190,4 +203,7 @@
             }
         }
     }
+    $('.pushGame').click(function(){
+       $('.'+this.id).prop("checked",true);
+    });
 </script>

@@ -164,10 +164,19 @@
         if(category === 'car'){
             html = '<option value="1">定位胆</option>';
             html += '<option value="11">定位胆大小</option>';
+            html += '<option value="12">定位胆单双</option>';
+            html += '<option value="13">冠亚大小</option>';
+            html += '<option value="14">冠亚单双</option>';
         }else if(category === 'ssc'){
             html = '<option value="1">定位胆</option>';
+            html += '<option value="11">定位胆大小</option>';
+            html += '<option value="12">定位胆单双</option>';
+            html += '<option value="21">总和大小</option>';
+            html += '<option value="22">总和单双</option>';
         }else if(category === 'k3'){
-            html = '<option value="2">和值类</option>';
+            html = '<option value="2">总和</option>';
+            html += '<option value="21">总和大小</option>';
+            html += '<option value="22">总和单双</option>';
         }else if(category === 'lhc'){
             html = '<option value="1">定位胆</option>';
             html += '<option value="3">平特码生肖</option>';
@@ -182,7 +191,7 @@
         var type = $('#type').find("option:selected").val();
         var category = $(this).find("option:selected").attr('data-category');
         var html = '<option value="">请选取号码</option>';
-        if(category === 'car' && type ==1){
+        if(category === 'car' && (type ==1 ||type ==11 ||type ==12)){
             html = '<option value="1">冠军</option>';
             html+= '<option value="2">亚军</option>';
             html+= '<option value="3">季军</option>';
@@ -193,14 +202,12 @@
             html+= '<option value="8">第八名</option>';
             html+= '<option value="9">第九名</option>';
             html+= '<option value="10">第十名</option>';
-        }else if(category === 'ssc' && type ==1){
+        }else if(category === 'ssc' && (type ==1 || type ==11 || type ==12)){
             html = '<option value="1">万位</option>';
             html+= '<option value="2">千位</option>';
             html+= '<option value="3">百位</option>';
             html+= '<option value="4">十位</option>';
             html+= '<option value="5">个位</option>';
-        }else if((category === 'k3' && type ==2) || (category === 'lhc' && type ==3)){
-            html = '<option value=""></option>';
         }else if(category === 'lhc' && type ==1){
             html = '<option value="1">正码一</option>';
             html += '<option value="2">正码二</option>';
@@ -209,6 +216,8 @@
             html += '<option value="5">正码五</option>';
             html += '<option value="6">正码六</option>';
             html += '<option value="7">特码</option>';
+        }else{
+            html = '<option value=""></option>';
         }
         $('#num_digits').html(html);
         isType();
@@ -216,8 +225,7 @@
 
     //前台显示名称
     $('#num_digits').on('change',function () {
-        var num_digits = $(this).find("option:selected").text();
-            $('#play_name').val(num_digits);
+        isType();
     });
     $('#type').on('change',function () {
         isType();
@@ -227,23 +235,54 @@
     function isType() {
         var type = $('#type').find("option:selected").val();
         var num_digits = $('#num_digits').find("option:selected").text();
-        $('#play_name_div').show();
-        if(type == 1){
-            $('#num_div').show();
-            $('#play_name').val(num_digits);
-        }else if(type == 11){
-            $('#num_div').show();
-            $('#plan_num').val('1');
-            $('#play_name_div').hide();
-            $('#play_name').val(num_digits+'大小');
-        }else if(type == 2){
-            $('#num_div').hide();
-            $('#play_name').val('总和');
-        }else if(type == 3){
-            $('#num_div').hide();
-            $('#play_name').val('平特码生肖');
-        }else{
-            $('#play_name').val('');
+        $('#play_name_div').hide();
+        $('#num_div').hide();
+        $('#play_name').val('');
+        //选取号码是否显示
+        switch (type) {
+            case '1':
+            case '11':
+            case '12':
+                $('#num_div').show();   //选取号码是否显示
+                break;
+        }
+        //计划个数是否显示
+        switch (type) {
+            case '1':
+            case '2':
+            case '3':
+                $('#play_name_div').show();   //计划个数要显示
+                break;
+            default:
+                $('#plan_num').val('1');
+                break;
+        }
+        //前台显示名称
+        switch (type) {
+            case '1':
+                $('#play_name').val(num_digits);
+                break;
+            case '11':
+                $('#play_name').val(num_digits+'大小');
+                break;
+            case '12':
+                $('#play_name').val(num_digits+'单双');
+                break;
+            case '13':
+                $('#play_name').val('冠亚大小');
+                break;
+            case '14':
+                $('#play_name').val('冠亚单双');
+                break;
+            case '21':
+                $('#play_name').val('总和大小');
+                break;
+            case '22':
+                $('#play_name').val('总和单双');
+                break;
+            case '3':
+                $('#play_name').val('平特码生肖');
+                break;
         }
     }
 </script>

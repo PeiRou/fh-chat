@@ -29,12 +29,12 @@
         <br>
         <div class="ui icon">
             @foreach($cnLotteryType as $type => $typename)
-                <a class="ui teal tag label pushGame" id="{{$type}}">{{$typename}}</a>
+                <a class="ui teal tag label pushGame" id="push{{$type}}">{{$typename}}</a><a class="ui tag label unpushGame" id="unpush{{$type}}">反选</a>
                 <div class="ui message">
                 @foreach($lotterys as $item => $itemname)
                     @if(isset($gameIdtoType[$item])&&$gameIdtoType[$item]==$type)
                         <div class="ui checkbox"style="margin-right: 5px">
-                            <input class="{{$type}}" type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
+                            <input class="push{{$type}}" type="checkbox" name="planSendGames[]" value="{{$item}}" @if(isset($games[$item])) checked="checked" @endif>
                             <label>{{$itemname}}&nbsp;</label>
                         </div>
                     @endif
@@ -48,46 +48,19 @@
         <label>可跟单的游戏</label>
         <br>
         <div class="ui  icon">
-            <div class="ui checkbox"style="">
-                <input id="select_all" type="checkbox">
-                <label>全选&nbsp;</label>
-            </div>
-            <div class="ui checkbox"style="">
-                <input id="select_reverse" type="checkbox">
-                <label>反选&nbsp;</label>
-            </div><br/>
             @foreach($cnLotteryType as $type => $typename)
-                <a class="ui teal tag label pushGame" id="{{$type}}">{{$typename}}</a>
+                <a class="ui teal tag label betGame" id="bet{{$type}}">{{$typename}}</a><a class="ui tag label unbetGame" id="unbet{{$type}}">反选</a>
                 <div class="ui message">
                 @foreach($openGames as $k => $v)
                     @if(isset($gameIdtoType[$v->game_id])&&$gameIdtoType[$v->game_id]==$type)
                         <div class="ui checkbox"style="">
-                            <input type="checkbox" class="pushBetGames" name="pushBetGames[]" value="{{$v->game_id}}" @if(in_array($v->game_id,$pushBetGames)) checked @endif>
+                            <input type="checkbox" class="bet{{$type}}" name="pushBetGames[]" value="{{$v->game_id}}" @if(in_array($v->game_id,$pushBetGames)) checked @endif>
                             <label>{{$v->game_name}}&nbsp;</label>
                         </div>
                     @endif
                 @endforeach
                 </div>
             @endforeach
-                <script>
-                    $(function () {
-
-                        $("#select_all").on('click', function() {
-                            $('.pushBetGames').prop("checked", $(this).prop('checked'));
-                            $('#select_reverse').prop("checked",false)
-                        })
-                        $("#select_reverse").on('click', function() {
-                            $('.pushBetGames').each(function () {
-                                if(this.checked){
-                                    this.checked = false;
-                                }else{
-                                    this.checked = true;
-                                }
-                            });
-                            $('#select_all').prop("checked",false)
-                        })
-                    })
-                </script>
         </div>
     </div>
     @endif
@@ -203,7 +176,21 @@
             }
         }
     }
-    $('.pushGame').click(function(){
-       $('.'+this.id).prop("checked",true);
+    //类别全选
+    $(".pushGame,.betGame").click(function(){
+        if($('.'+this.id).prop("checked"))
+            $('.'+this.id).prop("checked",false);
+        else
+            $('.'+this.id).prop("checked",true);
     });
+    //类别反选
+    $(".unpushGame,.unbetGame").on('click', function() {
+        $('.'+this.id.substr(2)).each(function () {
+            if(this.checked){
+                this.checked = false;
+            }else{
+                this.checked = true;
+            }
+        });
+    })
 </script>

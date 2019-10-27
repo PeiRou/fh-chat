@@ -296,7 +296,7 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')){
+        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1'){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
                 'idx' => $idx,
@@ -328,7 +328,7 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')){
+        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1'){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
                 'idx' => $idx,

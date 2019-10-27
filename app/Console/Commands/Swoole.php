@@ -242,7 +242,7 @@ class Swoole extends Command
                 $this->push($request->fd, $msg);
 
                 # 如果是老聊天室 默认打开1聊天室
-                if(!Storage::disk('source')->exists('chatType') || Storage::disk('source')->get('chatType')!=1)
+                if(!Storage::disk('source')->exists('chatType') || Storage::disk('source')->get('chatType')!='1')
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
             }catch (\Exception $e){
                 Trigger::getInstance()->throwable($e);
@@ -886,7 +886,7 @@ class Swoole extends Command
     }
     //取得聊天室公告
     private function getChatNotice($room = 1){
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType'))
+        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1')
             $aNoteceData = DB::select("select content from chat_note where (`room_id` = {$room}) OR FIND_IN_SET('{$room}',rooms)");
         else
             $aNoteceData = DB::table('chat_note')->select('content')->where('room_id',$room)->get();

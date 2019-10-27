@@ -20,7 +20,7 @@ class ChatViewController extends Controller
         $FRONT_LOGO = $AdSource->getOneSource('color_217X160');
         $BACK_LOGO = $AdSource->getOneSource('color_311X105');
         $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = is_array($ISROOMS)?0:$ISROOMS;
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
         Session::put('BACK_LOGO', $BACK_LOGO);
         Session::put('ISROOMS', $ISROOMS);
         return view('chat.O_adminLogin',compact('captcha','FRONT_LOGO'));

@@ -18,6 +18,7 @@ use App\Socket\Utility\SortName;
 use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
 use Illuminate\Support\Facades\Storage;
+use SameClass\Config\AdSource\AdSource;
 
 class Push
 {
@@ -296,7 +297,11 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1'){
+
+        $AdSource = new AdSource();
+        $ISROOMS = $AdSource->getOneSource('chatType');
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        if($ISROOMS){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
                 'idx' => $idx,
@@ -328,7 +333,10 @@ class Push
             array_push($users, $toId);
             array_unique($users);
         }
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1'){
+        $AdSource = new AdSource();
+        $ISROOMS = $AdSource->getOneSource('chatType');
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        if($ISROOMS){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
                 'idx' => $idx,

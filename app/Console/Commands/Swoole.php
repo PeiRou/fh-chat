@@ -24,6 +24,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SebastianBergmann\CodeCoverage\Report\PHP;
+use SameClass\Config\AdSource\AdSource;
 
 class Swoole extends Command
 {
@@ -140,6 +141,12 @@ class Swoole extends Command
 
         DB::table('chat_online')->truncate();           //聊天室在线记录
         Room::clearAllRoom();  # 清聊天室所有数据
+
+        $AdSource = new AdSource();
+        $ISROOMS = $AdSource->getOneSource('chatType');
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        if(!$ISROOMS)
+            DB::table('chat_room_dt')->truncate();           //聊天室在线记录
     }
 
     /***
@@ -240,10 +247,24 @@ class Swoole extends Command
                     $iRoomInfo['nickname'] = '';
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
                 $this->push($request->fd, $msg);
-
+                $AdSource = new AdSource();
+                $ISROOMS = $AdSource->getOneSource('chatType');
+                $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
                 # 如果是老聊天室 默认打开1聊天室
-                if(!Storage::disk('source')->exists('chatType') || Storage::disk('source')->get('chatType')!='1')
+                if(!$ISROOMS){
+                    $room_dt = DB::table('chat_room_dt')->where('id',1)->where('user_id',$iRoomInfo['userId'])->first();
+                    if(empty($room_dt)){
+                        $room1data['id'] = 1;
+                        $room1data['user_id'] = $iRoomInfo['userId'];
+                        $room1data['user_name'] = $iRoomInfo['userName'];
+                        $room1data['is_speaking'] = 1;
+                        $room1data['is_pushbet'] = 0;
+                        $room1data['created_at'] = date('Y-m-d H:i:s');
+                        $room1data['updated_at'] = date('Y-m-d H:i:s');
+                        DB::table('chat_room_dt')->insert($room1data);      // type 1:chatusr 2:chatusrfd
+                    }
                     $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
+                }
             }catch (\Exception $e){
                 Trigger::getInstance()->throwable($e);
 //                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
@@ -886,7 +907,10 @@ class Swoole extends Command
     }
     //取得聊天室公告
     private function getChatNotice($room = 1){
-        if(Storage::disk('source')->exists('chatType') && Storage::disk('source')->get('chatType')=='1')
+        $AdSource = new AdSource();
+        $ISROOMS = $AdSource->getOneSource('chatType');
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        if($ISROOMS)
             $aNoteceData = DB::select("select content from chat_note where (`room_id` = {$room}) OR FIND_IN_SET('{$room}',rooms)");
         else
             $aNoteceData = DB::table('chat_note')->select('content')->where('room_id',$room)->get();

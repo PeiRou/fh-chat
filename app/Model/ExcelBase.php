@@ -16,8 +16,15 @@ class ExcelBase extends Base
     protected $table = 'excel_base';
 
     public $aType = [
-        1 => '定位档',
-        2 => '和值类',
+        1 => '定位胆',
+        11 => '定位胆大小',
+        12 => '定位胆单双',
+        13 => '冠亚大小',
+        14 => '冠亚单双',
+        2 => '总和',
+        21 => '总和大小',
+        22 => '总和单双',
+        3 => '平特码生肖',
     ];
 
     public $timestamps = false;
@@ -29,9 +36,6 @@ class ExcelBase extends Base
             ->join('game', 'game.game_id', '=', 'excel_base.game_id')
             ->where('game.status',1)
             ->where('excel_base.is_user',1);
-//            ->where(function ($aSql) use($aParam){
-//
-//            });
         return [
             'iCount' => $iModel->count(),
             'aData' => $iModel

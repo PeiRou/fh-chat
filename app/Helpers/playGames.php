@@ -56,26 +56,6 @@ if(!function_exists('user_substr')){
         return  mb_substr($str,0,2,'UTF-8').'****';
     }
 }
-/***
- * @param $gameId
- * @return string
- */
-if(!function_exists('getBetName')){
-    function getBetName($gameId){
-        switch ($gameId){
-            case 82 :
-                return "秒速时时彩";
-            case 80 :
-                return "秒速赛车";
-            case 81 :
-                return "秒速飞艇";
-            case 1 :
-                return "重庆时时彩";
-            case 50 :
-                return "北京赛车";
-        }
-    }
-}
 
 /***
  * @return string

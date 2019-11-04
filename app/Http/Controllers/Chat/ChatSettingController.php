@@ -81,7 +81,12 @@ class ChatSettingController extends Controller
         $request->input('roomType') && $data['roomType'] = $request->input('roomType');                //房间类型
         $request->input('rech')!='' && $data['recharge'] = $request->input('rech');              //充值要求
         $request->input('bet')!='' && $data['bet'] = $request->input('bet');                //打码要求
-        isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
+        if(empty($request->planSendGames)){
+            $data['planSendGame'] = '';
+        }else{
+            $data['planSendGame'] = implode(',', $request->planSendGames);
+        }
+//        isset($request->planSendGames) && $data['planSendGame'] = implode(',', $request->planSendGames);
         isset($request->pushBetGames) && $data['pushBetGame'] = implode(',', $request->pushBetGames);
         isset($request->top_sort) && $data['top_sort'] = (int)$request->top_sort;
         if(isset($request->head_img)){
@@ -407,35 +412,7 @@ class ChatSettingController extends Controller
     public function updBaseInfo(Request $request){
         $data['open_status'] = $request->input('openStatus')=="on"?1:0;              //聊天室状态
         $data['bet_push_status'] = $request->input('bet_push_status')=="on"?1:0;              //聊天室是否开启推送跟单
-//        $data['plan_send_mode'] = $request->input('planSendMode')=="1"?1:0;         //计划发布方式
-//        $planSendGamePK10 = $request->input('planSendGamePK10');                    //计划推送游戏-北京赛车
-//        $data['plan_send_game'] = "";
-//        if($planSendGamePK10=="on")
-//            $data['plan_send_game'] = "50";
-//        $planSendGame = $request->input('planSendGameCQSSC');                  //计划推送游戏-重庆时时彩
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."1";
-//        $planSendGame = $request->input('planSendGameJSKS');                    //计划推送游戏-江苏快三
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."10";
-//        $planSendGame = $request->input('planSendGameXYFT');                    //计划推送游戏-幸运飞艇
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."55";
-//        $planSendGame = $request->input('planSendGamePCDD');                    //计划推送游戏-PC蛋蛋
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."66";
-//        $planSendGame = $request->input('planSendGameKSSC');                    //计划推送游戏-快速赛车
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."801";
-//        $planSendGame = $request->input('planSendGameKSFT');                    //计划推送游戏-快速飞艇
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."802";
-//        $planSendGame = $request->input('planSendGameKSSSC');                    //计划推送游戏-快速时时彩
-//        if($planSendGame=="on")
-//            $data['plan_send_game'] .= (isset($data['plan_send_game'])?",":"")."803";
         $data['plan_msg'] = $request->input('planMsg');                             //计划底部信息
-//        $data['send_starttime'] = $request->input('starttime');                     //发布时段(开始)
-//        $data['send_endtime'] = $request->input('endtime');                         //发布时段(结束)
         $data['is_open_auto'] = $request->input('isOpenAuto')=="1"?1:0;                      //是否展开聊天室
         $data['bet_min_amount'] = $request->input('betMin');                        //下注最低推送额
         $data['ip_blacklist'] = $request->input('ipBlacklist');                     //IP黑名单

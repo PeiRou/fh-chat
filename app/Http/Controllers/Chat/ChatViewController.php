@@ -20,6 +20,7 @@ class ChatViewController extends Controller
         $FRONT_LOGO = $AdSource->getOneSource('color_217X160');
         $BACK_LOGO = $AdSource->getOneSource('color_311X105');
         $ISROOMS = $AdSource->getOneSource('chatType');
+        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
         Session::put('BACK_LOGO', $BACK_LOGO);
         Session::put('ISROOMS', $ISROOMS);
         return view('chat.O_adminLogin',compact('captcha','FRONT_LOGO'));
@@ -81,62 +82,11 @@ class ChatViewController extends Controller
     public function baseManage()
     {
         $baseSetting = DB::table('chat_base')->where('chat_base_idx',1)->first();
-        $plan_send_game = explode(",",$baseSetting->plan_send_game);
-        $planSendGamePK10 = 0;        //北京pk10
-        $planSendGameCQSSC = 0;         //重庆时时彩
-        $planSendGameJSKS = 0;         //江苏快三
-        $planSendGameXYFT = 0;         //幸运飞艇
-        $planSendGamePCDD = 0;         //PC蛋蛋
-        $planSendGameMSSC = 0;         //秒速赛车
-        $planSendGameKSSC = 0;         //快速赛车
-        $planSendGameKSFT = 0;         //快速飞艇
-        $planSendGameKSSSC = 0;         //快速时时彩
 
         $chat_send_config = ChatSendConfig::getConfig(['room_id' => 0]);
-        foreach ($plan_send_game as& $key){
-            switch ($key){
-                case 50:            //北京pk10
-                    $planSendGamePK10 = 1;
-                    break;
-                case 1:             //重庆时时彩
-                    $planSendGameCQSSC = 1;
-                    break;
-                case 10:             //江苏快三
-                    $planSendGameJSKS = 1;
-                    break;
-                case 55:             //幸运飞艇
-                    $planSendGameXYFT = 1;
-                    break;
-                case 66:             //PC蛋蛋
-                    $planSendGamePCDD = 1;
-                    break;
-                case 80:             //秒速赛车
-                    $planSendGameMSSC = 1;
-                    break;
-                case 801:             //快速赛车
-                    $planSendGameKSSC = 1;
-                    break;
-                case 802:             //快速飞艇
-                    $planSendGameKSFT = 1;
-                    break;
-                case 803:             //快速时时彩
-                    $planSendGameKSSSC = 1;
-                    break;
-
-            }
-        }
         return view('chat.baseManage')
             ->with('base',$baseSetting)
             ->with('chat_send_config',$chat_send_config)
-            ->with('ISROOMS',Session::get('ISROOMS'))
-            ->with('PK10',$planSendGamePK10)
-            ->with('CQSSC',$planSendGameCQSSC)
-            ->with('JSKS',$planSendGameJSKS)
-            ->with('XYFT',$planSendGameXYFT)
-            ->with('PCDD',$planSendGamePCDD)
-            ->with('MSSC',$planSendGameMSSC)
-            ->with('KSSC',$planSendGameKSSC)
-            ->with('KSFT',$planSendGameKSFT)
-            ->with('KSSSC',$planSendGameKSSSC);
+            ->with('ISROOMS',Session::get('ISROOMS'));
     }
 }

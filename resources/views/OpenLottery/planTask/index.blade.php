@@ -46,8 +46,7 @@
     <link rel="stylesheet" href="/vendor/layui/css/layui.css">
     <script src="/vendor/layui/layui.all.js"></script>
     <script>
-        $('#menu-Open').addClass('nav-show');
-        $('#menu-SelfOpen-planTask-index').addClass('active');
+        $('#menu-Open').addClass('active');
 
         var layer,laydate;
         layui.use('layer', function(){
@@ -60,8 +59,10 @@
         });
 
         var columns = [
+            {data:'lotteryType',title:'彩种类型'},
             {data:'game_id',title:'游戏ID'},
             {data:'game_name',title:'游戏名称'},
+            {data:'type',title:'计划玩法类型'},
             {data:'play_name',title:'计划名称显示'},
             {data:'num_digits',title:'选取的号码位数'},
             {data:'plan_num',title:'计划个数'},
@@ -73,6 +74,7 @@
         var dataTable;
 
         function createTable(columns) {
+            var groupColumn = 0;
             return $('#tableData').DataTable({
                 searching: false,
                 bLengthChange: false,
@@ -81,6 +83,9 @@
                 ordering: false,
                 destroy: true,
                 aLengthMenu: [[100]],
+                columnDefs: [
+                    { "visible": false, "targets": groupColumn }
+                ],
                 ajax: {
                     url:'{{ route('chat.planTask.index') }}',
                     type:'post',
@@ -102,6 +107,21 @@
                         "previous":   "上一页"
                     }
                 },
+                "drawCallback": function ( settings ) {
+                    var api = this.api();
+                    var rows = api.rows( {page:'current'} ).nodes();
+                    var last=null;
+
+                    api.column(groupColumn, {page:'current'} ).data().each( function ( group, i ) {
+                        if ( last !== group ) {
+                            $(rows).eq( i ).before(
+                                '<tr class="selectable positive"><td colspan="9">'+group+'</td></tr>'
+                            );
+
+                            last = group;
+                        }
+                    } );
+                }
             });
 
         }

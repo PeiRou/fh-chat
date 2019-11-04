@@ -1120,12 +1120,27 @@ class Swoole extends Command
         ], false);
 
         //重新计算最近2天充值
-        $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
-        DB::table('chat_users')->where('users_id',$userid)->update([
-            'bet'=> $aUserBet,
-            'recharge'=> $aUserRecharges,
-            'updated_at'=> date("Y-m-d H:i:s",time())
-        ]);
+        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid, $aUserBet) {
+            $aUserRecharges = $db
+                ->where('userId',$userid)
+                ->where('status',2)
+                ->where('addMoney',1)
+                ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-2 day")), date("Y-m-d H:i:s",time())]])
+                ->getOne('recharges', 'sum(`amount`) as amount')['amount'] ?? 0;
+            return $db
+                ->where('users_id',$userid)
+                ->update('chat_users', [
+                    'bet'=> $aUserBet,
+                    'recharge'=> $aUserRecharges,
+                    'updated_at'=> date("Y-m-d H:i:s",time())
+                ]);
+        });
+//        $aUserRecharges = DB::table('recharges')->where('userId',$userid)->where('status',2)->where('addMoney',1)->whereBetween('created_at',[date("Y-m-d H:i:s",strtotime("-2 day")),date("Y-m-d H:i:s",time())])->sum('amount');
+//        DB::table('chat_users')->where('users_id',$userid)->update([
+//            'bet'=> $aUserBet,
+//            'recharge'=> $aUserRecharges,
+//            'updated_at'=> date("Y-m-d H:i:s",time())
+//        ]);
     }
 
     //消息根据群组样式化

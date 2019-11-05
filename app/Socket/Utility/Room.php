@@ -9,6 +9,7 @@ namespace App\Socket\Utility;
 use App\Service\Cache;
 use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatFriendsList;
+use App\Socket\Model\ChatHongbaoBlacklist;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatUser;
@@ -431,6 +432,11 @@ class Room
         $userIds = ChatRoomDt::getRoomUserIds($roomId);
 //        $userIds = self::getOnlineUsers();
         foreach ($userIds as $toUserId){
+            if($lastMsg === \App\Socket\Utility\Language::hongbaolastMsg){
+                # 如果是红包 并且在黑名单里就跳过
+                if(in_array($toUserId, ChatHongbaoBlacklist::getUsers()))
+                    continue;
+            }
             Push::pushUserMessage($toUserId, 'room', $roomId, $msg,['msg' => $lastMsg],['isSetLookNum'=>$isSetLookNum]);
         }
     }

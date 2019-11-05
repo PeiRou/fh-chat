@@ -54,10 +54,11 @@ class PersonalLog extends Base
     protected static function getRoomLog($db, $roomId, $param = [])
     {
         $path = self::FILEPATH.'room'.'/'.$roomId.'/';
-        return self::getPersonalLogfile($db, $path, array_merge([
+        $list = self::getPersonalLogfile($db, $path, array_merge([
             'type' => 'room',
             'toId' => $roomId,
         ], $param));
+        return $list;
     }
 
     //存聊天信息 数组

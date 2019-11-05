@@ -176,6 +176,104 @@ function addHongbao() {
         }
     });
 }
+function heimingdan(chat_hongbao_idx) {
+    jc = $.confirm({
+        theme: 'material',
+        title: '管理用户',
+        closeIcon:true,
+        boxWidth:'60%',
+        content: 'url:/chat/modal/hongbaoBlacklist?chat_hongbao_idx='+chat_hongbao_idx,
+        buttons: {
+            add: {
+                text:'添加',
+                btnClass: 'btn-blue',
+                action: function () {
+                    jcadd = $.confirm({
+                        theme: 'material',
+                        title: '搜索用户',
+                        closeIcon:true,
+                        boxWidth:'40%',
+                        content: 'url:/chat/modal/hongbaoBlacklistSearchUsers?chat_hongbao_idx='+chat_hongbao_idx,
+                        buttons: {
+                            cancel: {
+                                text:'关闭'
+                            },
+                        },
+                    });
+                    return false;
+                }
+            },
+            cancel: {
+                text:'关闭'
+            },
+        },
+    });
+}
+
+function deleteUser(chat_hongbao_idx, user_id){
+    var data = {
+        chat_hongbao_idx:chat_hongbao_idx,
+        user_id:user_id
+    };
+    var lading = layer.load(1, {
+        shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+    $.ajax({
+        url:'/chat/action/deleteHongbaoBlacklist',
+        type:'post',
+        data:data,
+        dataType:'json',
+        timeout:'5000',
+        success:function(e){
+            layer.close(lading);
+            if(e.status == true){
+                $('#users').DataTable().ajax.reload()
+            }else{
+                layer.msg(e.msg);
+            }
+
+        },
+        error:function(e){
+            layer.close(lading);
+        },
+    })
+}
+function addUser(chat_hongbao_idx, user_id){
+    $.ajax({
+        url:'/chat/action/addHongbaoBlacklist',
+        type:'post',
+        data:{
+            user_id:user_id,
+            chat_hongbao_idx:chat_hongbao_idx
+        },
+        dataType:'json',
+        success:function (data) {
+            if(data.status == true){
+                $('#users').DataTable().ajax.reload()
+                $('#sarchUsers').DataTable().ajax.reload()
+            }else{
+                $.alert({
+                    icon: 'warning sign icon',
+                    type: 'red',
+                    title: '提示',
+                    content: data.msg,
+                    boxWidth: '20%',
+                    buttons: {
+                        ok: {
+                            text:'确定',
+                        }
+                    }
+                });
+            }
+        },
+        error:function (e) {
+            if(e.status == 403)
+            {
+                Calert('您没有此项权限！无法继续！','red')
+            }
+        }
+    });
+}
 
 //重发红包
 function reHongbao(room,id) {

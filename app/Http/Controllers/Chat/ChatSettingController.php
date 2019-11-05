@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Common\Reward;
+use App\Model\ChatHongbaoBlacklist;
 use App\Model\ChatRoom;
 use App\Model\ChatSendConfig;
 use App\Repository\ChatRoomRepository;
@@ -646,6 +647,71 @@ class ChatSettingController extends Controller
             'status'=>false,
             'msg'=> 'error'
         ]);
+    }
+
+    //删掉红包黑名单会员
+    public function deleteHongbaoBlacklist(Request $request)
+    {
+        $redis = Redis::connection();
+        $redis->select(5);
+        $key = 'deleteHongbaoBlacklist';
+        if($redis->exists($key)){
+            return response()->json([
+                'status'=>false,
+                'msg'=> '操作频繁'
+            ]);
+        }
+        $redis->setex($key, 3, 'i');
+        if(ChatHongbaoBlacklist::deleteHongbaoBlacklist($request->chat_hongbao_idx, $request->user_id) && $this->upRemoteHongbaoBlacklist((int)$request->chat_hongbao_idx))
+            $redis->del($key);
+            return response()->json([
+                'status'=>true,
+            ]);
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+    //添加红包黑名单会员
+    public function addHongbaoBlacklist(Request $request)
+    {
+        $redis = Redis::connection();
+        $redis->select(5);
+        $key = 'addHongbaoBlacklist';
+        if($redis->exists($key)){
+            return response()->json([
+                'status'=>false,
+                'msg'=> '操作频繁'
+            ]);
+        }
+        $redis->setex($key, 3, 'i');
+        try{
+            if(ChatHongbaoBlacklist::insert([
+                'user_id' => $request->user_id,
+                'chat_hongbao_idx' => (int)$request->chat_hongbao_idx,
+            ]) && $this->upRemoteHongbaoBlacklist((int)$request->chat_hongbao_idx)){
+                $redis->del($key);
+                return response()->json([
+                    'status'=>true,
+                ]);
+            }
+        }catch (\Throwable $e){}
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+
+    //更新socket保存的黑名单内存
+    public function upRemoteHongbaoBlacklist($chat_hongbao_idx)
+    {
+        if(!($res = Swoole::getSwoole('BackAction/upStaticChatHongbaoBlacklist', [
+                'chat_hongbao_idx' => $chat_hongbao_idx,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
+            return false;
+        }
+        return true;
     }
 
 }

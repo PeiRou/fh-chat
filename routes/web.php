@@ -51,6 +51,8 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/updLevelInfo', 'Chat\ChatSettingController@updLevelInfo');               //修改层级信息
         Route::post('/chat/action//changeGoogleCode', 'Chat\ChatSettingController@changeGoogleCode');//更换子账号的google验证码
         Route::post('/chat/action/setPushBet', 'Chat\ChatSettingController@setPushBet');//跟单设置
+        Route::post('/chat/action/deleteHongbaoBlacklist', 'Chat\ChatSettingController@deleteHongbaoBlacklist');//删掉红包黑名单会员
+        Route::post('/chat/action/addHongbaoBlacklist', 'Chat\ChatSettingController@addHongbaoBlacklist');//添加红包黑名单会员
 
 
     //modal
@@ -61,16 +63,18 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('chat/modal/editRoomAdmins/{id}', 'Chat\Ajax\ModalController@editRoomAdmins');          //显示管理管理-弹窗表单
         Route::get('chat/modal/editRoomSearchUsers/{id}', 'Chat\Ajax\ModalController@editRoomSearchUsers'); //显示管理用户-弹窗表单
         Route::get('chat/modal/editRoomSearchAdmins/{id}', 'Chat\Ajax\ModalController@editRoomSearchAdmins'); //显示管理-弹窗表单
-        Route::get('chat/modal/editNoteInfo/{id}', 'Chat\Ajax\ModalController@editNoteInfo');            //显示修改聊天室公告-弹窗表单
-        Route::get('chat/modal/editLevelInfo/{id}', 'Chat\Ajax\ModalController@editLevelInfo');            //显示修改层级信息-弹窗表单
-        Route::get('chat/modal/editAdminInfo/{id}', 'Chat\Ajax\ModalController@editAdminInfo');          //显示修改聊天室管理员-弹窗表单
-        Route::get('chat/modal/editForbidInfo/{id}', 'Chat\Ajax\ModalController@editForbidInfo');        //显示修改违禁词-弹窗表单
-        Route::get('chat/modal/addHongbao', 'Chat\Ajax\ModalController@addHongbao');                //显示发红包-弹窗表单
-        Route::get('chat/modal/manualPlan', 'Chat\Ajax\ModalController@manualPlan');                //显示手动发送计划任务-弹窗表单
-        Route::get('/chat/modal/googleSubAccount/{id}', 'Chat\Ajax\ModalController@googleSubAccount');  //子账号google验证码
+        Route::get('chat/modal/editNoteInfo/{id}', 'Chat\Ajax\ModalController@editNoteInfo');             //显示修改聊天室公告-弹窗表单
+        Route::get('chat/modal/editLevelInfo/{id}', 'Chat\Ajax\ModalController@editLevelInfo');           //显示修改层级信息-弹窗表单
+        Route::get('chat/modal/editAdminInfo/{id}', 'Chat\Ajax\ModalController@editAdminInfo');           //显示修改聊天室管理员-弹窗表单
+        Route::get('chat/modal/editForbidInfo/{id}', 'Chat\Ajax\ModalController@editForbidInfo');         //显示修改违禁词-弹窗表单
+        Route::get('chat/modal/addHongbao', 'Chat\Ajax\ModalController@addHongbao');                      //显示发红包-弹窗表单
+        Route::get('chat/modal/manualPlan', 'Chat\Ajax\ModalController@manualPlan');                      //显示手动发送计划任务-弹窗表单
+        Route::get('/chat/modal/googleSubAccount/{id}', 'Chat\Ajax\ModalController@googleSubAccount');    //子账号google验证码
         Route::get('/chat/modal/getRoomType', 'Chat\Ajax\ModalController@getRoomType');                   //获取房间类型
-        Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                   //取得计划任务彩种
+        Route::get('/chat/modal/getLottery', 'Chat\Ajax\ModalController@getLottery');                     //取得计划任务彩种
         Route::get('/chat/modal/getAllRooms', 'Chat\Ajax\ModalController@getAllRooms');                   //取得所有房间ID跟名称
+        Route::get('/chat/modal/hongbaoBlacklist', 'Chat\Ajax\ModalController@hongbaoBlacklist');         //红包黑名单
+        Route::get('/chat/modal/hongbaoBlacklistSearchUsers', 'Chat\Ajax\ModalController@hongbaoBlacklistSearchUsers');//红包黑名单-添加
 
     //datatable
         Route::get('/chat/datatables/user', 'Chat\Data\DataController@userManage');          // 会员管理-表格数据
@@ -87,6 +91,8 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/datatables/hongbao', 'Chat\Data\DataController@hongbaoManage');    // 红包管理-表格数据
         Route::get('/chat/datatables/hongbaoDt', 'Chat\Data\DataController@hongbaoDt');      // 红包明细-表格数据
         Route::get('/chat/datatables/base', 'Chat\Data\DataController@baseManage');          // 平台配置-表格数据
+        Route::get('/chat/datatables/hongbaoBlacklist', 'Chat\Data\DataController@hongbaoBlacklist');// 红包黑名单
+        Route::get('/chat/datatables/hongbaoBlacklistSearchUsers', 'Chat\Data\DataController@hongbaoBlacklistSearchUsers');// 红包黑名单
 
 
     //聊天室VIEW

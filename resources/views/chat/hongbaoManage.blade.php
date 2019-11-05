@@ -2,11 +2,20 @@
 
 @section('top-buttons')
     <span class="ui green button" onclick="addHongbao()">发红包</span>
+    <span class="ui small button" onclick="heimingdan(0)">黑名单</span>
 @endsection
 
 @section('title','红包管理')
 
 @section('content')
+    <style>
+        .layui-layer-msg, .layui-laydate{
+            z-index: 999999999999!important;
+        }
+        .pointer{
+            cursor:pointer;
+        }
+    </style>
     <script src="/vendor/Semantic-UI-Calendar/dist/calendar.min.js"></script>
     <link rel="stylesheet" href="/vendor/Semantic-UI-Calendar/dist/calendar.min.css">
     <div class="table-content">
@@ -75,5 +84,14 @@
 @endsection
 
 @section('page-js')
+    <script src="/vendor/layui/layui.js"></script>
+    <link rel="stylesheet" href="/vendor/layui/css/layui.css">
     <script src="/chat/js/pages/hongbaoManage.js"></script>
+    <script>
+        !function(){
+            layui.use('layer', function(){
+                layer = layui.layer;
+            });
+        }()
+    </script>
 @endsection

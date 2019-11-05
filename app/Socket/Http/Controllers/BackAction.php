@@ -10,6 +10,7 @@ namespace App\Socket\Http\Controllers;
 
 
 use App\Socket\Http\Controllers\Traits\BackLogin;
+use App\Socket\Model\ChatHongbaoBlacklist;
 use App\Socket\Repository\ChatRoomRepository;
 
 class BackAction extends Base
@@ -87,6 +88,11 @@ class BackAction extends Base
         return $this->show(0);
     }
 
-
+    //更新红包黑名单的内存缓存
+    public function upStaticChatHongbaoBlacklist()
+    {
+        ChatHongbaoBlacklist::upUsers((int)$this->get('chat_hongbao_idx'));
+        return $this->show(0, $this->get('chat_hongbao_idx'));
+    }
 
 }

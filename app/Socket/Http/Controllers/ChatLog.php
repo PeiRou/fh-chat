@@ -3,6 +3,7 @@
 namespace App\Socket\Http\Controllers;
 
 use App\Socket\Http\Controllers\Traits\Login;
+use App\Socket\Model\ChatHongbaoBlacklist;
 use App\Socket\Model\OtherDb\PersonalLog;
 
 class ChatLog extends Base
@@ -41,6 +42,13 @@ class ChatLog extends Base
             return $this->show(1, '类型错误');
         }
         foreach ($list as $k => $v){
+            if($v['status'] == 8){
+                # 如果是红包 并且在黑名单里就跳过
+                if(in_array($this->user['userId'], ChatHongbaoBlacklist::getUsers())){
+                    unset($list[$k]);
+                    continue;
+                }
+            }
             if(isset($v['status']) && !in_array($v['status'],array(8,9))) {         //状态非红包
                 if($v['k']==md5($this->user['userId']))
                     $list[$k]['status'] = 4;

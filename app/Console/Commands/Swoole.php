@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatHongbao;
+use App\Socket\Model\ChatHongbaoBlacklist;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatSendConfig;
@@ -808,7 +809,7 @@ class Swoole extends Command
         $iMsg = (int)$hd_idx;
         $msg = $this->msg(8,$iMsg,$iRoomInfo);   //发送红包异动
 //        $this->sendToAll($room_id,$msg);
-        Room::sendRoomSystemMsg($room_id, $msg, '有新红包');
+        Room::sendRoomSystemMsg($room_id, $msg, \App\Socket\Utility\Language::hongbaolastMsg);
     }
     //检查抢到红包消息
     private function chkHongbaoNum($room_id,$serv){

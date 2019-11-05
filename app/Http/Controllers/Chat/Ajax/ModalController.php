@@ -188,4 +188,14 @@ class ModalController extends Controller
     {
         return view('modal.editRoomSearchAdmins');
     }
+    // 红包黑名单
+    public function hongbaoBlacklist()
+    {
+        return view('modal.hongbaoBlacklist');
+    }
+    // 红包黑名单-添加
+    public function hongbaoBlacklistSearchUsers()
+    {
+        return view('modal.hongbaoBlacklistSearchUsers');
+    }
 }

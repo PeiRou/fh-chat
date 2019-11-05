@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat\Data;
 
 use App\Http\Controllers\Chat\ChatAccountController;
+use App\Model\ChatHongbaoBlacklist;
 use App\Model\ChatRoom;
 use App\Model\ChatUsers;
 use Illuminate\Http\Request;
@@ -370,7 +371,6 @@ left join (select id,count(user_id) as countUsers from chat_room_dt group by id)
     public function roomAdmins(Request $request, $id)
     {
         $admins = ChatRoom::where('room_id', $id)->value('chat_sas');
-
         $model = DB::table('chat_users')
             ->select('username as user_name', 'users_id')
             ->whereIn('users_id', explode(',', $admins));
@@ -386,6 +386,59 @@ left join (select id,count(user_id) as countUsers from chat_room_dt group by id)
             })
             ->setTotalRecords($resCount)
             ->rawColumns(['control','is_speaking','is_pushbet'])
+            ->skipPaging()
+            ->make();
+    }
+
+    public function hongbaoBlacklist(Request $request)
+    {
+        $model = ChatHongbaoBlacklist::select('nickname', 'username', 'user_id')
+            ->where(function($sql)use($request){
+                isset($request->chat_hongbao_idx) && $sql->where('chat_hongbao_blacklist.chat_hongbao_idx', $request->chat_hongbao_idx);
+                if(!empty($request->search["value"])){
+                    $sql->where('chat_users.username', 'like', $request->search["value"].'%');
+                }
+            })
+            ->leftJoin('chat_users', 'chat_users.users_id', 'chat_hongbao_blacklist.user_id');
+        $resCount = $model->count();
+        if(isset($request->start, $request->length))
+            $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
+        $aData = $model->get();
+        return DataTables::of($aData)
+            ->editColumn('control',function ($v)use($request){
+                return '<ul class="control-menu"><li onclick="deleteUser('.$request->chat_hongbao_idx.','.$v->user_id.')">删除</li></ul><ul class="control-menu"></ul>';
+            })
+            ->rawColumns(['control'])
+            ->setTotalRecords($resCount)
+            ->skipPaging()
+            ->make();
+    }
+
+    public function hongbaoBlacklistSearchUsers(Request $request)
+    {
+        $model = ChatUsers::select('users_id as user_id', 'username', 'nickname')
+            ->where(function($sql)use($request){
+                if(!empty($request->search["value"])){
+                    $sql->where('chat_users.username', 'like', $request->search["value"].'%');
+                }
+            })
+            ->whereRaw('`users_id` NOT IN(SELECT
+                user_id 
+            FROM
+                `chat_hongbao_blacklist`
+            WHERE
+                `chat_hongbao_idx` = '.((int)$request->chat_hongbao_idx).'
+                )');
+        $resCount = $model->count();
+        if(isset($request->start, $request->length))
+            $model->skip($request->start)->take($request->length > 1 ? $request->length : 50);
+        $aData = $model->get();
+        return DataTables::of($aData)
+            ->editColumn('control',function ($v)use($request){
+                return '<ul class="control-menu"><li onclick="addUser('.$request->chat_hongbao_idx.','.$v->user_id.')">添加</li></ul><ul class="control-menu"></ul>';
+            })
+            ->rawColumns(['control'])
+            ->setTotalRecords($resCount)
             ->skipPaging()
             ->make();
     }

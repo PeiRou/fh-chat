@@ -288,6 +288,33 @@ class ChatSettingController extends Controller
     }
 
     //发红包
+//    public function addHongbao(Request $request)
+//    {
+//        $redis = Redis::connection();
+//        $redis->select(1);                                   //切换到聊天平台
+//        if($redis->exists('addhb'))
+//            return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
+//        $redis->setex('addhb',5,'ing');
+//        $data['room_id'] = $request->input('room');                //房间id
+//        $data['hongbao_total_amount'] = $request->input('hongbao_total_amount');        //红包总金额
+//        $data['hongbao_remain_amount'] = $data['hongbao_total_amount'];                 //红包剩馀金额
+//        $data['hongbao_total_num'] = $request->input('hongbao_total_num');              //红包总个数
+//        $data['hongbao_remain_num'] = $request->input('hongbao_total_num');              //红包剩馀个数
+//        $data['recharge'] = $request->input('recharge');                                //最低充值金额
+//        $data['bet'] = $request->input('bet');                                          //最低下注金额
+//
+//        $data['sa_id'] = Session::get('account_id');              //添加管理员id
+//        $data['account'] = Session::get('account');               //添加管理员
+//        $data['hongbao_status'] = 1;                              //红包状态 1:疯抢中 2:已抢完 3:已关闭
+//        $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
+//
+//        $id = DB::table('chat_hongbao')->insertGetId($data);
+//        if ($id > 0) {
+//            return $this->reHongbao($data['room_id'].'&'.$id,$data);
+//        }else
+//            return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
+//    }
+    //发红包
     public function addHongbao(Request $request)
     {
         $redis = Redis::connection();
@@ -296,24 +323,94 @@ class ChatSettingController extends Controller
             return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
         $redis->setex('addhb',5,'ing');
         $data['room_id'] = $request->input('room');                //房间id
-        $data['hongbao_total_amount'] = $request->input('hongbao_total_amount');        //红包总金额
-        $data['hongbao_remain_amount'] = $data['hongbao_total_amount'];                 //红包剩馀金额
-        $data['hongbao_total_num'] = $request->input('hongbao_total_num');              //红包总个数
-        $data['hongbao_remain_num'] = $request->input('hongbao_total_num');              //红包剩馀个数
+        $data['type'] = (int)$request->type;
+        $data['hongbao_total_amount'] = (float)$request->input('hongbao_total_amount');        //红包总金额
+        $data['hongbao_remain_amount'] = (float)$data['hongbao_total_amount'];                 //红包剩馀金额
         $data['recharge'] = $request->input('recharge');                                //最低充值金额
         $data['bet'] = $request->input('bet');                                          //最低下注金额
-
         $data['sa_id'] = Session::get('account_id');              //添加管理员id
         $data['account'] = Session::get('account');               //添加管理员
         $data['hongbao_status'] = 1;                              //红包状态 1:疯抢中 2:已抢完 3:已关闭
         $data['posttime'] = date("Y-m-d H:i:s", time());    //新增日期
-
+        $data['hongbao_total_num'] = (int)$request->input('hongbao_total_num');              //红包总个数
+        $data['hongbao_remain_num'] = (int)$request->input('hongbao_total_num');              //红包剩馀个数
+        $data['hongbao_min_amount'] = (float)$request->hongbao_min_amount;  //红包最小金额
+        $data['hongbao_max_amount'] = (float)$request->hongbao_max_amount;  //红包最大金额
+        $data['hongbao_min_amount'] < 0 && $data['hongbao_min_amount'] = 0;
+        $data['hongbao_max_amount'] < 0 && $data['hongbao_max_amount'] = 0;
+        $func = 'reHongbao';
+        if($data['type'] == 1){
+            if($data['hongbao_min_amount'] > $data['hongbao_max_amount']){
+                return response()->json(['status'=>false,'msg'=>'红包金额错误'],200);
+            }
+            if($data['hongbao_max_amount'] == 0){
+                return response()->json(['status'=>false,'msg'=>'请设置红包最大金额'],200);
+            }
+            $func = 'reHongbao1';
+        }
         $id = DB::table('chat_hongbao')->insertGetId($data);
         if ($id > 0) {
-            return $this->reHongbao($data['room_id'].'&'.$id,$data);
+            return $this->$func($data['room_id'].'&'.$id,$data);
         }else
             return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
     }
+
+    //重发红包
+    public function reHongbao1($data,$hbdt=array()){
+        try{
+            $data = explode("&",$data);
+            $room = $data[0];
+            $id = $data[1];
+            if(count($hbdt)==0){
+                $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num')->where('chat_hongbao_idx',$id)->first();
+            }
+            //将红包算好数量，放到redis红包里，供人读取
+            if($this->saveRedEnvelopeRedis1($hbdt['hongbao_total_num'],$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'],$id)){
+                Redis::select(1);
+                $data['id'] = $id;
+                $swoole = new Swoole();
+                $res = $swoole->swooletest('hongbao',$room,$data);
+                return response()->json(['status'=>true,'msg'=>'发红包成功','data'=>$res],200);
+            }
+        }catch (\Throwable $e){
+            writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+        }
+        DB::table('chat_hongbao')->where('chat_hongbao_idx',$id)->update(array('hongbao_status'=>2));      //红包状态 1:抢疯中 2:已抢完 3:已关闭
+        return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
+    }
+
+    public function saveRedEnvelopeRedis1(int $total_num, float $min, float $max, int $id)
+    {
+        $redis = Redis::connection();
+        $redis->select(9);      //聊天室红包
+        if(!$redis->exists('hb_'.$id)){
+            if($total_num < 0 || $min < 0 || $max <= 0 || $min > $max){
+                return false;
+            }
+            $redWardArray = [];
+            $hongbao_total_amount = 0;
+            $rmin =  (int)($min * 100);
+            $rmax =  (int)($max * 100);
+            for ($i = 0; $i<$total_num; $i++){
+                $v = rand($rmin, $rmax) / 100;
+                array_push($redWardArray, $v);
+            }
+            shuffle($redWardArray);
+            shuffle($redWardArray);
+            foreach ($redWardArray as $k => $v){
+                $redis->SADD('hb_'.$id,$k.'-'.$v);
+                $hongbao_total_amount += $v;
+            }
+            DB::table('chat_hongbao')->where('chat_hongbao_idx',$id)->update(array(
+                'hongbao_total_amount'=>$hongbao_total_amount,
+                'hongbao_remain_amount'=>$hongbao_total_amount,
+            ));
+        }
+        return true;
+    }
+
+
+
 
     //重发红包
     public function reHongbao($data,$hbdt=array()){
@@ -321,12 +418,17 @@ class ChatSettingController extends Controller
         $room = $data[0];
         $id = $data[1];
         if(count($hbdt)==0){
-            $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num')->where('chat_hongbao_idx',$id)->first();
+            $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num','type','hongbao_min_amount', 'hongbao_max_amount')->where('chat_hongbao_idx',$id)->first();
         }
         //将红包算好数量，放到redis红包里，供人读取
         $hb_amount = $hbdt['hongbao_remain_amount'];      //要发的金额
         $hb_num = $hbdt['hongbao_remain_num'];           //要发的数量
-        if($this->saveRedEnvelopeRedis($hb_amount,$hb_num,$id)){
+        if($hbdt['type'] == 0){
+            $res = $this->saveRedEnvelopeRedis($hb_amount,$hb_num,$id);
+        }elseif($hbdt['type'] == 1){
+            $res = $this->saveRedEnvelopeRedis1($hb_num,$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'] ,$id);
+        }
+        if($res){
             Redis::select(1);
             $data['id'] = $id;
             $swoole = new Swoole();

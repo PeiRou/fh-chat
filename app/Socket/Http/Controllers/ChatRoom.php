@@ -55,12 +55,12 @@ class ChatRoom extends Base
     //解散群
     public function releaseRoom()
     {
-//        if(($roomId = $this->get('roomId')) < 1)
-//            return $this->show(1, '参数错误');
-//
-//        if(ChatRoomRepository::userDelRoom($this->user, $roomId)){
-//            return $this->show(0);
-//        }
-//        return $this->show(2, '失败');
+        if(($roomId = $this->get('roomId')) < 1)
+            return $this->show(1, '参数错误');
+
+        if(ChatRoomRepository::userDelRoom($this->user, $roomId)){
+            return $this->show(0);
+        }
+        return $this->show(2, '失败');
     }
 }

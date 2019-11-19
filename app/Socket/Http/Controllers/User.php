@@ -70,13 +70,10 @@ class User extends Base
         if(empty($name = $this->get('name')))
             return $this->show(0, '', [], false);
         # 查聊天室权限
-//        $chat_role = ChatUser::getUserRole([
-//            'users_id' => $this->user['users_id']
-//        ]);
         $param = [
             'name' => $name
         ];
-        if($this->user['chat_role'] !== 3){
+        if($this->user['chat_role'] !== 3 && $this->i()){
             if(ChatBase::getValue('is_add_friends') === 0){
                 return $this->show(1, '功能暂未开放', [], false);
             }
@@ -85,6 +82,14 @@ class User extends Base
 //            $param['chat_role'] = 3;
         $users = ChatUser::search($param, $this->user['users_id'], 20, (boolean)$this->get('nocache'));
         return $this->show(0, '', $users ?? [], false);
+    }
+
+    private function i()
+    {
+        if(in_array(env('APP_NAME'), ['chat_ws', 'chat_b2'])){
+            return true;
+        }
+        return false;
     }
 
     //设置备注

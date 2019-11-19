@@ -145,7 +145,7 @@ class Swoole extends Command
 
         $AdSource = new AdSource();
         $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
         if(!$ISROOMS)
             DB::table('chat_room_dt')->truncate();           //聊天室在线记录
     }

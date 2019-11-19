@@ -11,6 +11,7 @@ namespace App\Socket\Http\Controllers;
 
 use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Http\Controllers\Traits\Login;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Repository\ChatRoomRepository;
 
 class ChatRoom extends Base
@@ -62,5 +63,49 @@ class ChatRoom extends Base
             return $this->show(0);
         }
         return $this->show(2, '失败');
+    }
+
+    //群资讯
+    public function roomInfo()
+    {
+        if(($roomId = (int)$this->get('roomId')) < 1)
+            return $this->show(1, '参数错误');
+        # 群的信息
+        if(!$roomInfo = \App\Socket\Model\ChatRoom::getRoomOne([
+            'room_id' => $roomId
+        ])){
+            return $this->show(1, '此房间已解散！');
+        }
+        # 用户数量
+        $uNum = ChatRoomDt::getOne([
+                'id' => $roomId
+            ],'count(*) as count')['count'] ?? 1;
+        # 用户列表
+        $uList = ChatRoomDt::uMapRoomInfo([
+            'chat_room_dt.id' => $roomId,
+//            'page' => 1,
+//            'rows' => 14
+        ]);
+        # 用户在群里的信息
+        $uMapRoomInfo = (ChatRoomDt::uMapRoomInfo([
+                'chat_room_dt.user_id' => $this->user['userId'],
+                'chat_room_dt.id' => $roomId,
+            ])[0] ?? null);
+        return $this->show(0, '', [
+            'is_inside' => $uMapRoomInfo ? 1 : 0,
+            'room_founder' => $roomInfo['room_founder'], //房主id
+            'user_num' => $uNum,
+            'chat_sas' => $roomInfo['chat_sas'], // 管理员列表
+            'room_name' => $roomInfo['room_name'], //群聊名称
+            'r_nickname' => $uMapRoomInfo['room_nickname'] ?: $this->user['nickname'], //我在本群的昵称
+            'u_list' => $uList,
+        ]);
+    }
+
+    //群成员
+    public function userList()
+    {
+        if(($roomId = (int)$this->get('roomId')) < 1)
+            return $this->show(1, '参数错误');
     }
 }

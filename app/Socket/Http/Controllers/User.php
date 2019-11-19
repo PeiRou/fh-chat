@@ -22,7 +22,7 @@ class User extends Base
         if(!($toUserId = (int)$this->get('toUserId')) && !($toUserName = $this->get('toUserName')))
             return $this->show(1, '参数错误');
 
-        if($this->user['chat_role'] !== 3){
+        if($this->user['chat_role'] !== 3 && $this->i()){
             if(ChatBase::getValue('is_add_friends') === 0){
                 return $this->show(1, '功能暂未开放');
             }
@@ -87,9 +87,9 @@ class User extends Base
     private function i()
     {
         if(in_array(env('APP_NAME'), ['chat_ws', 'chat_b2'])){
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     //设置备注

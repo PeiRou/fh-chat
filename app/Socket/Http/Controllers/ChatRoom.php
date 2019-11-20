@@ -11,6 +11,7 @@ namespace App\Socket\Http\Controllers;
 
 use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Http\Controllers\Traits\Login;
+use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Repository\ChatRoomRepository;
 
@@ -107,5 +108,29 @@ class ChatRoom extends Base
     {
         if(($roomId = (int)$this->get('roomId')) < 1)
             return $this->show(1, '参数错误');
+    }
+
+    // 邀请成员进群 - 列表
+    public function invitationUsersIndex()
+    {
+        if(($roomId = (int)$this->get('roomId')) < 1)
+            return $this->show(1, '参数错误');
+
+        return $this->show(0, '', ChatFriendsList::invitationUserList($this->user['userId'], $roomId));
+    }
+
+    // 邀请成员进群
+    public function invitationUsersAction()
+    {
+        if ((($roomId = (int)$this->get('roomId')) < 1) || (($toUser = (int)$this->get('toUser')) < 1))
+            return $this->show(1, '参数错误');
+
+        if(in_array($this->user['userId'], \App\Socket\Model\ChatRoom::getRoomSas($roomId))){
+            # todo 是管理员
+
+        }else{
+            # todo 不是管理员
+
+        }
     }
 }

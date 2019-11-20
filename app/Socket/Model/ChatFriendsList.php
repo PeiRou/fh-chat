@@ -25,6 +25,24 @@ class ChatFriendsList extends Base
         return $db->rawQuery($sql);
     }
 
+    //邀请好友进群的好友列表
+    protected static function invitationUserList($db, int $userId, int $roomId)
+    {
+        $sql = "SELECT
+                    c.*,
+                    ! isnull( d.user_id ) AS is_room ,
+	                u.username, 
+	                u.img
+                FROM
+                    chat_friends_list AS c
+                    LEFT JOIN chat_room_dt AS d ON c.to_id = d.user_id AND d.id = {$roomId} 
+                    LEFT JOIN chat_users AS u ON u.users_id = c.to_id 
+                WHERE
+                    c.user_id = {$userId}
+                    AND `c`.`status` = 1 ";
+        return $db->rawQuery($sql);
+    }
+
     //获取好友 单个
     protected static function getUserFriend($db, $param = [])
     {

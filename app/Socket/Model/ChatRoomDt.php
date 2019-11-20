@@ -86,7 +86,7 @@ class ChatRoomDt extends Base
                 $db->where($k, $v);
             $db->join('chat_users', 'chat_users.users_id = chat_room_dt.user_id', 'LEFT');
             $db->orderBy("chat_room_dt.created_at","desc");
-            return $db->get('chat_room_dt', $page ?: null, ['chat_room_dt.user_id', 'chat_room_dt.room_nickname', 'chat_users.username','chat_users.nickname']);
+            return $db->get('chat_room_dt', $page ?: null, ['chat_room_dt.user_id', 'chat_room_dt.room_nickname', 'chat_users.username', 'chat_users.nickname', 'chat_users.img']);
         }, 30, true);
     }
 

@@ -107,4 +107,19 @@ class ChatUser extends Base
         }, 30, false, $nocache);
 
     }
+
+    protected static function getList($db, $param = [], $flow = [])
+    {
+        extract($flow);
+        $whereRaw = $whereRaw ?? [];
+        $column = $column ?? null;
+
+        return self::RedisCacheData(function() use($db, $param, $whereRaw, $column){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            foreach ($whereRaw as $v)
+                $db->where($v);
+            return $db->get('chat_users', null, $column);
+        },30, false, $nocache ?? false);
+    }
 }

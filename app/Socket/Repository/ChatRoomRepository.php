@@ -9,8 +9,10 @@
 namespace App\Socket\Repository;
 
 
+use App\Socket\Exception\FuncApiException;
 use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Model\ChatRoom;
+use App\Socket\Model\ChatRoomDtLog;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
 use App\Socket\Utility\Component\Timer;
@@ -38,18 +40,72 @@ class ChatRoomRepository extends BaseRepository
         }
         return false;
     }
-    //房间家人
-    public static function addRoomUser($roomId, $user_id)
-    {
-        if(ChatRoom::inRoom($roomId, [
-            'user_id' => $user_id
-        ])){
-            # 清会员在线数据
-            \App\Repository\ChatRoomRepository::clearUserInfo($user_id);
 
-            # 更新这个人房间列表
-            Push::pushUser($user_id, 'RoomList');
-            return true;
+    // 退出房间
+    public static function outRoom(int $roomId, $userId)
+    {
+        try{
+            # 会员在房间的身份
+            $sas = \App\Socket\Model\ChatRoom::getUserRoomSas($userId, $roomId, true);
+            if($sas == 2){
+                # todo 普通会员退出
+
+            }elseif($sas == 3){
+                # todo 管理员退出
+
+            }elseif($sas == 4){
+                # todo 房主退出
+
+            }else{
+                throw new FuncApiException('身份异常！');
+            }
+        }catch (\Throwable $e){
+            if(!($e instanceof FuncApiException)){
+                writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+                return 'error';
+            }
+            return $e->getMessage();
+        }
+    }
+
+    //房间家人
+//    public static function addRoomUser($roomId, $user_id)
+//    {
+//        if(!ChatRoom::inRoom($roomId, $user_id)){
+//            # 清会员在线数据
+//            \App\Repository\ChatRoomRepository::clearUserInfo($user_id);
+//
+//            # 更新这个人房间列表
+//            Push::pushUser($user_id, 'RoomList');
+//            return true;
+//        }
+//        return false;
+//    }
+
+    //房间家人 - 批量
+    public static function addRoomUser($roomId, $userIds)
+    {
+        $userIds = (array)$userIds;
+        if($error = ChatRoom::inRoom($roomId, $userIds)){
+            return $error;
+        }
+        TaskManager::async(function() use($userIds){
+            foreach ($userIds as $user_id){
+                # 清会员在线数据
+                \App\Repository\ChatRoomRepository::clearUserInfo($user_id);
+                # 更新这个人房间列表
+                Push::pushUser($user_id, 'RoomList', false);
+            }
+        });
+        return false;
+    }
+
+    // 申请加入房间
+    public static function subAdd($roomId, $userIds)
+    {
+        $userIds = (array)$userIds;
+        if($error = ChatRoomDtLog::inRoom($roomId, $userIds)){
+            return $error;
         }
         return false;
     }

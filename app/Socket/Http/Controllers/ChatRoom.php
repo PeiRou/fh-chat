@@ -13,6 +13,7 @@ use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Http\Controllers\Traits\Login;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoomDt;
+use App\Socket\Model\ChatRoomDtLog;
 use App\Socket\Repository\ChatRoomRepository;
 
 class ChatRoom extends Base
@@ -31,6 +32,18 @@ class ChatRoom extends Base
             return $this->show(0);
         }
         return $this->show(1, 'error');
+    }
+
+    // 退出房间
+    public function outRoom()
+    {
+        if(!($roomId = (int)$this->get('roomId'))){
+            return $this->show(1, '参数错误');
+        }
+
+
+
+
     }
 
     //建群
@@ -122,15 +135,21 @@ class ChatRoom extends Base
     // 邀请成员进群
     public function invitationUsersAction()
     {
-        if ((($roomId = (int)$this->get('roomId')) < 1) || (($toUser = (int)$this->get('toUser')) < 1))
+        if ((($roomId = (int)$this->get('roomId')) < 1) || (!$toUsers = $this->get('toUsers')))
             return $this->show(1, '参数错误');
-
+        $toUsers = explode(',', $toUsers);
+        $code = 0;
         if(in_array($this->user['userId'], \App\Socket\Model\ChatRoom::getRoomSas($roomId))){
-            # todo 是管理员
-
+            # todo 是管理员直接添加进群
+            $error = ChatRoomRepository::addRoomUser($roomId, $toUsers);
         }else{
-            # todo 不是管理员
-
+            # todo 不是管理员 申请进入房间
+            $error = ChatRoomRepository::subAdd($roomId, $toUsers);
+            $code = 1;
         }
+        if($error){
+            return $this->show(2, (string)$error);
+        }
+        return $this->show($code);
     }
 }

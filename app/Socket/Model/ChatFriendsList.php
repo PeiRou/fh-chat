@@ -31,6 +31,7 @@ class ChatFriendsList extends Base
         $sql = "SELECT
                     c.*,
                     ! isnull( d.user_id ) AS is_room ,
+                    
 	                u.username, 
 	                u.img
                 FROM

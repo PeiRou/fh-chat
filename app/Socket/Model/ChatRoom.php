@@ -9,6 +9,8 @@
 namespace App\Socket\Model;
 
 
+use App\Socket\Exception\FuncApiException;
+
 class ChatRoom extends Base
 {
 
@@ -39,10 +41,29 @@ class ChatRoom extends Base
     }
 
     //获取房间的说有管理员
-    protected static function getRoomSas($db, $roomId)
+    protected static function getRoomSas($db, int $roomId, bool $isSaveCache = false)
     {
-        $room = ChatRoom::getRoomOne($db, ['room_id' => $roomId]);
+        $room = ChatRoom::getRoomOne($db, ['room_id' => $roomId], $isSaveCache);
         return array_unique(array_diff(explode(',', $room['chat_sas']), ['']));
+    }
+
+    /**
+     * 会员在房间的身份
+     * 2:普通会员
+     * 3:管理员
+     * 4:房主
+     */
+    protected static function getUserRoomSas($db, int $userId, int $roomId, bool $isSaveCache = false):int
+    {
+        $room = ChatRoom::getRoomOne($db, ['room_id' => $roomId], $isSaveCache);
+        $sas = array_unique(array_diff(explode(',', $room['chat_sas']), ['']));
+        if(in_array($userId, $sas)){
+            # 是不是房主
+            if($userId == $room['room_founder'])
+                return 4;
+            return 3;
+        }
+        return 2;
     }
 
     /**
@@ -51,40 +72,104 @@ class ChatRoom extends Base
      * @param array $param where数组
      * @return bool
      */
-    protected static function inRoom($db, $roomId, $param = [])
+//    protected static function inRoom($db, $roomId, $param = [])
+//    {
+//        $db->startTransaction();
+//        try{
+//            if(!ChatRoom::getRoomOne($db, ['room_id' => $roomId], true)){
+//                throw new \Exception('没有这个房间');
+//            }
+//            isset($param['user_id']) && $db->where('users_id', $param['user_id']);
+//            $uModel = clone $db;
+//            $user = $db->getOne('chat_users');
+//
+//            # 加入用户房间映射
+//            $rooms = explode(',', $user['rooms']);
+//            array_push($rooms, $roomId);
+//            $uModel->update('chat_users', [
+//                'rooms' => trim(implode(',', array_unique($rooms)), ',')
+//            ]);
+//
+//            # 加入房间
+//            $data = [
+//                'id' => $roomId,
+//                'user_id' => $user['users_id'],
+//                'user_name' => $user['username'],
+//                'is_speaking' => 1,
+//                'created_at' => date('Y-m-d H:i:s'),
+//                'updated_at' => date('Y-m-d H:i:s'),
+//            ];
+//            $db->insert('chat_room_dt', $data);
+//            $db->commit();
+//            return true;
+//        }catch (\Throwable $e){
+//            $db->rollback();
+//            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
+//            return false;
+//        }
+//    }
+
+    /**
+     * 加入房间 - 批量
+     * @param $roomId 房间id
+     * @param array $param where数组
+     * @return bool
+     */
+    protected static function inRoom($db, int $roomId, $userIds)
     {
+        $userIds = (array)$userIds;
         $db->startTransaction();
         try{
             if(!ChatRoom::getRoomOne($db, ['room_id' => $roomId], true)){
-                throw new \Exception('没有这个房间');
+                throw new FuncApiException('没有这个房间', 200);
             }
-            isset($param['user_id']) && $db->where('users_id', $param['user_id']);
-            $uModel = clone $db;
-            $user = $db->getOne('chat_users');
-
-            # 加入用户房间映射
-            $rooms = explode(',', $user['rooms']);
-            array_push($rooms, $roomId);
-            $uModel->update('chat_users', [
-                'rooms' => trim(implode(',', array_unique($rooms)), ',')
+            $aUsers = ChatUser::getList([], [
+                'whereRaw' => [
+                    "users_id IN ( ". implode(',', array_merge([0], $userIds)) ." ) ",
+                    "users_id NOT IN ( SELECT user_id FROM chat_room_dt WHERE id = {$roomId} AND user_id IN ( ". implode(',', array_merge([0], $userIds)) ." ) )",
+                ],
+                'column' => ['users_id', 'rooms', 'username'],
+                'nocache' => true
             ]);
+            if(count($aUsers) < 1){
+                throw new FuncApiException('没有找到会员，或会员已经加入房间！', 200);
+            }
+            $update = [];
+            $data = [];
+            foreach ($aUsers as $v){
+                $rs = explode(',', $v['rooms']);
+                array_push($rs, $roomId);
+                $update[] = [
+                    'users_id' => $v['users_id'],
+                    'rooms' => trim(implode(',', array_unique($rs)), ','),
+                ];
+                $data[] = [
+                    'id' => $roomId,
+                    'user_id' => $v['users_id'],
+                    'user_name' => $v['users_id'],
+                    'is_speaking' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+            }
+
+            if(!self::batchUpdate($db, $update, 'users_id', 'chat_users')){
+                throw new FuncApiException('失败！', 200);
+            }
 
             # 加入房间
-            $data = [
-                'id' => $roomId,
-                'user_id' => $user['users_id'],
-                'user_name' => $user['username'],
-                'is_speaking' => 1,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ];
-            $db->insert('chat_room_dt', $data);
+            if(!$db->insertMulti('chat_room_dt', $data)){
+                throw new FuncApiException('失败！', 201);
+            }
             $db->commit();
-            return true;
+            return false;
         }catch (\Throwable $e){
             $db->rollback();
-            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
-            return false;
+            if(!($e instanceof FuncApiException)){
+                writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
+                return 'error';
+            }
+            return $e->getMessage();
         }
     }
 
@@ -109,6 +194,51 @@ class ChatRoom extends Base
 
             # 退出房间
             $db->where('id', $roomId)->where('user_id', $user['users_id'])->delete('chat_room_dt');
+            $db->commit();
+            return true;
+        }catch (\Throwable $e){
+            $db->rollback();
+            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
+            return false;
+        }
+    }
+
+    /**
+     * 退出房间 - 批量
+     * @param $roomId
+     * @param array $param
+     */
+    protected static function outRoomA($db, $roomId, $userIds)
+    {
+        $userIds = (array)$userIds;
+        $db->startTransaction();
+        try{
+            $aUsers = ChatUser::getList([], [
+                'whereRaw' => [
+                    "users_id IN ( ". implode(',', array_merge([0], $userIds)) ." ) ",
+                  ],
+                'column' => ['users_id', 'rooms'],
+                'nocache' => true
+            ]);
+            if(count($aUsers) < 1){
+                throw new FuncApiException('没有找到会员', 200);
+            }
+            $update = [];
+            foreach ($aUsers as $v){
+                # 删除用户房间映射
+                $rs = explode(',', $v['rooms']);
+                $rs = array_diff($rs, [$roomId]);
+                $update[] = [
+                    'users_id' => $v['users_id'],
+                    'rooms' => trim(implode(',', array_unique($rs)), ','),
+                ];
+            }
+            if(!self::batchUpdate($db, $update, 'users_id', 'chat_users')){
+                throw new FuncApiException('失败！', 200);
+            }
+            # 删除房间管理员
+
+
             $db->commit();
             return true;
         }catch (\Throwable $e){

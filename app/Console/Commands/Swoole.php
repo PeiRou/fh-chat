@@ -1411,7 +1411,7 @@ class Swoole extends Command
     //加入房间-先加入在进入
     public function addRoom($roomId, &$iRoomInfo, $fd)
     {
-        if(!ChatRoom::inRoom($roomId, ['user_id' => $iRoomInfo['userId']]))
+        if(ChatRoom::inRoom($roomId, $iRoomInfo['userId']))
             return false;
         array_push($iRoomInfo['rooms'], $roomId);
         $iRoomInfo['rooms'] = array_values(array_diff(array_unique($iRoomInfo['rooms']), ['']));

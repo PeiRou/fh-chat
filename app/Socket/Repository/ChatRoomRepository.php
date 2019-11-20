@@ -24,48 +24,60 @@ class ChatRoomRepository extends BaseRepository
 {
 
     //房间踢人
-    public static function deleteUser($roomId, $user_id)
+    public static function deleteUser($roomId, $userIds)
     {
-        if(ChatRoom::outRoom($roomId, [
-            'user_id' => $user_id
+        $userIds = (array)$userIds;
+        if(ChatRoom::getRoomOne([
+            'room_id' => $roomId,
+            'room_founders' => $userIds
         ])){
-            # 清会员在线数据
-            \App\Repository\ChatRoomRepository::clearUserInfo($user_id);
-            # 通知这个人
-            app('swoole')->sendUser($user_id, 25, [
-                'id' => $roomId,
-                'type' => 'room',
-            ]);
-            return true;
+            return '房主不能踢出';
         }
+
+        if(!$error = self::outRoomAction($roomId, $userIds)){
+            TaskManager::async(function()use($userIds, $roomId){
+                # 通知这些个人
+                foreach ($userIds as $userId){
+                    app('swoole')->sendUser($userId, 25, [
+                        'id' => $roomId,
+                        'type' => 'room',
+                    ]);
+                }
+            });
+            return false;
+        }
+        return $error;
+    }
+
+    public static function outRoomAction(int $roomId, $userIds)
+    {
+        $userIds = (array)$userIds;
+        if($error = ChatRoom::outRoom($roomId, $userIds)){
+            return $error;
+        }
+        TaskManager::async(function()use($userIds){
+            foreach ($userIds as $userId){
+                # 清会员在线数据
+                \App\Repository\ChatRoomRepository::clearUserInfo($userId);
+                # 更新这个人房间列表
+                Push::pushUser($userId, 'RoomList', false);
+            }
+        });
         return false;
     }
 
     // 退出房间
-    public static function outRoom(int $roomId, $userId)
+    public static function outRoom(int $roomId, int $userId)
     {
-        try{
-            # 会员在房间的身份
-            $sas = \App\Socket\Model\ChatRoom::getUserRoomSas($userId, $roomId, true);
-            if($sas == 2){
-                # todo 普通会员退出
-
-            }elseif($sas == 3){
-                # todo 管理员退出
-
-            }elseif($sas == 4){
-                # todo 房主退出
-
-            }else{
-                throw new FuncApiException('身份异常！');
-            }
-        }catch (\Throwable $e){
-            if(!($e instanceof FuncApiException)){
-                writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
-                return 'error';
-            }
-            return $e->getMessage();
+        # 会员在房间的身份
+        $sas = \App\Socket\Model\ChatRoom::getUserRoomSas($userId, $roomId, true);
+        if($sas == ChatRoom::FOUNDER){
+            return '房主不能退出房间！';
         }
+        if($error = self::outRoomAction($roomId, $userId)){
+            return $error;
+        }
+        return false;
     }
 
     //房间家人

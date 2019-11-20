@@ -13,6 +13,14 @@ use App\Socket\Exception\FuncApiException;
 
 class ChatRoom extends Base
 {
+    /**
+     * 2:普通会员
+     * 3:管理员
+     * 4:房主
+     */
+    const USER = 2;
+    const ADMIN = 3;
+    const FOUNDER = 4;
 
     //房间列表
     protected static function getRoomList($db, $param = [])
@@ -34,6 +42,10 @@ class ChatRoom extends Base
     protected static function getRoomOne($db, $param = [], $isSaveCache = false)
     {
         return self::RedisCacheData(function()use($db, $param){
+            if(isset($param['room_founders'])){
+                $db->where('room_founder', $param['room_founders'], 'IN');
+                unset($param['room_founders']);
+            }
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room') ?? null;
@@ -60,10 +72,10 @@ class ChatRoom extends Base
         if(in_array($userId, $sas)){
             # 是不是房主
             if($userId == $room['room_founder'])
-                return 4;
-            return 3;
+                return self::FOUNDER;
+            return self::ADMIN;
         }
-        return 2;
+        return self::USER;
     }
 
     /**
@@ -178,37 +190,37 @@ class ChatRoom extends Base
      * @param $roomId
      * @param array $param
      */
-    protected static function outRoom($db, $roomId, $param = [])
-    {
-        $db->startTransaction();
-        try{
-            isset($param['user_id']) && $db->where('users_id', $param['user_id']);
-            $uModel = clone $db;
-            $user = $db->getOne('chat_users');
-            # 删除用户房间映射
-            $rooms = explode(',', $user['rooms']);
-            $rooms = array_diff($rooms, [$roomId]);
-            $uModel->update('chat_users', [
-                'rooms' => trim(implode(',', array_unique($rooms)), ',')
-            ]);
-
-            # 退出房间
-            $db->where('id', $roomId)->where('user_id', $user['users_id'])->delete('chat_room_dt');
-            $db->commit();
-            return true;
-        }catch (\Throwable $e){
-            $db->rollback();
-            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
-            return false;
-        }
-    }
+//    protected static function outRoom($db, $roomId, $param = [])
+//    {
+//        $db->startTransaction();
+//        try{
+//            isset($param['user_id']) && $db->where('users_id', $param['user_id']);
+//            $uModel = clone $db;
+//            $user = $db->getOne('chat_users');
+//            # 删除用户房间映射
+//            $rooms = explode(',', $user['rooms']);
+//            $rooms = array_diff($rooms, [$roomId]);
+//            $uModel->update('chat_users', [
+//                'rooms' => trim(implode(',', array_unique($rooms)), ',')
+//            ]);
+//
+//            # 退出房间
+//            $db->where('id', $roomId)->where('user_id', $user['users_id'])->delete('chat_room_dt');
+//            $db->commit();
+//            return true;
+//        }catch (\Throwable $e){
+//            $db->rollback();
+//            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
+//            return false;
+//        }
+//    }
 
     /**
      * 退出房间 - 批量
      * @param $roomId
      * @param array $param
      */
-    protected static function outRoomA($db, $roomId, $userIds)
+    protected static function outRoom($db, $roomId, $userIds)
     {
         $userIds = (array)$userIds;
         $db->startTransaction();
@@ -237,14 +249,27 @@ class ChatRoom extends Base
                 throw new FuncApiException('失败！', 200);
             }
             # 删除房间管理员
-
-
+            $chat_sas = self::getRoomValue($db, [
+                'room_id' => $roomId
+            ], 'chat_sas', true);
+            $sasArr = explode(',', $chat_sas);
+            $sas_sas1 = trim(implode(',', array_unique(array_diff($sasArr, $userIds))), ',');
+            if($chat_sas !== $sas_sas1){
+                $db->where('room_id', $roomId)->update('chat_room',[
+                    'chat_sas' => $sas_sas1
+                ]);
+            }
+            # 退出房间
+            $db->where('id', $roomId)->where('user_id', $userIds, 'IN')->delete('chat_room_dt');
             $db->commit();
-            return true;
+            return false;
         }catch (\Throwable $e){
             $db->rollback();
-            writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
-            return false;
+            if(!($e instanceof FuncApiException)){
+                writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+                return 'error';
+            }
+            return $e->getMessage();
         }
     }
 

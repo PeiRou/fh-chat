@@ -23,15 +23,18 @@ class ChatRoom extends Base
     //房间踢人
     public function deleteUser()
     {
-        if(!($roomId = (int)$this->get('roomId')) || !$user_id = (int)$this->get('user_id')){
+        if(!($roomId = (int)$this->get('roomId')) || empty($user_id = $this->get('user_id'))){
             return $this->show(1, '参数错误');
         }
-        if($this->user['chat_role'] !== 3)
+        $userIds = explode(',',$user_id);
+        # 会员在房间的身份
+        $sas = \App\Socket\Model\ChatRoom::getUserRoomSas($this->user['userId'], $roomId, true);
+        if($sas == \App\Socket\Model\ChatRoom::USER)
             return $this->show(1, '您没有权限');
-        if(ChatRoomRepository::deleteUser($roomId, $user_id)){
+        if(!$error = ChatRoomRepository::deleteUser($roomId, $userIds)){
             return $this->show(0);
         }
-        return $this->show(1, 'error');
+        return $this->show(1, $error);
     }
 
     // 退出房间
@@ -40,10 +43,10 @@ class ChatRoom extends Base
         if(!($roomId = (int)$this->get('roomId'))){
             return $this->show(1, '参数错误');
         }
-
-
-
-
+        if($error = ChatRoomRepository::outRoom($roomId, $this->user['userId'])){
+            return $this->show(1, $error);
+        }
+        return $this->show(0);
     }
 
     //建群
@@ -97,8 +100,8 @@ class ChatRoom extends Base
         # 用户列表
         $uList = ChatRoomDt::uMapRoomInfo([
             'chat_room_dt.id' => $roomId,
-//            'page' => 1,
-//            'rows' => 14
+            'page' => 1,
+            'rows' => 14
         ]);
         # 用户在群里的信息
         $uMapRoomInfo = (ChatRoomDt::uMapRoomInfo([
@@ -121,6 +124,10 @@ class ChatRoom extends Base
     {
         if(($roomId = (int)$this->get('roomId')) < 1)
             return $this->show(1, '参数错误');
+        $uList = ChatRoomDt::uMapRoomInfo([
+            'chat_room_dt.id' => $roomId,
+        ]);
+        return $this->show(0, '', $uList);
     }
 
     // 邀请成员进群 - 列表

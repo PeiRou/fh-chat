@@ -23,7 +23,7 @@ class BackAction extends Base
         if(!($roomId = (int)$this->get('roomId')) || !$user_id = (int)$this->get('user_id')){
             return $this->show(1, '参数错误');
         }
-        if(ChatRoomRepository::deleteUser($roomId, $user_id)){
+        if(!ChatRoomRepository::deleteUser($roomId, $user_id)){
             return $this->show(0);
         }
         return $this->show(1, 'error');

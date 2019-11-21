@@ -98,4 +98,11 @@ class ChatRoomDt extends Base
             return $db->getOne('chat_room_dt', $value) ?? null;
         }, 30, true);
     }
+
+    protected static function set($db, $param, $data)
+    {
+        foreach ($param as $k=>$v)
+            $db->where($k, $v);
+        return $db->update('chat_room_dt', $data);
+    }
 }

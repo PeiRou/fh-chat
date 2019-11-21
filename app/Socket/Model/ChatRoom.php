@@ -23,11 +23,13 @@ class ChatRoom extends Base
     const FOUNDER = 4;
 
     //房间列表
-    protected static function getRoomList($db, $param = [])
+    protected static function getRoomList($db, $param = [], $isSaveCache = false)
     {
-        isset($param['is_open']) && $db->where('is_open', 1);
-        isset($param['rooms']) && $db->where('room_id', $param['rooms'], 'IN');
-        return $db->get('chat_room', null, ['room_id', 'room_name','head_img']);
+        return self::RedisCacheData(function() use($db, $param){
+            isset($param['is_open']) && $db->where('is_open', 1);
+            isset($param['rooms']) && $db->where('room_id', $param['rooms'], 'IN');
+            return $db->get('chat_room', null, ['room_id', 'room_name','head_img']);
+        }, 30, false, $isSaveCache);
     }
 
     protected static function getRoomValue($db, $param = [], $value, $isSaveCache = false)
@@ -36,7 +38,7 @@ class ChatRoom extends Base
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room', [$value])[$value] ?? null;
-        }, 1, false, $isSaveCache); //10秒缓存
+        }, 30, false, $isSaveCache); //10秒缓存
     }
 
     protected static function getRoomOne($db, $param = [], $isSaveCache = false)

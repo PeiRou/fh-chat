@@ -144,7 +144,7 @@ class ChatRoom extends Base
     {
         if ((($roomId = (int)$this->get('roomId')) < 1) || (!$toUsers = $this->get('toUsers')))
             return $this->show(1, '参数错误');
-        $toUsers = explode(',', $toUsers);
+        $toUsers = explode(',', trim($toUsers, ','));
         $code = 0;
         if(in_array($this->user['userId'], \App\Socket\Model\ChatRoom::getRoomSas($roomId))){
             # todo 是管理员直接添加进群
@@ -159,4 +159,16 @@ class ChatRoom extends Base
         }
         return $this->show($code);
     }
+
+    // 设置我在本群的昵称
+    public function setRoomNickname()
+    {
+        if(empty($nickname = $this->get('nickname')) || (($roomId = (int)$this->get('roomId')) < 1))
+            return $this->show(1, '参数错误');
+        if($error = ChatRoomRepository::setRoomNickname($this->user['userId'], $roomId, $nickname)){
+            return $this->show(2, $error);
+        }
+        return $this->show(0);
+    }
+
 }

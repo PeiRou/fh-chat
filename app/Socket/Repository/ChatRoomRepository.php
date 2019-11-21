@@ -12,6 +12,7 @@ namespace App\Socket\Repository;
 use App\Socket\Exception\FuncApiException;
 use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Model\ChatRoom;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatRoomDtLog;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
@@ -234,6 +235,22 @@ class ChatRoomRepository extends BaseRepository
             }
             Trigger::getInstance()->throwable($e);
             return '出错了';
+        }
+    }
+
+    //设置会员群昵称
+    public static function setRoomNickname(int $userId, int $roomId, $nickname)
+    {
+        try{
+            ChatRoomDt::set([
+                'id' => $roomId,
+                'user_id' => $userId,
+            ], [
+                'room_nickname' => $nickname
+            ]);
+            return false;
+        }catch (\Throwable $e){
+            return 'error';
         }
     }
 }

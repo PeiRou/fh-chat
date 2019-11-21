@@ -142,7 +142,7 @@ class ChatRoom extends Base
                     "users_id IN ( ". implode(',', array_merge([0], $userIds)) ." ) ",
                     "users_id NOT IN ( SELECT user_id FROM chat_room_dt WHERE id = {$roomId} AND user_id IN ( ". implode(',', array_merge([0], $userIds)) ." ) )",
                 ],
-                'column' => ['users_id', 'rooms', 'username'],
+                'column' => ['users_id', 'rooms', 'username', 'nickname'],
                 'nocache' => true
             ]);
             if(count($aUsers) < 1){
@@ -160,7 +160,7 @@ class ChatRoom extends Base
                 $data[] = [
                     'id' => $roomId,
                     'user_id' => $v['users_id'],
-                    'user_name' => $v['user_name'],
+                    'user_name' => $v['username'],
                     'room_nickname' => $v['nickname'],
                     'is_speaking' => 1,
                     'created_at' => date('Y-m-d H:i:s'),

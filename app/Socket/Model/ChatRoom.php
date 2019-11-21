@@ -167,13 +167,12 @@ class ChatRoom extends Base
                 ];
             }
 
-            if(!self::batchUpdate($db, $update, 'users_id', 'chat_users')){
-                throw new FuncApiException('失败！', 200);
-            }
+            # 映射
+            self::batchUpdate($db, $update, 'users_id', 'chat_users');
 
             # 加入房间
             if(!$db->insertMulti('chat_room_dt', $data)){
-                throw new FuncApiException('失败！', 201);
+                throw new FuncApiException('失败', 201);
             }
             $db->commit();
             return false;

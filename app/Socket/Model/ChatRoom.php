@@ -160,7 +160,8 @@ class ChatRoom extends Base
                 $data[] = [
                     'id' => $roomId,
                     'user_id' => $v['users_id'],
-                    'user_name' => $v['users_id'],
+                    'user_name' => $v['user_name'],
+                    'room_nickname' => $v['nickname'],
                     'is_speaking' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),

@@ -62,4 +62,14 @@ class ChatRoomDtLog extends Base
             return $e->getMessage();
         }
     }
+
+    //列表
+    protected static function getList($db, $param = [])
+    {
+        foreach ($param as $k=>$v)
+            $db->where($k, $v);
+        $db->orderBy('IF(`status` = 0, 1, 0)', 'DESC');
+        $db->orderBy('created_at', 'DESC');
+        return $db->get('chat_room_dt_log', null, ['id', 'status', 'img', 'name']);
+    }
 }

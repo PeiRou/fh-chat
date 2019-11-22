@@ -55,7 +55,8 @@ class ChatFriendsLog extends Base
                 throw new \Exception('参数错误', 123);
             $db->where('id', $logId)->where('to_id', $toUser['users_id']);
             if(!$db->update('chat_friends_log', [
-                'status' => $status
+                'status' => $status,
+                'updated_at' => date('Y-m-d H:i:s')
             ]))
                 throw new \Exception('update logdb error', 123);
             # 如果是同意 将两个人互加为好友
@@ -108,6 +109,8 @@ class ChatFriendsLog extends Base
             'name' => $user['username'],
             'img' => $user['img'],
             'to_id' => $toUserId,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
         if($data['id'] = $db->insert('chat_friends_log', $data)) {
             unset($data['to_id']);

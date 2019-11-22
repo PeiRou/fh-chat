@@ -22,6 +22,10 @@ class ChatRoom extends Base
     const ADMIN = 3;
     const FOUNDER = 4;
 
+    const ADMINACTION = [3, 4]; # 有管理员权限的
+
+
+
     //房间列表
     protected static function getRoomList($db, $param = [], $isSaveCache = false)
     {

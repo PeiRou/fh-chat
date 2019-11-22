@@ -102,7 +102,7 @@ class ChatRoom extends Base
             'chat_room_dt.id' => $roomId,
             'page' => 1,
             'rows' => 14
-        ]);
+        ], (bool) $this->get('isSaveCache'));
         # 用户在群里的信息
         $uMapRoomInfo = (ChatRoomDt::uMapRoomInfo([
                 'chat_room_dt.user_id' => $this->user['userId'],
@@ -169,6 +169,28 @@ class ChatRoom extends Base
             return $this->show(2, $error);
         }
         return $this->show(0);
+    }
+
+    //通过申请
+    public function subpass()
+    {
+
+    }
+
+
+    //群申请列表
+    public function subLog()
+    {
+        if(($roomId = (int)$this->get('roomId')) < 1){
+            return $this->show(1, '参数错误');
+        }
+        if(!in_array(\App\Socket\Model\ChatRoom::getUserRoomSas($this->user['userId'], $roomId), \App\Socket\Model\ChatRoom::ADMINACTION)){
+            return $this->show(1, '您没有权限');
+        }
+        return $this->show(0, '', ChatRoomDtLog::getList([
+            'to_id' => $roomId,
+            'status' => 0
+        ]));
     }
 
 }

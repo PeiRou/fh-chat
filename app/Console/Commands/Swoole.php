@@ -877,7 +877,7 @@ class Swoole extends Command
                     continue;
                 }
             }
-            $valHis['room']= $v->room_id;
+            $valHis['room'] = $v->room_id;
            TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis){
                //检查计划消息
                $iRoomInfo = app('swoole')->getUsersess($valHis, '', 'plan');     //包装计划消息

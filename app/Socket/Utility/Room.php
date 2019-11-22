@@ -380,12 +380,12 @@ class Room
     {
         $aMesgRep = base64_encode(str_replace('+', '%20', urlencode($msg)));
         # 所有在群里的会员
-//        $userIds = ChatRoomDt::getRoomUserIds($roomId);
-        $userIds = Storage::disk('home')->allFiles('chatRoom/roomUserId/'.$roomId);
-        foreach ($userIds as &$toUserId){
-           $toUserId = explode("/",$toUserId);
-            $toUserId = $toUserId[3];
-        }
+        $userIds = ChatRoomDt::getRoomUserIds($roomId);
+//        $userIds = Storage::disk('home')->allFiles('chatRoom/roomUserId/'.$roomId);
+//        foreach ($userIds as &$toUserId){
+//           $toUserId = explode("/",$toUserId);
+//            $toUserId = $toUserId[3];
+//        }
         #别人的消息包装
         $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
         #自己的消息包装

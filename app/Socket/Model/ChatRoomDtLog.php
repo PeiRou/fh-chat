@@ -40,7 +40,7 @@ class ChatRoomDtLog extends Base
             $data = [];
             foreach ($aUsers as $v){
                 $data[] = [
-                    'id' => $roomId,
+//                    'id' => $roomId,
                     'user_id' => $v['users_id'],
                     'to_id' => $roomId,
                     'status' => 0,

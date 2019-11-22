@@ -300,7 +300,7 @@ class Push
 
         $AdSource = new AdSource();
         $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
         if($ISROOMS){
             $msg = app('swoole')->json(24, [
                 'type' => $type,
@@ -335,7 +335,7 @@ class Push
         }
         $AdSource = new AdSource();
         $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
         if($ISROOMS){
             $msg = app('swoole')->json(24, [
                 'type' => $type,

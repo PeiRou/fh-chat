@@ -250,7 +250,7 @@ class Swoole extends Command
                 $this->push($request->fd, $msg);
                 $AdSource = new AdSource();
                 $ISROOMS = $AdSource->getOneSource('chatType');
-                $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+                $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
                 # 如果是老聊天室 默认打开1聊天室
                 if(!$ISROOMS){
                     $room_dt = DB::table('chat_room_dt')->where('id',1)->where('user_id',$iRoomInfo['userId'])->first();
@@ -910,7 +910,7 @@ class Swoole extends Command
     private function getChatNotice($room = 1){
         $AdSource = new AdSource();
         $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = is_int($ISROOMS)?$ISROOMS:0;
+        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
         if($ISROOMS)
             $aNoteceData = DB::select("select content from chat_note where (`room_id` = {$room}) OR FIND_IN_SET('{$room}',rooms)");
         else

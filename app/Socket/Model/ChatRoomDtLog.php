@@ -35,7 +35,7 @@ class ChatRoomDtLog extends Base
                 'nocache' => true
             ]);
             if(count($aUsers) < 1){
-                throw new FuncApiException('没有找到会员，或会员已经加入房间！', 200);
+                throw new FuncApiException('没有找到会员，请等待审核，或会员已经加入房间！', 200);
             }
             $data = [];
             foreach ($aUsers as $v){

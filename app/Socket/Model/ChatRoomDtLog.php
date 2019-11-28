@@ -56,7 +56,7 @@ class ChatRoomDtLog extends Base
             return false;
         }catch (\Throwable $e){
             if(!($e instanceof FuncApiException)){
-                writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+                \App\Socket\Utility\Trigger::getInstance()->throwable($e);
                 return 'error';
             }
             return $e->getMessage();
@@ -71,5 +71,30 @@ class ChatRoomDtLog extends Base
         $db->orderBy('IF(`status` = 0, 1, 0)', 'DESC');
         $db->orderBy('created_at', 'DESC');
         return $db->get('chat_room_dt_log', null, ['id', 'status', 'img', 'name']);
+    }
+
+    //
+    protected static function get($db, $param = [], $flow = [])
+    {
+        extract($flow);
+        $whereRaw = $whereRaw ?? [];
+        $column = $column ?? null;
+        $limit = $limit ?? null;
+
+        return self::RedisCacheData(function() use($db, $param, $whereRaw, $column, $limit){
+            foreach ($param as $k=>$v)
+                $db->where($k, $v);
+            foreach ($whereRaw as $v)
+                $db->where($v);
+            return $db->get('chat_room_dt_log', $limit, $column);
+        },30, false, $nocache ?? false);
+    }
+
+    // 修改
+    protected static function update($db, $param, $data)
+    {
+        foreach ($param as $k=>$v)
+            $db->where($k, $v);
+        return $db->update('chat_room_dt_log', $data);
     }
 }

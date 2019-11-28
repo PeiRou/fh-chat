@@ -14,6 +14,7 @@ use App\Socket\Http\Controllers\Traits\Login;
 use App\Socket\Model\ChatFriendsList;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatRoomDtLog;
+use App\Socket\Redis\Redis;
 use App\Socket\Repository\ChatRoomRepository;
 
 class ChatRoom extends Base
@@ -35,6 +36,19 @@ class ChatRoom extends Base
             return $this->show(0);
         }
         return $this->show(1, $error);
+    }
+
+    //申请加群
+    public function inRoom(int $roomId)
+    {
+        if($roomId <= 0){
+            return $this->show(1, '参数错误');
+        }
+
+        if($error = ChatRoomRepository::inRoom($this->user['userId'], $roomId)){
+            return $this->show(1, $error);
+        }
+        return $this->show(0);
     }
 
     // 退出房间
@@ -80,6 +94,30 @@ class ChatRoom extends Base
             return $this->show(0);
         }
         return $this->show(2, '失败');
+    }
+
+    // 修改群资料
+    public function upRoomInfo()
+    {
+        if(($roomId = (int)$this->get('roomId')) < 1)
+            return $this->show(1, '参数错误');
+        if(!in_array(\App\Socket\Model\ChatRoom::getUserRoomSas($this->user['userId'], $roomId), \App\Socket\Model\ChatRoom::ADMINACTION)){
+            return $this->show(1, '您没有权限');
+        }
+        $key = 'upRoomInfo_'.$roomId;
+        if(!Redis::check($key, 5)){
+            return $this->show(1, '请不要频繁修改聊天室信息');
+        }
+        $update = [];
+        if(!empty($room_name = $this->get('room_name'))){
+            if(mb_strlen($room_name) > 12)
+                return $this->show(1, '名称太长啦');
+            $update['room_name'] = $room_name;
+        }
+        if(count($update) && ChatRoomRepository::upRoomInfo($roomId, $update)){
+            return $this->show(0, '');
+        }
+        return $this->show(1, '修改失败');
     }
 
     //群资讯
@@ -172,9 +210,33 @@ class ChatRoom extends Base
     }
 
     //通过申请
-    public function subpass()
+    public function passlog()
     {
-
+        if(!$id = (int)$this->get('id')){
+            return $this->show(1, '参数错误');
+        }
+        $key = 'passlog_'.$id;
+        if(!Redis::check($key, 10)){
+            return $this->show(1, '正在处理，请不要频繁操作');
+        }
+        if(!count($info = \App\Socket\Model\ChatRoomDtLog::get([
+            'id' => $id
+        ], [
+            'limit' => 1
+        ])[0] ?? [])){
+            return $this->show(1, '没有数据');
+        }
+        if($info['status'] !== 0){
+            return $this->show(1, '已被处理');
+        }
+        if(!in_array(\App\Socket\Model\ChatRoom::getUserRoomSas($this->user['userId'], $info['to_id']), \App\Socket\Model\ChatRoom::ADMINACTION)){
+            return $this->show(1, '您没有权限');
+        }
+        if($error = ChatRoomRepository::passlog($id, $info)){
+            return $this->show(2, (string)$error);
+        }
+        Redis::del($key);
+        return $this->show(0);
     }
 
 

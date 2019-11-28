@@ -90,13 +90,13 @@ class ChatRoomDt extends Base
         }, 30, true, $isSaveCache);
     }
 
-    protected static function getOne($db, $param = [], $value = null)
+    protected static function getOne($db, $param = [], $value = null, $isSaveCache = false)
     {
         return self::RedisCacheData(function()use($db, $param, $value){
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_room_dt', $value) ?? null;
-        }, 30, true);
+        }, 30, true, $isSaveCache);
     }
 
     protected static function set($db, $param, $data)

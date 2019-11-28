@@ -76,7 +76,6 @@ class ChatRoom extends Base
         $room = ChatRoom::getRoomOne($db, ['room_id' => $roomId], $isSaveCache);
         $sas = array_unique(array_diff(explode(',', $room['chat_sas']), ['']));
         if(in_array($userId, $sas)){
-            # 是不是房主
             if($userId == $room['room_founder'])
                 return self::FOUNDER;
             return self::ADMIN;
@@ -136,6 +135,7 @@ class ChatRoom extends Base
     protected static function inRoom($db, int $roomId, $userIds)
     {
         $userIds = (array)$userIds;
+
         $db->startTransaction();
         try{
             if(!ChatRoom::getRoomOne($db, ['room_id' => $roomId], true)){
@@ -171,11 +171,7 @@ class ChatRoom extends Base
                     'updated_at' => date('Y-m-d H:i:s'),
                 ];
             }
-
-            # 映射
             self::batchUpdate($db, $update, 'users_id', 'chat_users');
-
-            # 加入房间
             if(!$db->insertMulti('chat_room_dt', $data)){
                 throw new FuncApiException('失败', 201);
             }
@@ -184,7 +180,7 @@ class ChatRoom extends Base
         }catch (\Throwable $e){
             $db->rollback();
             if(!($e instanceof FuncApiException)){
-                writeLog('error', var_export($e->getMessage().$e->getFile().'('.$e->getLine().')', 1));
+                \App\Socket\Utility\Trigger::getInstance()->throwable($e);
                 return 'error';
             }
             return $e->getMessage();
@@ -243,7 +239,6 @@ class ChatRoom extends Base
             }
             $update = [];
             foreach ($aUsers as $v){
-                # 删除用户房间映射
                 $rs = explode(',', $v['rooms']);
                 $rs = array_diff($rs, [$roomId]);
                 $update[] = [
@@ -254,7 +249,6 @@ class ChatRoom extends Base
             if(!self::batchUpdate($db, $update, 'users_id', 'chat_users')){
                 throw new FuncApiException('失败！', 200);
             }
-            # 删除房间管理员
             $chat_sas = self::getRoomValue($db, [
                 'room_id' => $roomId
             ], 'chat_sas', true);
@@ -265,7 +259,6 @@ class ChatRoom extends Base
                     'chat_sas' => $sas_sas1
                 ]);
             }
-            # 退出房间
             $db->where('id', $roomId)->where('user_id', $userIds, 'IN')->delete('chat_room_dt');
             $db->commit();
             return false;
@@ -314,11 +307,8 @@ class ChatRoom extends Base
             $db->where('room_id', $roomId);
             $model = clone $db;
             $chat_sas = $db->getOne('chat_room',['chat_sas'])['chat_sas'];
-
-            # 增加房间映射
             $users = explode(',', $chat_sas);
             array_push($users, $user_id);
-
             $model->update('chat_room',[
                 'chat_sas' => trim(implode(',', array_unique($users)), ',')
             ]);
@@ -337,10 +327,8 @@ class ChatRoom extends Base
     {
         try{
             $db->startTransaction();
-            # 删除所有在这个房间的用户映射
             if(!self::delUserRoom($db, $roomId))
                 throw new \Exception('');
-            # 删除房间所有人
             $db->where('id', $roomId)->delete('chat_room_dt');
             $db->where('room_id', $roomId)->delete('chat_room');
             $db->commit();
@@ -404,5 +392,15 @@ class ChatRoom extends Base
                 return $val['room_id'];
             }, $res);
         }, 30);
+    }
+
+    // 改变申请列表的未处理的变状态
+    protected static function upstaus($db, $status, $param = [])
+    {
+        foreach ($param as $k => $v)
+            $db->where($k, $v);
+        return $db->update('chat_room_dt_log', [
+            'status' => $status
+        ]);
     }
 }

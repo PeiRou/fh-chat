@@ -10,16 +10,12 @@ namespace App\Socket\Repository;
 
 
 use App\Socket\Exception\FuncApiException;
-use App\Socket\Http\Controllers\Traits\ApiException;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatRoomDtLog;
-use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Push;
-use App\Socket\Utility\Component\Timer;
 use App\Socket\Utility\Room;
 use App\Socket\Utility\Task\TaskManager;
-use App\Socket\Utility\Trigger;
 
 class ChatRoomRepository extends BaseRepository
 {
@@ -113,7 +109,36 @@ class ChatRoomRepository extends BaseRepository
         return false;
     }
 
-    // 申请加入房间
+    // 加入房间
+    public static function inRoom(int $userId, int $roomId)
+    {
+
+        # 房间信息
+        $roomInfo = ChatRoom::getRoomOne([
+            'room_id' => $roomId
+        ]);
+        if(empty($roomInfo)){
+            ThrowOut(1, '房间不存在');
+        }
+
+        # 房间是否可快速加入
+        if($roomInfo['is_auto'] === 1 || $roomId == 1){
+            # 直接加入
+            if($error = self::addRoomUser($roomId, $userId)){
+                ThrowOut(1, $error);
+            }
+            ThrowOut(0);
+        }else{
+            # 申请加入
+            if($error = self::subAdd($roomId, $userId)){
+                ThrowOut(1, $error);
+            }
+            ThrowOut(3, '已申请，等待管理员审核');
+        }
+        ThrowOut(500, 'error');
+    }
+
+    // 申请加入房间 - 需要审核的时候走这个接口
     public static function subAdd($roomId, $userIds)
     {
         $userIds = (array)$userIds;
@@ -121,6 +146,42 @@ class ChatRoomRepository extends BaseRepository
             return $error;
         }
         return false;
+    }
+
+    //加群验证通过
+    public static function passlog($id, $info)
+    {
+        try{
+            # 使用了多个模型，为了不获取多次，直接获取一个链接实例,传入了db就不会在获取了
+            $mysqlPool = \App\Socket\Utility\Pool\PoolManager::getInstance()->getPool(\App\Socket\Pool\MysqlPool::class);
+            $db = $mysqlPool->getObj();
+            $roomId = $info['to_id'];
+            $userId = $info['user_id'];
+            # 用户在不在群里
+            if(empty(ChatRoomDt::getOne($db, [
+                'user_id' => $info['user_id'],
+                'id' => $info['to_id']
+            ]))){
+                # 加群
+                if($error = self::addRoomUser($roomId, $userId)){
+                    throw new FuncApiException($error);
+                }
+            }
+            # 修改状态
+            ChatRoomDtLog::update([
+                'id' => $id
+            ], [
+                'status' => 1
+            ]);
+            $mysqlPool->recycleObj($db); # 回收db
+            return false;
+        }catch (\Throwable $e){
+            if(!($e instanceof FuncApiException)){
+                \App\Socket\Utility\Trigger::getInstance()->throwable($e);
+                return 'error';
+            }
+            return $e->getMessage();
+        }
     }
 
     //删除管理
@@ -147,18 +208,13 @@ class ChatRoomRepository extends BaseRepository
             writeLog('error', '此房间不能删除');
             return false;
         }
-        # 获取在这个房间的会员
         $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
-        # 删除房间
         if(ChatRoom::delRoom($roomId)){
-            # 更新这些人的房间列表
             foreach ($users as $user){
-                # 删除历史列表
                 $pushs = ['RoomList'];
                 if(Room::delHistoryChatList($user, 'room', $roomId)){
                     array_push($pushs, 'HistoryChatList');
                 }
-                # 更新些人房间列表
                 Push::pushUser($user, $pushs);
             }
             # 清日志
@@ -216,11 +272,18 @@ class ChatRoomRepository extends BaseRepository
         return false;
     }
 
+    //修改群信息
+    public static function upRoomInfo($roomid, $data)
+    {
+        return ChatRoom::update([
+            'room_id' => $roomid
+        ], $data);
+    }
+
     //置顶房间(不改数据库)
     public static function setSortRoom($roomId,int $top_sort = 0)
     {
         try{
-            # 获取在这个房间的会员
             $users = \App\Socket\Model\ChatRoomDt::getRoomUserIds($roomId);
             if(count($users)) {
                 TaskManager::async(function () use ($users, $roomId, $top_sort) {
@@ -233,7 +296,7 @@ class ChatRoomRepository extends BaseRepository
             if($e->getCode()){
                 return $e->getMessage();
             }
-            Trigger::getInstance()->throwable($e);
+            \App\Socket\Utility\Trigger::getInstance()->throwable($e);
             return '出错了';
         }
     }
@@ -252,5 +315,11 @@ class ChatRoomRepository extends BaseRepository
         }catch (\Throwable $e){
             return 'error';
         }
+    }
+
+    //拒绝
+    public static function refuselog(int $roomId, $userIds)
+    {
+        # todo: 没什么意义，暂时不提供
     }
 }

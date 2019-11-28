@@ -71,7 +71,7 @@ class Base
             $db->rawQuery($updateSql, $bindings);
             return true;
         } catch (\Exception $e) {
-            writeLog('error', $e->getMessage().$e->getFile().'('.$e->getLine().')'.$e->getTraceAsString());
+            \App\Socket\Utility\Trigger::getInstance()->throwable($e);
             return false;
         }
     }

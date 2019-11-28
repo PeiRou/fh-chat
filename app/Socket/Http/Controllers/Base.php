@@ -53,6 +53,7 @@ class Base
             return $this->parser->request->get;
         if(isset($this->parser->request->get[$key]))
             return $this->parser->request->get[$key];
+        return $this->post($key);
         return null;
     }
     public function post($key = ''){

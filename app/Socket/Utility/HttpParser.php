@@ -41,10 +41,46 @@ class HttpParser
                 $instance->show(403, '登录失效', [], 403);
                 return false;
             }
-            $res = call_user_func([$instance, $this->action]);
+
+            $parameters  = (new \ReflectionMethod($instance,$this->action))->getParameters();
+            $params = [];
+            foreach ($parameters as $reflectionParameter){
+                $name = $reflectionParameter->getName();
+                $reflectionType = $reflectionParameter->getType();
+                $value = $instance->get($name);
+                if($value === null){
+                    if($reflectionParameter->isOptional()){
+                        $value = $reflectionParameter->getDefaultValue();
+                    }else{
+                        if(!$reflectionType->allowsNull()){
+                            $instance->show(102, '参数错误', [], 200);
+                            return false;
+                        }
+                    }
+                }else{
+                    if($reflectionType->isBuiltin()){
+                        $value = $this->c($value, (string)$reflectionType);
+                    }
+                }
+                $params[] = $value;
+            }
+            $res = call_user_func([$instance, $this->action], ...$params);
         }catch (\Throwable $e){
             $res = call_user_func([$instance, 'onException'], $e);
         }
         return $res ?? false;
+    }
+
+    private function c($value, $type)
+    {
+        switch ($type){
+            case 'string':
+                return (string)($value);
+            case 'int':
+                return (int)($value);
+            case 'array':
+                return (array)($value);
+        }
+        return $value;
     }
 }

@@ -545,8 +545,8 @@ class Swoole extends Command
         # 获取需要推送的房间
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){
-            if(!in_array(1, $rooms))
-                continue;
+//            if(!in_array(1, $rooms))
+//                continue;
             TaskManager::async(function() use($iRoomInfo, $issueInfo, $betInfo, $roomId){
                 try{
 //                    $iRoomUsers = app('swoole')->updAllkey('usr',$roomId);   //获取聊天用户数组，在反序列化回数组

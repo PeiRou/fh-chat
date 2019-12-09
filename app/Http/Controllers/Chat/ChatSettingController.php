@@ -531,6 +531,10 @@ class ChatSettingController extends Controller
         }
 
         $update = DB::table('chat_base')->where('chat_base_idx',1)->update($data);
+        $redis = Redis::connection();
+        $redis->select(5);       //操作锁定REDIS库
+        $redisKey = 'chat_base';
+        $redis->del($redisKey);
 
         if($update==1)
             return response()->json(['status'=>true],200);

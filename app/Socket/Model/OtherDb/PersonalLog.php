@@ -24,6 +24,7 @@ class PersonalLog extends Base
     //用户聊天记录
     protected static function getPersonalLog($db, $user_id, $to_id, $param = [])
     {
+
         $path = self::FILEPATH.'users'.'/'.str_replace(',','_', Users::getUserMap($user_id, $to_id)).'/';
         return self::getPersonalLogfile($db, $path, array_merge([
             'type' => 'users',
@@ -298,15 +299,18 @@ class PersonalLog extends Base
         }
         if(!Storage::disk('home')->put($tmpTxt.$timeIdx, $addVal))
             return false;
-        //删除多余信息
-        $files = Storage::disk('home')->files($path);
-        $needDelnum = count($files)-self::LOG_MAX_NUM;
-        if($needDelnum > 0){
-            while ($needDelnum){
-                $v = array_shift($files);
-                self::delOneFile($db, $v); # 删除文件
-                $needDelnum --;
+        try {
+            //删除多余信息
+            $files = Storage::disk('home')->files($path);
+            $needDelnum = count($files) - self::LOG_MAX_NUM;
+            if ($needDelnum > 0) {
+                while ($needDelnum) {
+                    $v = array_shift($files);
+                    self::delOneFile($db, $v); # 删除文件
+                    $needDelnum--;
+                }
             }
+        }catch (\Exception $e){
         }
         return true;
     }

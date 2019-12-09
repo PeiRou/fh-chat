@@ -143,11 +143,11 @@ class Swoole extends Command
         DB::table('chat_online')->truncate();           //聊天室在线记录
         Room::clearAllRoom();  # 清聊天室所有数据
 
-        $AdSource = new AdSource();
-        $ISROOMS = $AdSource->getOneSource('chatType');
-        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
-        if(!$ISROOMS)
-            DB::table('chat_room_dt')->truncate();           //聊天室在线记录
+//        $AdSource = new AdSource();
+//        $ISROOMS = $AdSource->getOneSource('chatType');
+//        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
+//        if(!$ISROOMS)
+//            DB::table('chat_room_dt')->truncate();           //聊天室在线记录
     }
 
     /***

@@ -70,7 +70,7 @@ return [
         'charset'       => 'utf8',
         'password'      => env('DB_PASSWORD', ''),
         'database'      => env('DB_DATABASE', 'forge'),
-        'POOL_MAX_NUM'  => '6',
+        'POOL_MAX_NUM'  => '10',
         'POOL_TIME_OUT' => '0.1',
     ],
     'MYSQLPOOL2' => [

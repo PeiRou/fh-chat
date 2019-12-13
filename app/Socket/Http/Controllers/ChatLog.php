@@ -4,6 +4,7 @@ namespace App\Socket\Http\Controllers;
 
 use App\Socket\Http\Controllers\Traits\Login;
 use App\Socket\Model\ChatHongbaoBlacklist;
+use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\OtherDb\PersonalLog;
 
 class ChatLog extends Base
@@ -30,6 +31,13 @@ class ChatLog extends Base
         }
         if($type == 'room'){ # 群聊
             if($id !== 2){
+                # 是否在当前房间
+                if(!ChatRoomDt::getOne([
+                    'id' => $id,
+                    'user_id' => $this->user['userId']
+                ])){
+                    return $this->show(1, '您不在当前房间');
+                }
                 $list = PersonalLog::getRoomLog($id, $param);
             }else{
                 $list = PersonalLog::getManyLog($this->user['userId'], $this->user['userId'], $id, $param);

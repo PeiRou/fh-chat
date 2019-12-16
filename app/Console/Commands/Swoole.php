@@ -461,7 +461,11 @@ class Swoole extends Command
                 }
                 throw new \Exception('房间暂未开启', 203);
             }
-            if(array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false){# 不在房间
+
+            if((array_search((string)$roomId, (array)$iRoomInfo['rooms']) === false) || !ChatRoomDt::getOne([
+                    'user_id' => $iRoomInfo['userId'],
+                    'id' => $roomId
+                ])){# 不在房间
                 # 是否可以快速加入
                 if($roomInfo->is_auto || $roomId == 1){
                     if(!$this->addRoom($roomId, $iRoomInfo, $fd))
@@ -1031,7 +1035,10 @@ class Swoole extends Command
         //默认加入1、2房间
         $arr = [1,2];
         foreach ($arr as $v){
-            !in_array($v, $iRoomInfo['rooms']) &&
+            (!in_array($v, $iRoomInfo['rooms']) || ChatRoomDt::getOne([
+                    'user_id' => $iRoomInfo['userId'],
+                    'id' => $fd
+                ])) &&
             ($this->addRoom($v,$iRoomInfo, $fd));
         }
     }

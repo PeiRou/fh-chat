@@ -16,9 +16,8 @@ class ChatLog extends Base
     //获取日志
     public function getList()
     {
-        if(!($id = (int)$this->get('id')) || empty($type = $this->get('type'))){
-            return $this->show(1, '参数错误');
-        }
+        !($id = (int)$this->get('id')) && $id = 1;
+        empty($type = $this->get('type')) && $type = 'room';
         $param = [];
         $param['page_size'] = (int)$this->get('page_size') ?: 20;
         $this->get('index') && $param['index'] = $this->get('index');

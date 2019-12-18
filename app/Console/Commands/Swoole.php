@@ -222,7 +222,7 @@ class Swoole extends Command
                 $strParam = explode("/", $strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
                 if(empty($iSess))
-                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+                    return $this->sendToSerf($request->fd, 3, '登陆失效.');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
                 if(empty($iRoomInfo))
                     return false;
@@ -308,9 +308,9 @@ class Swoole extends Command
                 if(isset($iSess)){
                     $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
                     if(empty($iRoomInfo) || !isset($iRoomInfo['userId']) || empty($iRoomInfo['userId']))
-                        return $this->sendToSerf($request->fd,3,'登陆失效');
+                        return $this->sendToSerf($request->fd,3,'登陆失效。');
                 }else
-                    return $this->sendToSerf($request->fd,3,'登陆失效');
+                    return $this->sendToSerf($request->fd,3,'登陆失效!');
             }
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码

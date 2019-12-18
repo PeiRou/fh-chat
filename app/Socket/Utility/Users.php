@@ -68,7 +68,7 @@ class Users
         foreach ($fds as $fd){
             $userInfo = app('swoole')->getUserInfo($fd);
             if(isset($userInfo['sess']) && $userInfo['sess'] !== $sess){
-                app('swoole')->sendToSerf($fd, 3, '登陆失效');
+                app('swoole')->sendToSerf($fd, 3, '登陆已失效!');
                 app('swoole')->ws->close($fd);  # 如果已经链接的fd保存的sess不对，就主动关闭链接
             }
         }

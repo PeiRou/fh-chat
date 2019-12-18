@@ -467,7 +467,7 @@ class Swoole extends Command
                     'id' => $roomId
                 ])){# 不在房间
                 # 是否可以快速加入
-                if($roomInfo->is_auto || $roomId == 1){
+                if($roomInfo->is_auto || in_array($roomId, [1, 2])){
                     if(!$this->addRoom($roomId, $iRoomInfo, $fd))
                         throw new \Exception('加入房间失败', 203);
                 }else{
@@ -1035,9 +1035,9 @@ class Swoole extends Command
         //默认加入1、2房间
         $arr = [1,2];
         foreach ($arr as $v){
-            (!in_array($v, $iRoomInfo['rooms']) || ChatRoomDt::getOne([
+            (!in_array($v, $iRoomInfo['rooms']) || !ChatRoomDt::getOne([
                     'user_id' => $iRoomInfo['userId'],
-                    'id' => $fd
+                    'id' => $v
                 ])) &&
             ($this->addRoom($v,$iRoomInfo, $fd));
         }

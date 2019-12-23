@@ -73,7 +73,7 @@ class ChatRoom extends Base
             return $this->show(1, '参数错误');
         }
         $param = [
-            'is_auto' => (int)$this->get('is_auto'),
+            'is_auto' => ((int)$this->get('is_auto') == 1) ? 1 : 0,
             'room_name' => $roomName,
             'head_img' => $headImg,
         ];

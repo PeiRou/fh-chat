@@ -240,7 +240,7 @@ class ChatRoomRepository extends BaseRepository
     public static function buildRoom($user, $param = [])
     {
         $data = [
-            'is_auto' => (isset($param['is_auto']) && (int)$param['is_auto'] >= 1) ? 1 : 0,
+            'is_auto' => isset($param['is_auto']) ? (int)$param['is_auto'] : 0,
             'room_name' => $param['room_name'],
 //            'head_img' => $param['head_img'],
             'chat_sas' => $user['userId'],

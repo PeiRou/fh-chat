@@ -362,7 +362,7 @@ class ChatRoom extends Base
     protected static function buildRoom($db, $userId, $param)
     {
         $data = [
-            'is_auto' => $param['is_auto'] >= 1 ? 1 : 0,
+            'is_auto' => 0,
             'room_name' => $param['room_name'],
 //            'head_img' => $param['head_img'],
             'roomtype' => $param['roomtype'] ?? 1,

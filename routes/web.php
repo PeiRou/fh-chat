@@ -133,7 +133,7 @@ Route::get('/error/403', function () {
 Route::get('/chat/admin/logout','Chat\ChatAccountController@logout');
 
 //前台操作中转接口
-Route::post('/chat/setInfo','Chat\AjaxStatusController@setInfo');
+Route::post('/chat/setInfo','Chat\AjaxStatusController@setInfo');           //接收跟单的接口
 Route::get('/hisinfo','Chat\AjaxStatusController@getHisInfo');
 //Route::get('/delhisinfo','Chat\AjaxStatusController@delHisInfo');
 Route::any('/chatapi/{controller}/{action}','Chat\AjaxStatusController@chatapi');

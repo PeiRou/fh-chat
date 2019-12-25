@@ -555,7 +555,7 @@ class Swoole extends Command
             return "";
 
         # 推送这个会员注单的房间
-        $rooms = ChatRoomDt::pushbetRooms($iRoomInfo['userId']);
+//        $rooms = ChatRoomDt::pushbetRooms($iRoomInfo['userId']);
         # 获取需要推送的房间
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){

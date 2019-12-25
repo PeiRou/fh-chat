@@ -546,7 +546,7 @@ class Swoole extends Command
             $redis->select(0);
             return $redis->get('planBetInfo_md5') == $sess;
         })){
-            $iRoomInfo = $this->getUsersess($sess, 0, 'plan');
+            $iRoomInfo = $this->getUsersess((array)$sess, 0, 'plan');
         }else{
             $iRoomInfo = $this->getUsersess($sess);
         }
@@ -554,16 +554,11 @@ class Swoole extends Command
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";
 
-        # 推送这个会员注单的房间
-//        $rooms = ChatRoomDt::pushbetRooms($iRoomInfo['userId']);
         # 获取需要推送的房间
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){
-//            if(!in_array(1, $rooms))
-//                continue;
             TaskManager::async(function() use($iRoomInfo, $issueInfo, $betInfo, $roomId){
                 try{
-//                    $iRoomUsers = app('swoole')->updAllkey('usr',$roomId);   //获取聊天用户数组，在反序列化回数组
                     //发送消息
                     if(!is_array($iRoomInfo))
                         $iRoomInfo = (array)$iRoomInfo;

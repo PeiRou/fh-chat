@@ -542,9 +542,15 @@ class Swoole extends Command
 
         if(empty($sess) || empty($betInfo) || empty($issueInfo))
             return "";
-        //select(0);
-        //$redisKey = 'planBetInfo_md5';
-        $iRoomInfo = $this->getUsersess($sess);
+        if(\App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($sess){
+            $redis->select(0);
+            return $redis->get('planBetInfo_md5') == $sess;
+        })){
+            $iRoomInfo = $this->getUsersess($sess, 0, 'plan');
+        }else{
+            $iRoomInfo = $this->getUsersess($sess);
+        }
+
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";
 

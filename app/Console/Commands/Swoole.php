@@ -408,6 +408,7 @@ class Swoole extends Command
                     $this->setPlan($serv);
                     break;
                 case 'betInfo':
+                case 'planBetInfo':
                     //发送跟单
                     $this->pushBetInfo($serv);
                     break;
@@ -538,8 +539,11 @@ class Swoole extends Command
         $sess = isset($serv->post['sess'])?$serv->post['sess']:(isset($serv->get['sess'])?$serv->get['sess']:"");
         $betInfo = isset($serv->post['betInfo'])?$serv->post['betInfo']:(isset($serv->get['betInfo'])?$serv->get['betInfo']:"");
         $issueInfo = isset($serv->post['issueInfo'])?$serv->post['issueInfo']:(isset($serv->get['issueInfo'])?$serv->get['issueInfo']:"");
+
         if(empty($sess) || empty($betInfo) || empty($issueInfo))
             return "";
+        //select(0);
+        //$redisKey = 'planBetInfo_md5';
         $iRoomInfo = $this->getUsersess($sess);
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";
@@ -718,7 +722,7 @@ class Swoole extends Command
             'status'=>$status,
             'fd' => isset($userinfo['name'])?$userinfo['name']:'',
             'nickname' => isset($userinfo['nickname'])?$userinfo['nickname']:'',        //用户呢称
-            'img' => isset($userinfo['img'])?$userinfo['img']:'',                       //用户头像
+            'img' => isset($userinfo['img'])&&!empty($userinfo['img'])?$userinfo['img']:'/game/images/chat/avatar.png',                       //用户头像
             'msg' => $msg,
             'dt' => isset($userinfo['dt'])?$userinfo['dt']:'',
             'bg1' => isset($userinfo['bg1'])?$userinfo['bg1']:'',                       //背景色1

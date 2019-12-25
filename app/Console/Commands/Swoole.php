@@ -951,8 +951,10 @@ class Swoole extends Command
         switch ($type){
             case 'plan':
                 $res = $iSess;
-                $res['room'] = $res['room'] ?? 1;                                  //取得房间id
-                $res['name'] = '计划任务';                          //名称显示
+                $res['room'] = $res['room'] ?? 1;                          //取得房间id
+                $res['userId'] = 'plans';                                  //Plan id
+                $res['img'] = '/game/images/chat/sys.png';                 //用户头像
+                $res['name'] = '计划小帮手';                          //名称显示
                 $res['level'] = 98;                                //用户层级
                 $res['noSpeak'] = 1;                               //用户是否禁言
                 $res['type'] = 4;                                  //用户角色-4:计划任务

@@ -706,7 +706,7 @@ class Swoole extends Command
      */
     public function msg($status,$msg,$userinfo = array(), $type = 'room', $id = null){
         $data = $this->msgBuild(...func_get_args());
-        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9,15)) && $data['toId']!==2 && $type == 'room')){
+        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!==2 && $type == 'room') || $status==15){
 //            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),true);     //写入历史纪录
             PersonalLog::insertMsgLog($data);
         }

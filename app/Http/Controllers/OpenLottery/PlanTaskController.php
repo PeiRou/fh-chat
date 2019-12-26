@@ -40,10 +40,20 @@ class PlanTaskController extends BaseController
         return $this->viewReturn(compact('aData','iInfo'));
     }
 
-    //跟投设置
-    public function setStatus(Request $request){
+    //批量修改金额
+    public function setMoney(Request $request){
         $data = $request->all();
-        $result = $this->repository->setStatus($request->except('_token'),$data);
+        if(!(isset($data['ids']))){
+            if(!is_numeric($data['moneys'])){
+                return response()->json([
+                    'status'=>false,
+                    'msg'=> '金额为整数'
+                ]);
+            }
+            $result = $this->repository->setAllMoney($data);
+        } else{
+            $result = $this->repository->setMoney($data);
+        }
         if($result){
             return response()->json([
                 'status'=>true,
@@ -53,6 +63,8 @@ class PlanTaskController extends BaseController
             'status'=>false,
             'msg'=> 'error'
         ]);
+
+
     }
 
 }

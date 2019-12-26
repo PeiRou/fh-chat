@@ -66,20 +66,18 @@ class PlanTaskRepository extends BaseRepository
                 return $aData->planned_probability.'%';
             })
             ->editColumn('control', function ($aData){
-                if($aData->status == 1){
-                    $is_satus = '不跟投';
-                }elseif($aData->status == 0){
-                    $is_satus = '跟投';
-                }
-
                 return '<ul class="control-menu">
                             <li onclick="edit(\'修改\',\'/chat/planTask/edit/'.$aData->id.'\')">修改</li>
                             <li onclick="del(\'删除\',\'/chat/planTask/del/'.$aData->id.'\')">删除</li>
-                            <li onclick="setStatus('.$aData->id.','.$aData->status.')">'.$is_satus.'</li>
                         </ul>';
 //                return $this->lineButtonSplice($aData);
+//                          <li onclick="setStatus('.$aData->id.','.$aData->status.')">'.$is_satus.'</li>
+
             })
-            ->rawColumns(['control','fact_probability'])
+            ->editColumn('money', function ($aData){
+                return '<input type="text" name="money['.$aData->money.']" data-id="'.$aData->id.'" class="allMoney" style="width:60px;height:25px;" value='.$aData->money.'>';
+            })
+            ->rawColumns(['control','fact_probability','money'])
             ->setTotalRecords($aData['iCount'])
             ->skipPaging()
             ->make(true);
@@ -90,16 +88,6 @@ class PlanTaskRepository extends BaseRepository
             return $this->ajaxReturn('添加成功',true);
         return $this->ajaxReturn('添加失败');
     }
-    //跟投
-    public function setStatus($aParam){
-
-        if($aParam['status'] == 0){
-            $data['status'] = 1;
-        }elseif($aParam['status'] == 1){
-            $data['status'] = 0;
-        }
-        return $this->model->setStatus($data['status'],$aParam['dataId']);
-    }
     public function edit($aParam,$id){
         return $this->where('id',$id)->update([
             'play_name' => $aParam['play_name'],
@@ -109,5 +97,24 @@ class PlanTaskRepository extends BaseRepository
             'total_count' => 1,
         ]);
     }
-
+    //批量修改金额
+    public function setMoney($aData)
+    {
+        $dataId = $aData['ids'];
+        $dataMoney = $aData['moneys'];
+        //比较长度
+        if (count($dataId) != count($dataMoney)) {
+            return false;
+        }
+        $aData = [];
+        foreach ($dataId as $key => $id) {
+            $aData[$key]['id'] = $id;
+            $aData[$key]['money'] = $dataMoney[$key];
+        }
+        return $this->model->setMoney($aData,['money'],'id');
+    }
+    //栏位那修改金额
+    public function setAllMoney($aData){
+        return $this->model->setAllMoney($aData);
+    }
 }

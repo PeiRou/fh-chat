@@ -115,7 +115,7 @@ Route::group(['middleware' => ['check-ip']], function () {
             Route::any('add', ['uses'=>'PlanTaskController@add','as'=>'chat.planTask.add']);              //添加
             Route::any('edit/{id}', ['uses'=>'PlanTaskController@edit','as'=>'chat.planTask.edit']);           //修改
             Route::any('del/{id}', ['uses'=>'PlanTaskController@del','as'=>'chat.planTask.del']);              //删除
-            Route::any('setStatus', ['uses'=>'PlanTaskController@setStatus','as'=>'chat.planTask.setStatus']); //跟投设置
+            Route::any('setMoney', ['uses'=>'PlanTaskController@setMoney','as'=>'chat.planTask.setMoney']); //批量修改金额
         });
 
         //在线人数状态

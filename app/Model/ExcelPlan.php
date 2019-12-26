@@ -86,9 +86,40 @@ class ExcelPlan extends Base
         }
     }
 
-    //修改跟投状态
-    public function setStatus($status,$id){
-        return DB::table('excel_plan')->where('id',$id)->update(['status'=>$status]);
+    //栏位那批量修改金额
+    public function setAllMoney($aArray){
+        return DB::table('excel_plan')->update(['money'=>$aArray['moneys']]);
+    }
+
+    //批量修改金额
+    public function setMoney($aArray,$fields = ['money'],$primary = 'id'){
+        try{
+            DB::update($this->updateBatchStitching($this->table,$aArray,$fields,$primary));
+            return true;
+        }catch (\Exception $e){
+            return false;
+        }
+    }
+    //多条间多数据修改
+    public function updateBatchStitching($table,$data,$fields,$primary){
+        $aSql = 'UPDATE ' . $table . ' SET ';
+        foreach ($fields as $field){
+            $str1 = '`' . $field . '` = CASE ' . $primary . ' ';
+            foreach ($data as $key => $value){
+                $str1 .= 'WHEN \'' . $value[$primary] . '\' THEN \'' . $value[$field] . '\' ';
+            }
+            $str1 .= 'END , ';
+            $aSql .= $str1;
+        }
+        $aSql = substr($aSql,0,strlen($aSql)-2);
+        $endStr = 'WHERE ' . $primary . ' IN (';
+        foreach ($data as $key => $value){
+            $endStr .= '\''.$value[$primary] . '\',';
+        }
+        $endStr = substr($endStr,0,strlen($endStr)-1);
+        $endStr .= ')';
+        $aSql .= $endStr;
+        return $aSql;
     }
 
 }

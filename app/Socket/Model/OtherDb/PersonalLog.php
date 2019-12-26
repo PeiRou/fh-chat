@@ -291,7 +291,7 @@ class PersonalLog extends Base
 //                    break;
 //                }
                 echo 'uuid:'.$tmpTxt.$timeIdx.'--hisT:'.$hisTxt['times'].'--pushT:'.$arr['times'].'--hisU:'.$hisTxt['user_id'].'--pushU:'.$arr['user_id'].PHP_EOL;
-                if(strtotime($hisTxt['times'])+2 >= strtotime($arr['times']) && $hisTxt['user_id'] == $arr['user_id']){
+                if($hisTxt['status'] != 15 && strtotime($hisTxt['times'])+2 >= strtotime($arr['times']) && $hisTxt['user_id'] == $arr['user_id']){
                     throw new SocketApiException(date('Y-m-d H:i:s').'您发言太快了1'.PHP_EOL);
                     break;
                 }

@@ -56,7 +56,7 @@ class ChatLog extends Base
                     continue;
                 }
             }
-            if(isset($v['status']) && !in_array($v['status'],array(8,9))) {         //状态非红包
+            if(isset($v['status']) && !in_array($v['status'],array(8,9,15))) {         //状态非红包
                 if($v['k']==md5($this->user['userId']))
                     $list[$k]['status'] = 4;
                 else

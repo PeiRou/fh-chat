@@ -1405,7 +1405,7 @@ class Swoole extends Command
 //                            $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),true);     //写入历史纪录
                         }
                     }
-                    if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
+                    if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9,15))){         //状态非红包
                         if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
                             $hisMsg['status'] = 4;
                         else

@@ -86,4 +86,9 @@ class ExcelPlan extends Base
         }
     }
 
+    //修改跟投状态
+    public function setStatus($status,$id){
+        return DB::table('excel_plan')->where('id',$id)->update(['status'=>$status]);
+    }
+
 }

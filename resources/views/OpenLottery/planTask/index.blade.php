@@ -233,5 +233,35 @@
             });
         }
 
+        function setStatus(dataId,status) {
+            var data = {
+                dataId:dataId,
+                status:status,
+            };
+            var lading = layer.load(1, {
+                shade: [0.1,'#fff'] //0.1透明度的白色背景
+            });
+            $.ajax({
+                url:'/chat/planTask/setStatus',
+                type:'post',
+                data:data,
+                dataType:'json',
+                timeout:'5000',
+                success:function(e){
+                    layer.close(lading);
+                    console.log(e);
+                    if(e.status == true){
+                        $('#tableData').DataTable().ajax.reload()
+                    }else{
+                        layer.msg(e.msg);
+                    }
+
+                },
+                error:function(e){
+                    layer.close(lading);
+                },
+            })
+        }
+
     </script>
 @endsection

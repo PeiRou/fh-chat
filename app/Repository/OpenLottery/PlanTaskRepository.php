@@ -66,9 +66,16 @@ class PlanTaskRepository extends BaseRepository
                 return $aData->planned_probability.'%';
             })
             ->editColumn('control', function ($aData){
+                if($aData->status == 1){
+                    $is_satus = '不跟投';
+                }elseif($aData->status == 0){
+                    $is_satus = '跟投';
+                }
+
                 return '<ul class="control-menu">
                             <li onclick="edit(\'修改\',\'/chat/planTask/edit/'.$aData->id.'\')">修改</li>
                             <li onclick="del(\'删除\',\'/chat/planTask/del/'.$aData->id.'\')">删除</li>
+                            <li onclick="setStatus('.$aData->id.','.$aData->status.')">'.$is_satus.'</li>
                         </ul>';
 //                return $this->lineButtonSplice($aData);
             })
@@ -82,6 +89,25 @@ class PlanTaskRepository extends BaseRepository
         if($this->model->add($aParam))
             return $this->ajaxReturn('添加成功',true);
         return $this->ajaxReturn('添加失败');
+    }
+    //跟投
+    public function setStatus($aParam){
+
+        if($aParam['status'] == 0){
+            $data['status'] = 1;
+        }elseif($aParam['status'] == 1){
+            $data['status'] = 0;
+        }
+        return $this->model->setStatus($data['status'],$aParam['dataId']);
+    }
+    public function edit($aParam,$id){
+        return $this->where('id',$id)->update([
+            'play_name' => $aParam['play_name'],
+            'plan_num' => $aParam['plan_num'],
+            'planned_probability' => 40,
+            'Winning_count' => 0,
+            'total_count' => 1,
+        ]);
     }
 
 }

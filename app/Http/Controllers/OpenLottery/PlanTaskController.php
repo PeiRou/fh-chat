@@ -40,4 +40,19 @@ class PlanTaskController extends BaseController
         return $this->viewReturn(compact('aData','iInfo'));
     }
 
+    //跟投设置
+    public function setStatus(Request $request){
+        $data = $request->all();
+        $result = $this->repository->setStatus($request->except('_token'),$data);
+        if($result){
+            return response()->json([
+                'status'=>true,
+            ]);
+        }
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+    }
+
 }

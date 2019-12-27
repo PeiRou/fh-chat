@@ -556,19 +556,19 @@ class Swoole extends Command
 
         # 获取需要推送的房间
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
+        $getUuid = app('swoole')->getUuid($iRoomInfo['name']);
+        if(!is_array($iRoomInfo))
+            $iRoomInfo = (array)$iRoomInfo;
+        $iRoomInfo['timess'] = $getUuid['timess'];
+        $iRoomInfo['uuid'] = $getUuid['uuid'];
+        $iRoomInfo['dt'] = $issueInfo;
+        $msg = $this->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){
-            TaskManager::async(function() use($iRoomInfo, $issueInfo, $betInfo, $roomId){
+            TaskManager::async(function() use($iRoomInfo, $issueInfo, $roomId, $msg){
                 try{
                     //发送消息
-                    if(!is_array($iRoomInfo))
-                        $iRoomInfo = (array)$iRoomInfo;
-                    $getUuid = app('swoole')->getUuid($iRoomInfo['name']);
-                    $iRoomInfo['timess'] = $getUuid['timess'];
-                    $iRoomInfo['uuid'] = $getUuid['uuid'];
-                    $iRoomInfo['dt'] = $issueInfo;
                     $fds = Room::getRoomFd($roomId); # 获取在群组里的所有fd
                     foreach ($fds as $fdId =>$val) {
-                        $msg = app('swoole')->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
                         app('swoole')->push($val, $msg);
                     }
                 }catch (\Throwable $e){

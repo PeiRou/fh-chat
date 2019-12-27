@@ -542,28 +542,36 @@ class Swoole extends Command
 
         if(empty($sess) || empty($betInfo) || empty($issueInfo))
             return "";
-        if(\App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($sess){
-            $redis->select(0);
-            return $redis->get('planBetInfo_md5') == $sess;
-        })){
+        $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
+        $redisPool = \App\Socket\Utility\Pool\PoolManager::getInstance()->getPool(\App\Socket\Pool\RedisPool::class);
+        $redis = $redisPool->getObj();
+        $redis->select(0);
+        if($redis->get('planBetInfo_md5') == $sess){
+            $key = 'pushBetInfo_'.$betArr['turnNum'];
+            if($redis->exists($key)){
+                return '';
+            }
+            $redis->setex($key,60,'on');
             $iRoomInfo = $this->getUsersess((array)$sess, 0, 'plan');
         }else{
             $iRoomInfo = $this->getUsersess($sess);
         }
 
+        $redisPool->recycleObj($redis);
+
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";
 
         # 获取需要推送的房间
-        $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
         $getUuid = app('swoole')->getUuid($iRoomInfo['name']);
         if(!is_array($iRoomInfo))
             $iRoomInfo = (array)$iRoomInfo;
-        $iRoomInfo['timess'] = $getUuid['timess'];
-        $iRoomInfo['uuid'] = $getUuid['uuid'];
-        $iRoomInfo['dt'] = $issueInfo;
-        $msg = $this->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
         foreach (ChatRoom::getPushBetInfoRooms($betArr['gameId']) as $roomId){
+            $iRoomInfo['timess'] = $getUuid['timess'];
+            $iRoomInfo['uuid'] = $getUuid['uuid'];
+            $iRoomInfo['dt'] = $issueInfo;
+            $iRoomInfo['room'] = $roomId;
+            $msg = $this->msg(15,$betInfo,$iRoomInfo);   //发送跟单内容
             TaskManager::async(function() use($iRoomInfo, $issueInfo, $roomId, $msg){
                 try{
                     //发送消息

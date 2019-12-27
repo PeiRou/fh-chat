@@ -209,7 +209,7 @@
                 theme: 'material',
                 type: 'red',
                 boxWidth:'20%',
-                content: '删除后账号将无法登录，且无法恢复，请谨慎操作！',
+                content: '删除后将无法恢复，请谨慎操作！',
                 buttons: {
                     confirm: {
                         text:'确定提交',

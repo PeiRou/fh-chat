@@ -89,13 +89,9 @@ class PlanTaskRepository extends BaseRepository
         return $this->ajaxReturn('添加失败');
     }
     public function edit($aParam,$id){
-        return $this->where('id',$id)->update([
-            'play_name' => $aParam['play_name'],
-            'plan_num' => $aParam['plan_num'],
-            'planned_probability' => 40,
-            'Winning_count' => 0,
-            'total_count' => 1,
-        ]);
+        if($this->model->edit($aParam,$id))
+            return $this->ajaxReturn('修改成功',true);
+        return $this->ajaxReturn('修改失败');
     }
     //批量修改金额
     public function setMoney($aData)

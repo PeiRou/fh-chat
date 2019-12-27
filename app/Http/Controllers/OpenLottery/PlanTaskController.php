@@ -40,4 +40,31 @@ class PlanTaskController extends BaseController
         return $this->viewReturn(compact('aData','iInfo'));
     }
 
+    //批量修改金额
+    public function setMoney(Request $request){
+        $data = $request->all();
+        if(!(isset($data['ids']))){
+            if(!is_numeric($data['moneys'])){
+                return response()->json([
+                    'status'=>false,
+                    'msg'=> '金额为整数'
+                ]);
+            }
+            $result = $this->repository->setAllMoney($data);
+        } else{
+            $result = $this->repository->setMoney($data);
+        }
+        if($result){
+            return response()->json([
+                'status'=>true,
+            ]);
+        }
+        return response()->json([
+            'status'=>false,
+            'msg'=> 'error'
+        ]);
+
+
+    }
+
 }

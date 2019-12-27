@@ -181,7 +181,7 @@ class Push
                     continue;
             }
 
-            if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
+            if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9,15))){         //状态非红包，和非计划
                 if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
                     $hisMsg['status'] = 4;
                 else

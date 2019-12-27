@@ -9,6 +9,7 @@
             <button style="line-height: 20px;border:0;margin-left: 10px;cursor:pointer;" onclick="javascript:history.go(-1)">返回</button>
         </div>
         <div class="content-top-buttons">
+            <span onclick="setMoney()">批量修改金额</span>
             <span onclick="add('添加计划','/chat/planTask/add')">添加计划</span>
         </div>
     </div>
@@ -66,6 +67,11 @@
             {data:'play_name',title:'计划名称显示'},
             {data:'num_digits',title:'选取的号码位数'},
             {data:'plan_num',title:'计划个数'},
+            // {data:'money',title:'跟投金额'},
+            {
+                data:'money',
+                title:'跟投金额'+' <input type="text" style="width:60px;height:25px;" id="dataId">',
+            },
             {data:'created_at',title:'新增时间'},
             {data:'updated_at',title:'修改时间'},
             {data:'control',title:'操作'},
@@ -233,5 +239,104 @@
             });
         }
 
+        function setStatus(dataId,status) {
+            var data = {
+                dataId:dataId,
+                status:status,
+            };
+            var lading = layer.load(1, {
+                shade: [0.1,'#fff'] //0.1透明度的白色背景
+            });
+            $.ajax({
+                url:'/chat/planTask/setStatus',
+                type:'post',
+                data:data,
+                dataType:'json',
+                timeout:'5000',
+                success:function(e){
+                    layer.close(lading);
+                    console.log(e);
+                    if(e.status == true){
+                        $('#tableData').DataTable().ajax.reload()
+                    }else{
+                        layer.msg(e.msg);
+                    }
+
+                },
+                error:function(e){
+                    layer.close(lading);
+                },
+            })
+        }
+        //批量修改金额
+        function setMoney() {
+            var allMoney = $('.allMoney');
+            var ids = [];
+            var moneys = [];
+            allMoney.each(function(index,element){
+               ids.push($(element).attr('data-id'));
+               moneys.push($(element).val());
+            });
+            var data = {
+                ids:ids,
+                moneys:moneys
+            };
+            jc = $.confirm({
+                theme: 'material',
+                title: '批量修改金额',
+                closeIcon:true,
+                boxWidth:'20%',
+                url: '/chat/planTask/setMoney',
+                content: '确定批量修改金额？',
+                buttons: {
+                    confirm: {
+                        text:'确定',
+                        btnClass: 'btn-red',
+                        action: function(){
+                            $.ajax({
+                                url:'/chat/planTask/setMoney',
+                                type:'post',
+                                data:data,
+                                dataType:'json',
+                                success:function (data) {
+                                    if(data.status == true){
+                                        Calert("操作成功",'green','操作提示');
+                                    } else {
+                                        Calert(data.msg,'red');
+                                    }
+                                },
+                                error:function (e) {
+                                    if(e.status == 403)
+                                    {
+                                        Calert('您没有此项权限！无法继续！','red')
+                                    }
+                                }
+                            });
+                        }
+                    },
+                    cancel:{
+                        text:'取消'
+                    }
+                }
+            });
+        }
+        $("#tableData").on('keyup', '#dataId', function (e) {
+            var money = $('#dataId').val();
+            var data = {
+                moneys:money
+            };
+            $.ajax({
+                url: '/chat/planTask/setMoney',
+                type: 'POST',
+                data: data,
+                success: function(data) {
+                    if(data.status == true){
+                        $('#tableData').DataTable().ajax.reload()
+                    } else {
+                        Calert(data.msg,'red');
+                    }
+                }
+            });
+        });
     </script>
 @endsection

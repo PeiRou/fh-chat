@@ -706,7 +706,7 @@ class Swoole extends Command
      */
     public function msg($status,$msg,$userinfo = array(), $type = 'room', $id = null){
         $data = $this->msgBuild(...func_get_args());
-        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!==2 && $type == 'room')){
+        if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!==2 && $type == 'room') || $status==15){
 //            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),true);     //写入历史纪录
             PersonalLog::insertMsgLog($data);
         }
@@ -951,8 +951,10 @@ class Swoole extends Command
         switch ($type){
             case 'plan':
                 $res = $iSess;
-                $res['room'] = $res['room'] ?? 1;                                  //取得房间id
-                $res['name'] = '计划任务';                          //名称显示
+                $res['room'] = $res['room'] ?? 1;                          //取得房间id
+                $res['userId'] = 'plans';                                  //Plan id
+                $res['img'] = '/game/images/chat/sys.png';                 //用户头像
+                $res['name'] = '计划小帮手';                          //名称显示
                 $res['level'] = 98;                                //用户层级
                 $res['noSpeak'] = 1;                               //用户是否禁言
                 $res['type'] = 4;                                  //用户角色-4:计划任务
@@ -1403,7 +1405,7 @@ class Swoole extends Command
 //                            $this->updAllkey('his',$iRoomInfo['room'],$hisMsg['uuid'],json_encode($hisMsg),true);     //写入历史纪录
                         }
                     }
-                    if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9))){         //状态非红包
+                    if(isset($hisMsg['status']) && !in_array($hisMsg['status'],array(8,9,15))){         //状态非红包
                         if($hisMsg['k']==md5($iRoomInfo['userId']))     //如果历史讯息有自己的讯息则调整status = 4
                             $hisMsg['status'] = 4;
                         else

@@ -222,7 +222,7 @@ class Swoole extends Command
                 $strParam = explode("/", $strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
                 if(empty($iSess))
-                    return $this->sendToSerf($request->fd, 3, '登陆失效.');
+                    return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
                 if(empty($iRoomInfo))
                     return false;
@@ -308,9 +308,9 @@ class Swoole extends Command
                 if(isset($iSess)){
                     $iRoomInfo = $this->getUsersess($iSess,$request->fd);                 //从sess取出会员资讯
                     if(empty($iRoomInfo) || !isset($iRoomInfo['userId']) || empty($iRoomInfo['userId']))
-                        return $this->sendToSerf($request->fd,3,'登陆失效。');
+                        return $this->sendToSerf($request->fd,3,'登陆失效');
                 }else
-                    return $this->sendToSerf($request->fd,3,'登陆失效!');
+                    return $this->sendToSerf($request->fd,3,'登陆失效');
             }
             try{
                 $this->updUserInfo($request->fd,$iRoomInfo);        //成员登记他的房间号码
@@ -1050,7 +1050,7 @@ class Swoole extends Command
     
     //检查发言状态
     private function chkUserSpeak($userid = 0,$aUsersData){
-        //重新计算最近2天下注&充值
+        //重新计算最近30天下注&充值
         $this->setBetRech($userid);
         //获取最近2天下注&充值
 //        $aUsers = DB::connection('mysql::write')->table('chat_users')
@@ -1152,17 +1152,17 @@ class Swoole extends Command
         # 最近2天下注
         $aUserBet = \App\Socket\Model\Users::getUserBetDay([
             'userId' => $userid,
-            'timeStart' => date("Y-m-d H:i:s", strtotime("-2 day")),
+            'timeStart' => date("Y-m-d H:i:s", strtotime("-30 day")),
             'timeEnd'=> date("Y-m-d H:i:s")
         ], false);
 
-        //重新计算最近2天充值
+        //重新计算最近30天充值
         \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid, $aUserBet) {
             $aUserRecharges = $db
                 ->where('userId',$userid)
                 ->where('status',2)
                 ->where('addMoney',1)
-                ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-2 day")), date("Y-m-d H:i:s",time())]])
+                ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-30 day")), date("Y-m-d H:i:s",time())]])
                 ->getOne('recharges', 'sum(`amount`) as amount')['amount'] ?? 0;
             return $db
                 ->where('users_id',$userid)

@@ -56,8 +56,8 @@
                 {{--<th width="11.11%">IP</th>--}}
                 <th width="11.11%">角色</th>
                 <th width="11.11%">状态</th>
-                <th width="11.11%">最近2天充值</th>
-                <th width="11.11%">最近2天下注</th>
+                <th width="11.11%">最近30天充值</th>
+                <th width="11.11%">最近30天下注</th>
                 <th width="11.11%">操作</th>
             </tr>
             </thead>

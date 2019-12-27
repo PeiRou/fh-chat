@@ -70,7 +70,7 @@
             // {data:'money',title:'跟投金额'},
             {
                 data:'money',
-                title:'跟投金额'+' <input type="text" style="width:60px;height:25px;" id="dataId">',
+                title:'跟投金额'+' <input type="text" style="width:60px;height:25px;" id="dataId">'+'<br/>'+'<span style="color: red">(跟投金额为0时不显示跟投)</span>',
             },
             {data:'created_at',title:'新增时间'},
             {data:'updated_at',title:'修改时间'},

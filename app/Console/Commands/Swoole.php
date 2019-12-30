@@ -543,21 +543,14 @@ class Swoole extends Command
         if(empty($sess) || empty($betInfo) || empty($issueInfo))
             return "";
         $betArr = json_decode(urldecode(base64_decode($betInfo)), 1);
-        $redisPool = \App\Socket\Utility\Pool\PoolManager::getInstance()->getPool(\App\Socket\Pool\RedisPool::class);
-        $redis = $redisPool->getObj();
-        $redis->select(0);
-        if($redis->get('planBetInfo_md5') == $sess){
-            $key = 'pushBetInfo_'.$betArr['turnNum'];
-            if($redis->exists($key)){
-                return '';
-            }
-            $redis->setex($key,60,'on');
+        if(\App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($sess){
+            $redis->select(0);
+            return $redis->get('planBetInfo_md5') == $sess;
+        })){
             $iRoomInfo = $this->getUsersess((array)$sess, 0, 'plan');
         }else{
             $iRoomInfo = $this->getUsersess($sess);
         }
-
-        $redisPool->recycleObj($redis);
 
         if(empty($iRoomInfo) || !isset($iRoomInfo['room'])|| empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
             return "";

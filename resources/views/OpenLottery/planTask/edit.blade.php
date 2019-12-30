@@ -4,10 +4,17 @@
         <div class="ui input icon">
             <input type="text" name="play_name" id="play_name" style="height: 38px;" value="{{ $iInfo->play_name }}"/>
         </div>
-        <label>计划个数</label>
-        <div class="ui input icon">
-            <input type="text" name="plan_num" id="plan_num" style="height: 38px;" value="{{ $iInfo->plan_num }}"/>
-        </div>
+        @if(($iInfo->type == 1) OR ($iInfo->type == 2) OR ($iInfo->type == 3))
+            <label>计划个数</label>
+            <div class="ui input icon">
+                <input type="text" name="plan_num" id="plan_num" style="height: 38px;" value="{{ $iInfo->plan_num }}"/>
+            </div>
+        @else
+            <label style="display: none">计划个数</label>
+            <div class="ui input icon">
+                <input hidden type="text" name="plan_num" id="plan_num" style="height: 38px;" value="1"/>
+            </div>
+        @endif
     </div>
 
     {{--<div class="field">--}}

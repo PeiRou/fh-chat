@@ -34,7 +34,7 @@ class ChatRoom extends Base
             isset($param['is_auto']) && $db->where('is_auto', $param['is_auto']);
             isset($param['rooms']) && $db->where('room_id', $param['rooms'], 'IN');
             $db->orderBy("top_sort","desc");
-            $db->orderBy("id","asc");
+            $db->orderBy("room_id","asc");
             return $db->get('chat_room', null, $columns ?? ['room_id', 'room_name','head_img']);
         }, 30, false, $isSaveCache);
     }

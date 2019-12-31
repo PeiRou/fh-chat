@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Socket\Exception\SocketApiException;
+use App\Socket\Model\ChatBase;
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatHongbaoBlacklist;
 use App\Socket\Model\ChatRoom;
@@ -492,13 +493,18 @@ class Swoole extends Command
             if($roomId == 2){
                 $data = [];
                 # 欢迎语
-                $data['guan_msg'] = DB::table('chat_base')->value('guan_msg');
+//                $data['guan_msg'] = DB::table('chat_base')->value('guan_msg');
+                $data['guan_msg'] = ChatBase::getValue('guan_msg');
                 # 房间列表及信息
-                $data['rooms'] = DB::table('chat_room')
-                    ->select('room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak')
-                    ->where('is_open', 1)
-//                    ->where('roomtype', 2)
-                    ->where('is_auto', 1)->get();
+                $data['rooms'] = ChatRoom::getRoomList([
+                    'is_open' => 1,
+                    'is_auto' => 1,
+                ], ['room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak']);
+//                $data['rooms'] = DB::table('chat_room')
+//                    ->select('room_id', 'room_name', 'is_auto', 'is_speaking', 'recharge', 'bet', 'isTestSpeak')
+//                    ->where('is_open', 1)
+////                    ->where('roomtype', 2)
+//                    ->where('is_auto', 1)->get();
                 $msg = $this->json(19,$data);
                 $this->push($fd, $msg);
             }

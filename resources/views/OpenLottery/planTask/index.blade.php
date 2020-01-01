@@ -21,9 +21,9 @@
                         <select class="ui dropdown" id="gameId" style='height:32px !important;'>
                             <option value="">选择游戏</option>
                             @foreach($aData['game'] as $iGame)
-                                @if(!($iGame->category == 'lhc'))
+                                {{--@if(!($iGame->category == 'lhc'))--}}
                                  <option value="{{ $iGame->game_id }}">{{ $iGame->game_name }}</option>
-                                @endif
+                                {{--@endif--}}
                             @endforeach
                         </select>
                     </div>

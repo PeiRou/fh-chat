@@ -46,8 +46,37 @@
             success: function(result) {
                 if(result.status == true){
                     jc.close();
+                    $.alert({
+                        icon: 'ok',
+                        type: 'green',
+                        title: '提示',
+                        content: 'OK',
+                        boxWidth: '20%',
+                        buttons: {
+                            ok: {
+                                text:'确定',
+                                action: function () {
+
+                                }
+                            }
+                        }
+                    });
                 } else {
-                    Calert(result.msg,'red');
+                    $.alert({
+                        icon: 'warning sign icon',
+                        type: 'red',
+                        title: '提示',
+                        content: result.msg,
+                        boxWidth: '20%',
+                        buttons: {
+                            ok: {
+                                text:'确定',
+                                action: function () {
+
+                                }
+                            }
+                        }
+                    });
                 }
             }
         });

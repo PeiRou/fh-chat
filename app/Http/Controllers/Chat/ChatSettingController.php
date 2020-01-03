@@ -820,4 +820,27 @@ class ChatSettingController extends Controller
         return true;
     }
 
+    public function addFriends(Request $request)
+    {
+        if(!$request->account || !$request->to_account){
+            return response()->json([
+                'status'=>false,
+                'msg'=> '参数错误'
+            ]);
+        }
+        if(!($res = Swoole::getSwoole('BackAction/addFriends', [
+                'name' => $request->account,
+                'toName' => $request->to_account,
+                'token' => Session::getId()
+            ])) || $res['code'] !== 0){
+            return response()->json([
+                'status'=>false,
+                'msg'=> $res['msg'] ?? 'error'
+            ]);
+        }
+        return response()->json([
+            'status'=>true,
+        ]);
+    }
+
 }

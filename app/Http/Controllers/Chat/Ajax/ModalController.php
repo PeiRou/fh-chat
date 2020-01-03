@@ -198,4 +198,9 @@ class ModalController extends Controller
     {
         return view('modal.hongbaoBlacklistSearchUsers');
     }
+    // 强制添加好友
+    public function addFriends()
+    {
+        return view('modal.addFriends');
+    }
 }

@@ -6,6 +6,7 @@ namespace App\Socket\Model;
 
 use App\Socket\Push;
 use App\Socket\Repository\ChatFriendsRepository;
+use App\Socket\Utility\Task\TaskManager;
 
 class ChatFriendsLog extends Base
 {
@@ -61,25 +62,36 @@ class ChatFriendsLog extends Base
                 throw new \Exception('update logdb error', 123);
             # 如果是同意 将两个人互加为好友
             if($status === 1){
-                if(
-                    !ChatFriendsRepository::addUserFriends($db, $user, $toUser) ||
-                    !ChatFriendsRepository::addUserFriends($db, $toUser, $user)
-                )
-                    throw new \Exception('add list error', 123);
+                self::addUserFriends($db, $user, $toUser);
             }
             $db->commit();
-            # 更新这个人好友列表
-            Push::pushUser($user['users_id'], ['FriendsList', 'FriendsLogList']);
-            Push::pushUser($toUser['users_id'], ['FriendsList', 'FriendsLogList']);
             return false;
         }catch (\Throwable $e){
             $db->rollback();
             if($e->getCode() == 123)
                 return $e->getMessage();
-
             \App\Socket\Utility\Trigger::getInstance()->throwable($e);
             return 'error';
         }
+    }
+
+    // 将两个人加为好友
+    protected static function addUserFriends($db, $user, $toUser)
+    {
+        $db->startTransaction();
+        if(
+            !ChatFriendsRepository::addUserFriends($db, $user, $toUser) ||
+            !ChatFriendsRepository::addUserFriends($db, $toUser, $user)
+        ){
+            $db->rollback();
+            throw new \Exception('add list error', 123);
+        }
+        $db->commit();
+        TaskManager::async(function() use($user, $toUser){
+            # 更新这个人好友列表
+            Push::pushUser($user['users_id'], ['FriendsList', 'FriendsLogList'], false);
+            Push::pushUser($toUser['users_id'], ['FriendsList', 'FriendsLogList'], false);
+        });
     }
 
     //是否可以添加好友 看有没有未处理的

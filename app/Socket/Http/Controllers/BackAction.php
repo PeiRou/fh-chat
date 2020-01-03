@@ -10,7 +10,9 @@ namespace App\Socket\Http\Controllers;
 
 
 use App\Socket\Http\Controllers\Traits\BackLogin;
+use App\Socket\Model\ChatFriendsLog;
 use App\Socket\Model\ChatHongbaoBlacklist;
+use App\Socket\Model\ChatUser;
 use App\Socket\Repository\ChatRoomRepository;
 
 class BackAction extends Base
@@ -93,6 +95,23 @@ class BackAction extends Base
     {
         ChatHongbaoBlacklist::upUsers((int)$this->get('chat_hongbao_idx'));
         return $this->show(0, $this->get('chat_hongbao_idx'));
+    }
+
+    // 添加两个人为好友
+    public function addFriends(string $name, string $toName)
+    {
+        $s = ChatUser::getList([], [
+            'whereRaw' => [' username IN(\''.implode("','", [$name, $toName]).'\') ']
+        ]);
+        if(count($s) !== 2){
+            return $this->show(1, '没有找到会员');
+        }
+        try{
+            ChatFriendsLog::addUserFriends($s[0], $s[1]);
+            return $this->show(0, '');
+        }catch (\Throwable $e){
+            return $this->show(3, 'error');
+        }
     }
 
 }

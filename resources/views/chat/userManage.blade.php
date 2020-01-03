@@ -1,5 +1,9 @@
 @extends('chat.master')
 
+@section('top-buttons')
+    <span class="ui green button" onclick="addFriends()">加好友</span>
+@endsection
+
 @section('title','用户管理')
 
 @section('content')

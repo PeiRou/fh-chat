@@ -53,9 +53,11 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::post('/chat/action/setPushBet', 'Chat\ChatSettingController@setPushBet');//跟单设置
         Route::post('/chat/action/deleteHongbaoBlacklist', 'Chat\ChatSettingController@deleteHongbaoBlacklist');//删掉红包黑名单会员
         Route::post('/chat/action/addHongbaoBlacklist', 'Chat\ChatSettingController@addHongbaoBlacklist');//添加红包黑名单会员
+        Route::post('/chat/action/addFriends', 'Chat\ChatSettingController@addFriends');                     //强制添加好友
 
 
-    //modal
+
+        //modal
         Route::get('/chat/modal/editUserLevel/{id}', 'Chat\Ajax\ModalController@editUserLevel');         //显示修改聊天室用户信息-弹窗表单
         Route::get('/chat/modal/editRoleInfo/{id}', 'Chat\Ajax\ModalController@editRoleInfo');           //显示修改用户角色层级-弹窗表单
         Route::get('chat/modal/editRoomLimit/{id}', 'Chat\Ajax\ModalController@editRoomLimit');          //显示修改房间信息-弹窗表单
@@ -75,6 +77,7 @@ Route::group(['middleware' => ['check-ip']], function () {
         Route::get('/chat/modal/getAllRooms', 'Chat\Ajax\ModalController@getAllRooms');                   //取得所有房间ID跟名称
         Route::get('/chat/modal/hongbaoBlacklist', 'Chat\Ajax\ModalController@hongbaoBlacklist');         //红包黑名单
         Route::get('/chat/modal/hongbaoBlacklistSearchUsers', 'Chat\Ajax\ModalController@hongbaoBlacklistSearchUsers');//红包黑名单-添加
+        Route::get('/chat/modal/addFriends', 'Chat\Ajax\ModalController@addFriends');//强制添加好友
 
     //datatable
         Route::get('/chat/datatables/user', 'Chat\Data\DataController@userManage');          // 会员管理-表格数据

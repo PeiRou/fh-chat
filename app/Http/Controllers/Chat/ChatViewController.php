@@ -35,7 +35,9 @@ class ChatViewController extends Controller
     //会员管理
     public function userManage()
     {
-        return view('chat.userManage');
+        $AdSource = new AdSource();
+        $ISROOMS = $AdSource->getOneSource('chatType');
+        return view('chat.userManage', compact('ISROOMS'));
     }
     //等级管理
     public function levelManage(){

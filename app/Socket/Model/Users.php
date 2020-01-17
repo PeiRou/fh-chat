@@ -11,6 +11,7 @@ namespace App\Socket\Model;
 
 class Users extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getUserBetDay','getUserLotteryDay','getUserGamesApiDay'];
 
     /**
      * 获取用户彩票投注

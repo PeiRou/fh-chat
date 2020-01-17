@@ -11,6 +11,7 @@ namespace App\Socket\Model;
 
 class ChatHongbao extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getValue'];
 
     protected static function getValue($db, $param = [], $value)
     {

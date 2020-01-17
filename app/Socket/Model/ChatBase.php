@@ -12,6 +12,8 @@ namespace App\Socket\Model;
 
 class ChatBase extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getValue'];
+
     protected static function getValue($db, $value, $param = [])
     {
         return self::RedisCacheData(function()use($db, $param, $value){

@@ -13,6 +13,8 @@ namespace App\Socket\Model;
 class ChatUser extends Base
 {
 
+    static $DB_READ_FUNCTION = ['getUser','getUserValue','search', 'getList'];
+
     //用户信息
     protected static function getUser($db, $param = [], $isSaveCache = false)
     {

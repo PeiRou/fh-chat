@@ -13,6 +13,7 @@ class ChatHongbaoBlacklist extends Base
 {
     public static $users = [];
     public static $upUsersTime;
+    protected static $DB_READ_FUNCTION = [];
 
     public static function getUsers($chat_hongbao_idx = 0)
     {

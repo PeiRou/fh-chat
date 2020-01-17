@@ -5,7 +5,7 @@ namespace App\Socket\Model;
 
 class ChatFriendsList extends Base
 {
-
+    protected static $DB_READ_FUNCTION = ['getUserFriendList', 'invitationUserList', 'getUserFriend'];
     //获取好友列表
     protected static function getUserFriendList($db, $userId, int $toId = null)
     {

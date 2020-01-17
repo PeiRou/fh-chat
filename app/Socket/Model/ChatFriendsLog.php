@@ -10,7 +10,7 @@ use App\Socket\Utility\Task\TaskManager;
 
 class ChatFriendsLog extends Base
 {
-
+    protected static $DB_READ_FUNCTION = ['getFriendsLogList','getFriendsLogListNum','getUser','checkAddFriend'];
     //好友申请列表
     protected static function getFriendsLogList($db, $param = [])
     {

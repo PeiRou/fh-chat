@@ -13,6 +13,7 @@ use App\Socket\Exception\FuncApiException;
 
 class ChatRoomDtLog extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getList', 'get'];
     /**
      * 申请加入房间 - 批量
      * @param $roomId 房间id

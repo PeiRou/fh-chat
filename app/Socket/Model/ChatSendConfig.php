@@ -12,6 +12,8 @@ namespace App\Socket\Model;
 
 class ChatSendConfig extends Base
 {
+    protected static $DB_READ_FUNCTION = ['get'];
+
     protected static function get($db, int $roomId)
     {
         return self::RedisCacheData(function()use($db,  $roomId){

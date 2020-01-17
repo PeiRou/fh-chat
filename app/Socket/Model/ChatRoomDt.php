@@ -12,6 +12,7 @@ namespace App\Socket\Model;
 
 class ChatRoomDt extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getRoomUserIds', 'is_pushbet', 'pushbetRooms', 'uMapRoomInfo', 'getOne'];
 
     protected static function getRoomUserIds($db, $roomId)
     {

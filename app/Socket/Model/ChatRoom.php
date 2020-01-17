@@ -13,6 +13,8 @@ use App\Socket\Exception\FuncApiException;
 
 class ChatRoom extends Base
 {
+    protected static $DB_READ_FUNCTION = ['getRoomList', 'getRoomValue', 'getRoomOne', 'getRoomSas', 'getUserRoomSas', 'getPushBetInfoRooms'];
+
     /**
      * 2:普通会员
      * 3:管理员
@@ -23,7 +25,6 @@ class ChatRoom extends Base
     const FOUNDER = 4;
 
     const ADMINACTION = [3, 4]; # 有管理员权限的
-
 
 
     //房间列表

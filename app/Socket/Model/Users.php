@@ -21,7 +21,7 @@ class Users extends Base
      */
     protected static function getUserLotteryDay($db, $param, $isSaveCache = false)
     {
-        return self::HandleCacheData(function () use ($db, $param) {
+        return self::RedisCacheData(function () use ($db, $param) {
             $where = '';
             isset($param['userId']) && $where .= " AND `user_id` = {$param['userId']} ";
             isset($param['timeStart'], $param['timeEnd']) && $where .= " AND `created_at` BETWEEN '{$param['timeStart']}' AND '{$param['timeEnd']}' ";
@@ -41,7 +41,7 @@ class Users extends Base
                     ) AS `uall`";
             $res = $db->rawQuery($sql);
             return $res[0]['bet_money_all'] ?? 0;
-        }, 5, false, $isSaveCache);
+        }, 60 * 5, false, $isSaveCache);
     }
 
     /**
@@ -52,7 +52,7 @@ class Users extends Base
      */
     protected static function getUserGamesApiDay($db, $param, $isSaveCache = false)
     {
-        return self::HandleCacheData(function () use ($db, $param) {
+        return self::RedisCacheData(function () use ($db, $param) {
             $where = '';
             isset($param['userId']) && $where .= " AND `user_id` = {$param['userId']} ";
             isset($param['timeStart'], $param['timeEnd']) && $where .= " AND `updated_at` BETWEEN '{$param['timeStart']}' AND '{$param['timeEnd']}' ";
@@ -73,7 +73,7 @@ class Users extends Base
             ) AS `uall`";
             $res = $db->rawQuery($sql);
             return $res[0]['bet_money_all'] ?? 0;
-        }, 5, false, $isSaveCache);
+        }, 60 * 5, false, $isSaveCache);
     }
 
     /**
@@ -85,12 +85,12 @@ class Users extends Base
      */
     protected static function getUserBetDay($db, $param, $isSaveCache = false)
     {
-        return self::HandleCacheData(function()use($db, $param){
+        return self::RedisCacheData(function()use($db, $param){
             # 彩票
             $lottery = Users::getUserLotteryDay($db, $param, true);
             # 第三方游戏
             $gamesApi = Users::getUserGamesApiDay($db, $param, true);
             return $lottery + $gamesApi;
-        }, 5, false, $isSaveCache);
+        }, 60 * 5, false, $isSaveCache);
     }
 }

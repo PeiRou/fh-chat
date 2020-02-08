@@ -37,7 +37,16 @@ class Base
         }else{
             $mysqlPool = \App\Socket\Utility\Pool\PoolManager::getInstance()->getPool(\App\Socket\Pool\MysqlPool::class);
         }
-        $db = $mysqlPool->getObj();
+//        var_dump(get_class($mysqlPool).'___'.json_encode($mysqlPool->status(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $num = 0;
+        do{
+            $db = $mysqlPool->getObj();
+            if($db !== null) break;
+            \co::sleep(0.3);
+            $num ++;
+            if($num >= 10) break;
+        }
+        while (true);
         $res = static::$name($db, ...$arguments);
         $mysqlPool->recycleObj($db);
         return $res;

@@ -390,7 +390,7 @@ class Room
         $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
         #自己的消息包装
         $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
-        $u = array_chunk($userIds, env('POOL_MAX_NUM_1', 20) - 2); //携程数量，留两个，防止连接池一次性用完
+        $u = array_chunk($userIds, 60);
 //        $u = [$userIds];
         foreach ($u as $v){
             TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4){

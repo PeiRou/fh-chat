@@ -107,8 +107,8 @@ class AjaxStatusController extends Controller
     {
         $Method = $request->getMethod();
         if($Method == 'GET')
-            return Swoole::get($controller.'/'.$action, $request->all());
+            return Swoole::get($controller.'/'.$action, $request->all()) ?: null;
         elseif($Method == 'POST')
-            return Swoole::post($controller.'/'.$action, $request->query(), $request->post());
+            return Swoole::post($controller.'/'.$action, $request->query(), $request->post()) ?: null;
     }
 }

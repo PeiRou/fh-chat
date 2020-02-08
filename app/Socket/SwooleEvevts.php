@@ -29,7 +29,7 @@ class SwooleEvevts
         $mysqlConf->setMaxObjectNum(10)->setMinObjectNum(1); //设置最大数和最小数
         //其它数据库连接池
         $mysqlConf1 = PoolManager::getInstance()->register(Mysql2Pool::class, config('swoole.MYSQLPOOL2.POOL_MAX_NUM'));
-        $mysqlConf1->setMaxObjectNum(30)->setMinObjectNum(2);
+        $mysqlConf1->setMaxObjectNum(env('POOL_MAX_NUM_1', 20))->setMinObjectNum(2);
 
         //redis连接池
         $redisConf = PoolManager::getInstance()->register(RedisPool::class, config('swoole.REDISPOOL.POOL_MAX_NUM'));

@@ -390,18 +390,18 @@ class Room
         $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
         #自己的消息包装
         $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
-        $u = array_chunk($userIds, 60);
+        $u = array_chunk($userIds, 30);
 //        $u = [$userIds];
         foreach ($u as $v){
             TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4){
                 foreach ($v as $key =>$toUserId){
-                    go(function()use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$toUserId){
+//                    go(function()use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$toUserId){
                         $bMsg = $bMsg2;
                         if(Chat::getUserId($fd) == $toUserId)
                             $bMsg = $bMsg4;
 //                    $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
                         Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
-                    });
+//                    });
                 }
             });
         }

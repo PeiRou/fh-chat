@@ -28,7 +28,7 @@ class Base
         !isset(self::$DB_READ[static::class]) && self::$DB_READ[static::class] = static::$DB_READ_FUNCTION ?? [];
 
         foreach ($arguments as $k => $v){
-            if($v instanceof \App\Socket\Pool\MysqlObject)
+            if($v instanceof \App\Socket\Pool\MysqlObject || $v instanceof \App\Socket\Pool\Mysql2Object)
                 return static::$name(...$arguments);
         }
 

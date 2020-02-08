@@ -41,7 +41,7 @@ class Base
         $num = 0;
         do{
             $db = $mysqlPool->getObj();
-            if($db !== null) break;
+            if($db) break;
             \co::sleep(0.3);
             $num ++;
             if($num >= 10) break;

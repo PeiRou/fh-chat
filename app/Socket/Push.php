@@ -243,14 +243,14 @@ class Push
                 if($s && $s['type'] == $type && $s['id'] == $id){
                     if(app('swoole')->push($fd, $msg))
                         $lookNum = 0;
+                    # 设置目标用户聊过的列表
+                    if($isSetHistoryChatList){
+                        $arr = [];
+                        $arr['lastMsg'] = $aParam['msg'] ?? $msg;
+                        $isSetLookNum && $arr['lookNum'] = $lookNum;
+                        Room::setHistoryChatList($userId, $type, $id, $arr);
+                    }
                 }
-            }
-            # 设置目标用户聊过的列表
-            if($isSetHistoryChatList){
-                $arr = [];
-                $arr['lastMsg'] = $aParam['msg'] ?? $msg;
-                $isSetLookNum && $arr['lookNum'] = $lookNum;
-                Room::setHistoryChatList($userId, $type, $id, $arr);
             }
         };
         if ($async) {

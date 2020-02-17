@@ -392,9 +392,7 @@ class Room
         $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
         # 将会员分类， 过滤掉不在线的
         $OnlineUsers = self::getOnlineUsers();
-        $u = [];
         foreach ($userIds as $k => $v){
-            in_array($v, $OnlineUsers) && $u[] = $v;
             if(!in_array($v, $OnlineUsers)){
                 unset($userIds[$k]);
             }

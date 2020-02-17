@@ -10,8 +10,8 @@ return [
     'SERVER_NAME' => "fh-chat_swoole",
     'MAIN_SERVER' => [
         'SETTING' => [
-            'worker_num' => 2,
-            'task_worker_num' => 10,
+            'worker_num' => env('WORKER_NUM', 2),
+            'task_worker_num' => env('TASK_WORKER_NUM', 10),
             'max_request' => 5000,
             'task_max_request' => 1000,
             'enable_coroutine' => true,

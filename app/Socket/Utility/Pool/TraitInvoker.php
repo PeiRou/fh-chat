@@ -20,7 +20,16 @@ trait TraitInvoker
     {
         $pool = PoolManager::getInstance()->getPool(static::class);
         if($pool instanceof AbstractPool){
-            $obj = $pool->getObj($timeout);
+            $num = 0;
+            do{
+                $obj = $pool->getObj($timeout);
+                if($obj) break;
+                \co::sleep(0.3);
+                $num ++;
+                if($num >= 10) break;
+            }while(true);
+
+//            $obj = $pool->getObj($timeout);
             if($obj){
                 try{
                     $ret = call_user_func($call,$obj);

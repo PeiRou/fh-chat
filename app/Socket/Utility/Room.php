@@ -390,16 +390,25 @@ class Room
         $bMsg2 = app('swoole')->msg(2,$aMesgRep,$iRoomInfo,'room', $roomId);
         #自己的消息包装
         $bMsg4 = app('swoole')->msg(4,$aMesgRep,$iRoomInfo,'room', $roomId);
+        # 将会员分类， 过滤掉不在线的
+        $OnlineUsers = self::getOnlineUsers();
+        $u = [];
+        foreach ($userIds as $k => $v){
+            in_array($v, $OnlineUsers) && $u[] = $v;
+            if(!in_array($v, $OnlineUsers)){
+                unset($userIds[$k]);
+            }
+        }
         $u = array_chunk($userIds, 60);
 //        $u = [$userIds];
+        $getUserId = Chat::getUserId($fd);
         foreach ($u as $v){
-            TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4){
+            TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$getUserId){
                 foreach ($v as $key =>$toUserId){
-                    go(function()use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$toUserId){
+                    go(function()use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$toUserId,$getUserId){
                         $bMsg = $bMsg2;
-                        if(Chat::getUserId($fd) == $toUserId)
+                        if($getUserId == $toUserId)
                             $bMsg = $bMsg4;
-//                    $bMsg = app('swoole')->msg($status,$aMesgRep,$iRoomInfo,'room', $roomId);
                         Push::pushUserMessage($toUserId, 'room', $roomId, $bMsg,['msg' => $msg]);
                     });
                 }

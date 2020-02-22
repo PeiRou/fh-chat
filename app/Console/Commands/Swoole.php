@@ -282,7 +282,6 @@ class Swoole extends Command
         });
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
-            var_dump(microtime(true));
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){

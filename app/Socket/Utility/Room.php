@@ -400,8 +400,6 @@ class Room
         $u = array_chunk($userIds, 60);
 //        $u = [$userIds];
         $getUserId = Chat::getUserId($fd);
-
-        var_dump(microtime(true));
         foreach ($u as $v){
             TaskManager::async(function() use($v,$aMesgRep,$iRoomInfo,$roomId,$fd,$msg,$bMsg2,$bMsg4,$getUserId){
                 foreach ($v as $key =>$toUserId){

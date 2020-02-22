@@ -715,7 +715,9 @@ class Swoole extends Command
         $data = $this->msgBuild(...func_get_args());
         if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!==2 && $type == 'room') || $status==15){
 //            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),true);     //写入历史纪录
-            PersonalLog::insertMsgLog($data);
+            TaskManager::async(function() use($data){
+                PersonalLog::insertMsgLog($data);
+            });
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);
         return $res;//如果房客存在，把用户组反序列化

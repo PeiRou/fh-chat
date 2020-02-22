@@ -282,6 +282,7 @@ class Swoole extends Command
         });
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
+            var_dump(microtime(true));
             if(substr($request->data,0,6)=="heart="){       //心跳检查
                 return true;
             }else if(substr($request->data,0,6)=="token="){
@@ -715,10 +716,8 @@ class Swoole extends Command
         $data = $this->msgBuild(...func_get_args());
         if((isset($data['level'])&&$data['level']==98) || (in_array($status,array(4,8,9)) && $data['toId']!==2 && $type == 'room') || $status==15){
 //            $this->updAllkey('his',$userinfo['room'],$data['uuid'],json_encode($data),true);     //写入历史纪录
-            \go(function()use($data){
-                TaskManager::async(function() use($data){
-                    PersonalLog::insertMsgLog($data);
-                });
+            TaskManager::async(function() use($data){
+                PersonalLog::insertMsgLog($data);
             });
         }
         $res = json_encode($data,JSON_UNESCAPED_UNICODE);

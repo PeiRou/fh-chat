@@ -896,15 +896,16 @@ class Swoole extends Command
                 }
             }
             $valHis['room'] = $v->room_id;
-           TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis){
-               //检查计划消息
-               $iRoomInfo = app('swoole')->getUsersess($valHis, '', 'plan');     //包装计划消息
-               $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
-               unset($iRoomInfo['plans']);
-               //计划消息组合底部固定信息
-               $iMsg .= urlencode($baseSetting->plan_msg);
-               $msg = app('swoole')->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
-               Room::sendRoomSystemMsg($valHis['room'], $msg, '计划消息');
+            //检查计划消息
+            $iRoomInfo = app('swoole')->getUsersess($valHis, '', 'plan');     //包装计划消息
+            $iMsg = base64_decode($iRoomInfo['plans']);             //取出计划消息
+            unset($iRoomInfo['plans']);
+            //计划消息组合底部固定信息
+            $iMsg .= urlencode($baseSetting->plan_msg);
+            $msg = app('swoole')->msg(2, base64_encode(str_replace('+', '%20', $iMsg)), $iRoomInfo);   //计划发消息
+
+            TaskManager::async(function()use($rsKeyH, $baseSetting, $valHis, $msg){
+                 Room::sendRoomSystemMsg($valHis['room'], $msg, '计划消息');
            });
 //            $this->sendToAll($valHis['room'], $msg);
         }

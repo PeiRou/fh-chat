@@ -9,6 +9,7 @@
 namespace App\Socket\Utility;
 
 
+use App\Socket\Model\ChatRegex;
 use App\Socket\Model\ChatUser;
 
 class Message
@@ -42,12 +43,13 @@ class Message
     public static function regSpeaking($str)
     {
         // 不重要 读缓存
-        if(!$aRegex = cache('chat_regex_regex')){
-            $aRegex = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db){
-                return $db->get('chat_regex', null, ['regex']);
-            });
-            count($aRegex) && cache(['chat_regex_regex' => $aRegex], 1);
-        }
+//        if(!$aRegex = cache('chat_regex_regex')){
+//            $aRegex = \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db){
+//                return $db->get('chat_regex', null, ['regex']);
+//            });
+//            count($aRegex) && cache(['chat_regex_regex' => $aRegex], 1);
+//        }
+        $aRegex = ChatRegex::getList();
         if(count($aRegex)){
             $aRegStr = "";
             foreach ($aRegex as $key => $val){
@@ -67,15 +69,20 @@ class Message
             app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
             return false;
         }
-        if(!\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($fd, $iRoomInfo) {
-            $status = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
-            if($status !== 0){
-                app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
-                return false;
-            }
-            return true;
-        }))
+//        if(!\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($fd, $iRoomInfo) {
+//            $status = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
+//            if($status !== 0){
+//                app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
+//                return false;
+//            }
+//            return true;
+//        }))
+//            return false;
+        $status = ChatUser::getUserValue(['users_id' => $iRoomInfo['userId']], 'chat_status');
+        if($status !== 0){
+            app('swoole')->sendToSerf($fd,5,'此帐户已禁言');
             return false;
+        }
 
         return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd, $type, $id) {
             $redis->select(1);

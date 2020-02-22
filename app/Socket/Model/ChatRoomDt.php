@@ -24,7 +24,7 @@ class ChatRoomDt extends Base
                 $data[] = array_shift($ids)['user_id'];
             }
             return $data;
-        }, 5);
+        }, 10);
     }
 
     //删除user表里已经删掉的会员

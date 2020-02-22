@@ -32,7 +32,7 @@ class ChatUser extends Base
             foreach ($param as $k=>$v)
                 $db->where($k, $v);
             return $db->getOne('chat_users', [$value])[$value] ?? null;
-        }, 10);
+        }, 15);
     }
 
     //查会员角色

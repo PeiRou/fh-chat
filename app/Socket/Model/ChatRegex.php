@@ -11,7 +11,7 @@ namespace App\Socket\Model;
 
 class ChatRegex extends Base
 {
-    protected static $DB_READ_FUNCTION = ['getValue'];
+    protected static $DB_READ_FUNCTION = ['getList'];
 
     protected static function getList($db)
     {

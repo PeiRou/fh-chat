@@ -70,13 +70,14 @@ class SwooleEvevts
     {
         FdStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new \App\Socket\Process\Test('testProcess'))->getProcess());
+        app('swoole')->ws->addProcess((new \App\Socket\Process\Request('RequestProcess'))->getProcess());
     }
-    public static function onWorkerStart($server, $id)
+    public static function onWorkerStart($server, $worker_id)
     {
         \swoole_process::signal(SIGPIPE, function($signo) {
             \swoole_process::signal(SIGPIPE, null);
         });
-        if($id >= $server->setting['worker_num']) {
+        if($worker_id >= $server->setting['worker_num']) {
                swoole_set_process_name(config('swoole.SERVER_NAME')."_task_worker");
         } else {
             swoole_set_process_name(config('swoole.SERVER_NAME')."_worker");
@@ -95,7 +96,5 @@ class SwooleEvevts
         # 推送所有的列表
         Push::pushList($request->fd,$iRoomInfo);
     }
-
-
 
 }

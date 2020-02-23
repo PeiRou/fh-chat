@@ -13,7 +13,7 @@ namespace App\Socket\Model;
 class ChatUser extends Base
 {
 
-    static $DB_READ_FUNCTION = ['getUser','getUserValue','search', 'getList'];
+    static $DB_READ_FUNCTION = ['getUser','getUserValue','search', 'getList', 'getUserBetRechargeInfo'];
 
     //用户信息
     protected static function getUser($db, $param = [], $isSaveCache = false)
@@ -124,4 +124,16 @@ class ChatUser extends Base
             return $db->get('chat_users', null, $column);
         },30, false, $nocache ?? false);
     }
+
+    //获取最近2天下注&充值
+    protected static function getUserBetRechargeInfo($db, $param = [])
+    {
+        return self::RedisCacheData(function() use($db, $param){
+            return $db->join('users', 'users.id = chat_users.users_id')
+                ->join('chat_room', 'chat_users.room_id = chat_room.room_id')
+                ->where('users_id',$param['users_id'])
+                ->getOne('chat_users', ['chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak']);
+        }, 10);
+    }
+
 }

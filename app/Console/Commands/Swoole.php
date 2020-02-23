@@ -6,6 +6,8 @@ use App\Socket\Exception\SocketApiException;
 use App\Socket\Model\ChatBase;
 use App\Socket\Model\ChatHongbao;
 use App\Socket\Model\ChatHongbaoBlacklist;
+use App\Socket\Model\ChatLevel;
+use App\Socket\Model\ChatRoles;
 use App\Socket\Model\ChatRoom;
 use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\ChatSendConfig;
@@ -216,62 +218,67 @@ class Swoole extends Command
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             \App\Socket\SwooleEvevts::onOpen($ws, $request);
-            DB::disconnect();
-            error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
-            try {
-                $strParam = $request->server;
-                $strParam = explode("/", $strParam['request_uri']);      //房间号码
-                $iSess = $strParam[1];
-                if(empty($iSess))
-                    return $this->sendToSerf($request->fd, 3, '登陆失效');
-                $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
-                if(empty($iRoomInfo)){
-                    return $this->sendToSerf($request->fd, 3, '登陆失效');
-                }
-                $rooms = $iRoomInfo['rooms'];
-                $this->sendToSerf($request->fd, 14, 'init');
-                if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
-                    return $this->sendToSerf($request->fd, 3, '登陆失效');
-                $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
-                # 绑定userId fd
-                Chat::bindUser($iRoomInfo['userId'], $request->fd);
-                Users::checkFdToken($iRoomInfo['userId'], $iRoomInfo['sess']); # 验证用户的所有fd token 如果失效删除所有登录信息
-                foreach ($rooms as $room){
-                    //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
-                    if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
-                        Storage::disk('chatlogintime')->put(md5($iRoomInfo['userId']),time()+10800);
-                            $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
-                            $this->sendToAll($room, $msg);
-                    }
-                }
-                SwooleEvevts::onOpenAfter($request, $iRoomInfo);
-                //回传自己的基本设置
-                if($iRoomInfo['setNickname']==0)
-                    $iRoomInfo['nickname'] = '';
-                $msg = $this->msg(7,'fstInit',$iRoomInfo);
-                $this->push($request->fd, $msg);
-                $AdSource = new AdSource();
-                $ISROOMS = $AdSource->getOneSource('chatType');
-                $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
-                # 如果是老聊天室 默认打开1聊天室
-                if(!$ISROOMS){
-                    $room_dt = DB::table('chat_room_dt')->where('id',1)->where('user_id',$iRoomInfo['userId'])->first();
-                    if(empty($room_dt)){
-                        $room1data['id'] = 1;
-                        $room1data['user_id'] = $iRoomInfo['userId'];
-                        $room1data['user_name'] = $iRoomInfo['userName'];
-                        $room1data['is_speaking'] = 1;
-                        $room1data['is_pushbet'] = 0;
-                        $room1data['created_at'] = date('Y-m-d H:i:s');
-                        $room1data['updated_at'] = date('Y-m-d H:i:s');
-                        DB::table('chat_room_dt')->insert($room1data);      // type 1:chatusr 2:chatusrfd
-                    }
-                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
-                }
-            }catch (\Exception $e){
-                Trigger::getInstance()->throwable($e);
-//                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
-            }
+            \App\Socket\Redis1\Redis::exec(10, 'RPUSH', 'openRequest', json_encode($request));
+
+
+//            DB::disconnect();
+//            error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
+//            try {
+//                $strParam = $request->server;
+//                $strParam = explode("/", $strParam['request_uri']);      //房间号码
+//                $iSess = $strParam[1];
+//                var_dump('start___'.$request->fd.'____'.microtime().'_____'.$iSess);
+//                if(empty($iSess))
+//                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+//                $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
+//                if(empty($iRoomInfo)){
+//                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+//                }
+//                $rooms = $iRoomInfo['rooms'];
+//                $this->sendToSerf($request->fd, 14, 'init');
+//                if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的
+//                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+//                $this->updUserInfo($request->fd, $iRoomInfo, $ws);        //成员登记他的房间号码
+//                # 绑定userId fd
+//                Chat::bindUser($iRoomInfo['userId'], $request->fd);
+//                Users::checkFdToken($iRoomInfo['userId'], $iRoomInfo['sess']); # 验证用户的所有fd token 如果失效删除所有登录信息
+//                foreach ($rooms as $room){
+//                    //广播登陆信息，如果三个小时内广播过一次，就不再重复广播
+//                    if (!Storage::disk('chatlogintime')->exists(md5($iRoomInfo['userId'])) || Storage::disk('chatlogintime')->get(md5($iRoomInfo['userId'])) < time()){
+//                        Storage::disk('chatlogintime')->put(md5($iRoomInfo['userId']),time()+10800);
+//                            $msg = $this->msg(1, '进入聊天室', $iRoomInfo);   //进入聊天室
+//                            $this->sendToAll($room, $msg);
+//                    }
+//                }
+//                //回传自己的基本设置
+//                if($iRoomInfo['setNickname']==0)
+//                    $iRoomInfo['nickname'] = '';
+//                $msg = $this->msg(7,'fstInit',$iRoomInfo);
+//                $this->push($request->fd, $msg);
+//                SwooleEvevts::onOpenAfter($request, $iRoomInfo);
+//                var_dump('start777777777777___'.$request->fd.'____'.microtime());
+//                $AdSource = new AdSource();
+//                $ISROOMS = $AdSource->getOneSource('chatType');
+//                $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;
+//                # 如果是老聊天室 默认打开1聊天室
+//                if(!$ISROOMS){
+//                    $room_dt = DB::table('chat_room_dt')->where('id',1)->where('user_id',$iRoomInfo['userId'])->first();
+//                    if(empty($room_dt)){
+//                        $room1data['id'] = 1;
+//                        $room1data['user_id'] = $iRoomInfo['userId'];
+//                        $room1data['user_name'] = $iRoomInfo['userName'];
+//                        $room1data['is_speaking'] = 1;
+//                        $room1data['is_pushbet'] = 0;
+//                        $room1data['created_at'] = date('Y-m-d H:i:s');
+//                        $room1data['updated_at'] = date('Y-m-d H:i:s');
+//                        DB::table('chat_room_dt')->insert($room1data);      // type 1:chatusr 2:chatusrfd
+//                    }
+//                    $this->inRoom(1, $request->fd, $iRoomInfo, $iSess);
+//                }
+//            }catch (\Exception $e){
+//                Trigger::getInstance()->throwable($e);
+////                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
+//            }
         });
         $this->ws->on('start', [\App\Socket\SwooleEvevts::class, 'onStart']);
         $this->ws->on('Task',function($serv, \Swoole\Server\Task $task){
@@ -993,7 +1000,10 @@ class Swoole extends Command
                 $res = $this->getMyserf($iSess);
                 if(empty($res) || !isset($res['userId']))
                     return array();                                 //切换到聊天室库
-                $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$res['userId'])->first();
+//                $aUsers = DB::table('chat_users')->select('users_id')->where('users_id',$res['userId'])->first();
+                $aUsers = (object) ChatUser::getUser([
+                    'users_id' => $res['userId'],
+                ]);
                 $data = array();
                 if(empty($aUsers)){                                     //如果从未登入聊天室，则要把信息
                     $resUsers = DB::table('users')->select('testFlag')->where('id',$res['userId'])->first();
@@ -1018,6 +1028,7 @@ class Swoole extends Command
                 }
                 if(empty($res['userId']))
                     return array();
+
                 $aUsers = $this->chkUserSpeak($res['userId'],$data);
                 $uLv = $aUsers->level;
                 $iRoomCss = $this->cssText($uLv,$aUsers->chat_role);
@@ -1073,12 +1084,15 @@ class Swoole extends Command
 //            ->join('users', 'users.id', '=', 'chat_users.users_id')
 //            ->join('chat_room', 'chat_users.room_id', '=', 'chat_room.room_id')
 //            ->where('users_id',$userid)->first();
-        $aUsers = (object)\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid) {
-            return $db->join('users', 'users.id = chat_users.users_id')
-                ->join('chat_room', 'chat_users.room_id = chat_room.room_id')
-                ->where('users_id',$userid)
-                ->getOne('chat_users', ['chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak']);
-        });
+//        $aUsers = (object)\App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid) {
+//            return $db->join('users', 'users.id = chat_users.users_id')
+//                ->join('chat_room', 'chat_users.room_id = chat_room.room_id')
+//                ->where('users_id',$userid)
+//                ->getOne('chat_users', ['chat_users.*','users.testFlag','chat_room.is_speaking','chat_room.recharge as room_recharge','chat_room.bet as room_bet','chat_room.isTestSpeak as room_isTestSpeak']);
+//        });
+        $aUsers = (object)ChatUser::getUserBetRechargeInfo([
+            'users_id' => $userid
+        ]);
         # 如果没找到可能房间被删除了，也可能这个会员是单聊还没加入房间 因为这里不知道怎么改先给个默认的
         if(empty((array)$aUsers)){
             $aUsers = (object)ChatUser::getUser(['users_id' => $userid], true);
@@ -1197,19 +1211,24 @@ class Swoole extends Command
 
     //消息根据群组样式化
     public function cssText($level,$role){
-        $aCssColor = DB::table('chat_roles')->select('bg_color1','bg_color2','font_color')
-            ->where(function ($query) use ($level,$role){
-                if(isset($role)){
-                    switch ($role){
-                        case 2://如果是会员
-                            $query->where("type",2)->where("level",$level);
-                            break;
-                        default:
-                            $query->where("type",$role);
-                            break;
-                    }
-                }
-            })->first();
+
+//        $aCssColor = DB::table('chat_roles')->select('bg_color1','bg_color2','font_color')
+//            ->where(function ($query) use ($level,$role){
+//                if(isset($role)){
+//                    switch ($role){
+//                        case 2://如果是会员
+//                            $query->where("type",2)->where("level",$level);
+//                            break;
+//                        default:
+//                            $query->where("type",$role);
+//                            break;
+//                    }
+//                }
+//            })->first();
+        $aCssColor = (object)ChatRoles::first([
+            'role' => $role,
+            'level' => $level
+        ]);
         return $aCssColor;
     }
 
@@ -1221,7 +1240,15 @@ class Swoole extends Command
             return 0;
         elseif($isnotAuto_count==1) //如果是不自动计算LEVEL无条件给原来设定的
             return $resLv;
-        $aLevel = DB::table('chat_level')->get();
+//        $aLevel = DB::table('chat_level')->get();
+        $aLevel = (object)\App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $db) {
+            $db->select(12);
+            if(!$chat_level = @json_decode($db->get('chat_level'), 1)){
+                $chat_level = ChatLevel::get();
+                $db->set('chat_level', json_encode($chat_level, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }
+            return json_decode(json_encode($chat_level));
+        });
         $resLv = 1;
         foreach ($aLevel as $key => $val){
             if($reg >= $val->recharge_min && $bet >= $val->bet_min)

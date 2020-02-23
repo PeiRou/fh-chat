@@ -30,14 +30,14 @@ class ChatRoom extends Base
     //房间列表
     protected static function getRoomList($db, $param = [], $columns = null, $isSaveCache = false)
     {
-        return self::RedisCacheData(function() use($db, $param, $columns){
+        return self::HandleCacheData(function() use($db, $param, $columns){
             isset($param['is_open']) && $db->where('is_open', 1);
             isset($param['is_auto']) && $db->where('is_auto', $param['is_auto']);
             isset($param['rooms']) && $db->where('room_id', $param['rooms'], 'IN');
             $db->orderBy("top_sort","desc");
             $db->orderBy("room_id","asc");
             return $db->get('chat_room', null, $columns ?? ['room_id', 'room_name','head_img']);
-        }, 30, false, $isSaveCache);
+        }, 1, false, $isSaveCache);
     }
 
     protected static function getRoomValue($db, $param = [], $value, $isSaveCache = false)

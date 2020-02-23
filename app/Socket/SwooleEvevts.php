@@ -13,6 +13,7 @@ use App\Socket\Model\ChatRoomDt;
 use App\Socket\Model\OtherDb\PersonalLog;
 use App\Socket\Pool\Mysql2Pool;
 use App\Socket\Pool\MysqlPool;
+use App\Socket\Pool\Redis1Pool;
 use App\Socket\Pool\RedisPool;
 use App\Socket\Redis\Chat;
 use App\Socket\Utility\Pool\PoolManager;
@@ -30,10 +31,12 @@ class SwooleEvevts
         //其它数据库连接池
         $mysqlConf1 = PoolManager::getInstance()->register(Mysql2Pool::class, config('swoole.MYSQLPOOL2.POOL_MAX_NUM'));
         $mysqlConf1->setMaxObjectNum(env('POOL_MAX_NUM_1', 20))->setMinObjectNum(2);
-
         //redis连接池
         $redisConf = PoolManager::getInstance()->register(RedisPool::class, config('swoole.REDISPOOL.POOL_MAX_NUM'));
-        $redisConf->setMaxObjectNum(20)->setMinObjectNum(0);
+        $redisConf->setMaxObjectNum(10)->setMinObjectNum(0);
+        //redis连接池-缓存专用
+        $redisConf1 = PoolManager::getInstance()->register(Redis1Pool::class, config('swoole.REDISPOOL1.POOL_MAX_NUM'));
+        $redisConf1->setMaxObjectNum(20)->setMinObjectNum(0);
     }
 
 

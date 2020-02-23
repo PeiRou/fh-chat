@@ -17,14 +17,14 @@ class ChatRoomDt extends Base
     protected static function getRoomUserIds($db, $roomId)
     {
         //获取聊天室所有会员id 缓存5秒
-        return self::RedisCacheData(function() use($roomId, $db){
+        return self::HandleCacheData(function() use($roomId, $db){
             $ids = $db->where('id', $roomId)->get('chat_room_dt', null, ['user_id']);
             $data = [];
             while ($ids){
                 $data[] = array_shift($ids)['user_id'];
             }
             return $data;
-        }, 10);
+        }, 1);
     }
 
     //删除user表里已经删掉的会员

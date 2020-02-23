@@ -70,7 +70,7 @@ trait Cache
         if(isset($param['db']) && $param['db'] instanceof \App\Socket\Pool\MysqlObject)
             unset($param['db']);
         $key = md5((string)$res . $time . $nullIsCache . json_encode($param) . json_encode($args));
-        return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($isSaveCache, $key, $closure, $nullIsCache, $args, $time) {
+        return \App\Socket\Pool\Redis1Pool::invoke(function (\App\Socket\Pool\Redis1Object $redis) use($isSaveCache, $key, $closure, $nullIsCache, $args, $time) {
             $redis->select(12);
             if($redis->exists($key) && ($data = unserialize($redis->get($key))) && $isSaveCache === false){
                 return $data;

@@ -62,6 +62,13 @@ return [
         'POOL_MAX_NUM'  => '6',
         'POOL_TIME_OUT' => '6',
     ],
+    'REDISPOOL1'         => [
+        'host'       => env('REDIS_HOST_1', env('REDIS_HOST', '127.0.0.1')),
+        'port'       => env('REDIS_PORT_1', env('REDIS_PORT', '6379')),
+        'auth'          => '',
+        'POOL_MAX_NUM'  => '6',
+        'POOL_TIME_OUT' => '6',
+    ],
     'MYSQLPOOL' => [
         'host'          => env('DB_HOST'),
         'port'          => env('DB_PORT', '3306'),

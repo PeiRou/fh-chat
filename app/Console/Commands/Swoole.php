@@ -219,6 +219,7 @@ class Swoole extends Command
             DB::disconnect();
             error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
             try {
+                var_dump('start___'.$request->fd.'____'.microtime());
                 $strParam = $request->server;
                 $strParam = explode("/", $strParam['request_uri']);      //房间号码
                 $iSess = $strParam[1];
@@ -250,6 +251,7 @@ class Swoole extends Command
                     $iRoomInfo['nickname'] = '';
                 $msg = $this->msg(7,'fstInit',$iRoomInfo);
                 $this->push($request->fd, $msg);
+                var_dump('start777777777777___'.$request->fd.'____'.microtime());
                 $AdSource = new AdSource();
                 $ISROOMS = $AdSource->getOneSource('chatType');
                 $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;

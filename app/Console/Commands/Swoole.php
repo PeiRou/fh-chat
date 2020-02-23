@@ -225,8 +225,9 @@ class Swoole extends Command
                 if(empty($iSess))
                     return $this->sendToSerf($request->fd, 3, '登陆失效');
                 $iRoomInfo = $this->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
-                if(empty($iRoomInfo))
-                    return false;
+                if(empty($iRoomInfo)){
+                    return $this->sendToSerf($request->fd, 3, '登陆失效');
+                }
                 $rooms = $iRoomInfo['rooms'];
                 $this->sendToSerf($request->fd, 14, 'init');
                 if (empty($iRoomInfo) || !isset($iRoomInfo['room']) || empty($iRoomInfo['room']))                                   //查不到登陆信息或是房间是空的

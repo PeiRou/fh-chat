@@ -25,7 +25,7 @@ class Request extends AbstractProcess
 
     public function run($arg)
     {
-        for($i = 0; $i <= 5; $i++){
+        for($i = 0; $i <= $this->num; $i++){
             $key = 'isRun'.$i;
             $this->{$key} = false;
 

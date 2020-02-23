@@ -36,7 +36,7 @@ class SwooleEvevts
         $redisConf->setMaxObjectNum(10)->setMinObjectNum(0);
         //redis连接池-缓存专用
         $redisConf1 = PoolManager::getInstance()->register(Redis1Pool::class, config('swoole.REDISPOOL1.POOL_MAX_NUM'));
-        $redisConf1->setMaxObjectNum(20)->setMinObjectNum(0);
+        $redisConf1->setMaxObjectNum( config('swoole.REDISPOOL1.POOL_MAX_NUM'))->setMinObjectNum(0);
     }
 
 

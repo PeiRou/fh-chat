@@ -12,8 +12,8 @@ return [
         'SETTING' => [
             'worker_num' => env('WORKER_NUM', 2),
             'task_worker_num' => env('TASK_WORKER_NUM', 10),
-            'max_request' => 5000,
-            'task_max_request' => 1000,
+            'max_request' => 15000,
+            'task_max_request' => 10000,
             'enable_coroutine' => true,
             'task_enable_coroutine' => true,
 //            'package_max_length' => 1024 * 1024 * 20

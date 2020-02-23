@@ -21,10 +21,11 @@ class Request extends AbstractProcess
 {
 //    private $isRun = false;
 
-    private $num = 20;
+    private $num;
 
     public function run($arg)
     {
+        $this->num = config('swoole.MAIN_SERVER.SETTING')['task_worker_num'] - 1;
         for($i = 0; $i <= $this->num; $i++){
             $key = 'isRun'.$i;
             $this->{$key} = false;

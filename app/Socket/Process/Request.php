@@ -21,7 +21,7 @@ class Request extends AbstractProcess
 {
 //    private $isRun = false;
 
-    private $num = 5;
+    private $num = 20;
 
     public function run($arg)
     {
@@ -32,20 +32,14 @@ class Request extends AbstractProcess
             $this->addTick(300,function ()use($key){
                 if(!$this->{$key}){
                     $this->{$key} = true;
-                    while (true){
-                        try{
-                            if($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
-                                $this->openAction($request);
-                                \co::sleep(0.1);
-                            }else{
-                                break;
-                            }
-                        }catch (\Throwable $e){
-                            Trigger::getInstance()->throwable($e);
-                            break;
-                        }finally{
-
+                    try{
+                        while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
+                            $this->openAction($request);
                         }
+                    }catch (\Throwable $e){
+                        Trigger::getInstance()->throwable($e);
+                    }finally{
+
                     }
                     $this->{$key} = false;
                 }
@@ -65,6 +59,9 @@ class Request extends AbstractProcess
 
     public function openAction($request)
     {
+        if(!app('swoole')->ws->connection_info($request->fd)){
+            return false;
+        }
         DB::disconnect();
         error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
         try {

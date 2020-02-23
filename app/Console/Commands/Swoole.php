@@ -283,6 +283,7 @@ class Swoole extends Command
         //监听WebSocket消息事件
         $this->ws->on('message', function ($ws, $request) {
             if(substr($request->data,0,6)=="heart="){       //心跳检查
+                $this->push($request->fd,'pong');
                 return true;
             }else if(substr($request->data,0,6)=="token="){
                 $iSess = substr($request->data,6,40);
@@ -323,6 +324,7 @@ class Swoole extends Command
                         return (new Parser($ws, $request, $messageInfo, $iSess))->run($iRoomInfo);
                     }catch (\Throwable $e){
                         throw $e;
+
                     }
                 }
 

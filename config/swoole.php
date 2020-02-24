@@ -7,10 +7,10 @@
  */
 
 // redis库使用情况
-define('REDIS_DB_LOCK_BASIS', 5); # 锁重复锁的一些基本的 库 可以清掉
-define('REDIS_DB_DAY_CLEAR', 9);  # 每天固定时间段清除
-define('REDIS_DB_CHAT_USER_MAP', 1); # 聊天室用户在线信息，fd映射
-define('REDIS_DB_CHAT_USEROPEN_QUEUE', 1); # 聊天室用户open以后处理队列
+defined('REDIS_DB_LOCK_BASIS') or define('REDIS_DB_LOCK_BASIS', 5); # 锁重复锁的一些基本的 库 可以清掉
+defined('REDIS_DB_DAY_CLEAR') or define('REDIS_DB_DAY_CLEAR', 9);  # 每天固定时间段清除
+defined('REDIS_DB_CHAT_USER_MAP') or define('REDIS_DB_CHAT_USER_MAP', 1); # 聊天室用户在线信息，fd映射
+defined('REDIS_DB_CHAT_USEROPEN_QUEUE') or define('REDIS_DB_CHAT_USEROPEN_QUEUE', 1); # 聊天室用户open以后处理队列
 
 return [
     'SERVER_NAME' => "fh-chat_swoole",

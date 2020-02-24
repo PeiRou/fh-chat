@@ -71,7 +71,7 @@ class SwooleEvevts
     {
         FdStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new \App\Socket\Process\Test('testProcess'))->getProcess());
-        app('swoole')->ws->addProcess((new \App\Socket\Process\Request1('RequestProcess'))->getProcess());
+        app('swoole')->ws->addProcess((new \App\Socket\Process\Request(config('swoole.SERVER_NAME').'_RequestProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $worker_id)
     {

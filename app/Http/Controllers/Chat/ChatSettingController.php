@@ -369,7 +369,14 @@ class ChatSettingController extends Controller
             }
             //将红包算好数量，放到redis红包里，供人读取
             if($this->saveRedEnvelopeRedis1($hbdt['hongbao_total_num'],$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'],$id)){
-                Redis::select(REDIS_DB_DAY_CLEAR);
+
+                $redis = Redis::connection();
+                $redis->select(REDIS_DB_DAY_CLEAR);
+                $hb_key = 'hbing' . $id;
+                if(!$redis->exists($hb_key)) {
+                    $redis->sadd('hbing' . $id, 0);
+                }
+
                 $data['id'] = $id;
                 $swoole = new Swoole();
                 $res = $swoole->swooletest('hongbao',$room,$data);
@@ -382,6 +389,14 @@ class ChatSettingController extends Controller
         return response()->json(['status'=>false,'msg'=>'发红包失败'],200);
     }
 
+    /**
+     * 分配好红包，类型2
+     * @param int $total_num
+     * @param float $min
+     * @param float $max
+     * @param int $id
+     * @return bool
+     */
     public function saveRedEnvelopeRedis1(int $total_num, float $min, float $max, int $id)
     {
         $redis = Redis::connection();
@@ -443,11 +458,11 @@ class ChatSettingController extends Controller
     }
 
     /**
-     * 红包分割并存入redis
-     * @param $rewardMoney
-     * @param $rewardNum
-     * @param $max
-     * @param $min
+     * 红包分割并存入redis，类型1
+     * @param $total
+     * @param $num
+     * @param $id
+     * @return int
      */
     public function saveRedEnvelopeRedis($total,$num,$id){
         if($total<=0 || $num<=0)
@@ -507,9 +522,12 @@ class ChatSettingController extends Controller
     //开启红包
     public function openHongbao($data){
         $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>1));      //红包状态 1:疯抢中 2:已抢完 3:已关闭
-        if($upd==1)
-            return response()->json(['status'=>true],200);
-        else
+        if($upd==1) {
+            $redis = Redis::connection();
+            $redis->select(REDIS_DB_DAY_CLEAR);
+            $redis->sadd('hbing'.$data,0);
+            return response()->json(['status' => true], 200);
+        }else
             return response()->json(['status'=>false,'msg'=>'关闭红包失败'],200);
     }
 

@@ -88,7 +88,7 @@ class Push
                 return false;
             }
         };
-        if($async){
+        if($async && !app('swoole')->ws->taskworker){
             TaskManager::async($closure);
         }else{
             return $closure();

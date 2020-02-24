@@ -27,7 +27,9 @@ class Request extends AbstractProcess
             if(!$this->isRun){
                 $this->isRun = true;
                 while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
-                    TaskManager::async($this->openAction($request));
+                    TaskManager::async(function() use($request){
+                        Request::openAction($request);
+                    });
                 }
                 $this->isRun = false;
             }
@@ -43,7 +45,7 @@ class Request extends AbstractProcess
     {
         // TODO: Implement onReceive() method.
     }
-    public function openAction($request)
+    public static function openAction($request)
     {
         if(!app('swoole')->ws->connection_info($request->fd)){
             return false;

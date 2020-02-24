@@ -11,7 +11,7 @@ namespace App\Socket\Model;
 
 class Users extends Base
 {
-    protected static $DB_READ_FUNCTION = ['getUserBetDay','getUserLotteryDay','getUserGamesApiDay'];
+    protected static $DB_READ_FUNCTION = ['getUserBetDay','getUserLotteryDay','getUserGamesApiDay','getUserRecharges'];
 
     /**
      * 获取用户彩票投注
@@ -92,5 +92,18 @@ class Users extends Base
             $gamesApi = Users::getUserGamesApiDay($db, $param, true);
             return $lottery + $gamesApi;
         }, 60 * 5, false, $isSaveCache);
+    }
+
+    protected static function getUserRecharges($db, $param, $isSaveCache = false)
+    {
+        return self::RedisCacheData(function()use($db, $param){
+            return $db
+                    ->where('userId',$param['userId'])
+                    ->where('status',2)
+                    ->where('addMoney',1)
+                    ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-30 day")), date("Y-m-d H:i:s",time())]])
+                    ->getOne('recharges', 'sum(`amount`) as amount')['amount'] ?? 0;
+
+        }, 120, false, $isSaveCache);
     }
 }

@@ -1185,13 +1185,16 @@ class Swoole extends Command
         ], false);
 
         //重新计算最近30天充值
-        \App\Socket\Pool\Mysql2Pool::invoke(function (\App\Socket\Pool\Mysql2Object $db) use($userid, $aUserBet) {
-            $aUserRecharges = $db
-                ->where('userId',$userid)
-                ->where('status',2)
-                ->where('addMoney',1)
-                ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-30 day")), date("Y-m-d H:i:s",time())]])
-                ->getOne('recharges', 'sum(`amount`) as amount')['amount'] ?? 0;
+        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid, $aUserBet) {
+//            $aUserRecharges = $db
+//                ->where('userId',$userid)
+//                ->where('status',2)
+//                ->where('addMoney',1)
+//                ->where ('created_at', ['BETWEEN' => [date("Y-m-d H:i:s",strtotime("-30 day")), date("Y-m-d H:i:s",time())]])
+//                ->getOne('recharges', 'sum(`amount`) as amount')['amount'] ?? 0;
+            $aUserRecharges = \App\Socket\Model\Users::getUserRecharges([
+                'userId' => $userid
+            ]);
             return $db
                 ->where('users_id',$userid)
                 ->update('chat_users', [

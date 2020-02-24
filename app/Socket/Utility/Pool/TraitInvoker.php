@@ -26,9 +26,8 @@ trait TraitInvoker
                 if($obj) break;
                 \co::sleep(0.5);
                 $num ++;
-                if($num >= 20) break;
+                if($num >= 15) break;
             }while(true);
-
 //            $obj = $pool->getObj($timeout);
             if($obj){
                 try{

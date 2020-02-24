@@ -89,32 +89,32 @@ class Swoole extends Command
      */
     private function init(){
         //清除用户表
-        $keys = $this->redis->keys('chatusr*');
-        if(!empty($keys)){
-            $this->redis->multi();
-            foreach ($keys as $item){
-                $this->redis->del($item);
-            }
-            $this->redis->exec();
-        }
+//        $keys = $this->redis->keys('chatusr*');
+//        if(!empty($keys)){
+//            $this->redis->multi();
+//            foreach ($keys as $item){
+//                $this->redis->del($item);
+//            }
+//            $this->redis->exec();
+//        }
         //清除红包ing
-        $keys = $this->redis->keys('hbing'.'*');
-        if(!empty($keys)) {
-            $this->redis->multi();
-            foreach ($keys as $item) {
-                $this->redis->del($item);
-            }
-            $this->redis->exec();
-        }
+//        $keys = $this->redis->keys('hbing'.'*');
+//        if(!empty($keys)) {
+//            $this->redis->multi();
+//            foreach ($keys as $item) {
+//                $this->redis->del($item);
+//            }
+//            $this->redis->exec();
+//        }
         //清除各种ing
-        $keys = $this->redis->keys('*'.'ing:'.'*');
-        if(!empty($keys)) {
-            $this->redis->multi();
-            foreach ($keys as $item) {
-                $this->redis->del($item);
-            }
-            $this->redis->exec();
-        }
+//        $keys = $this->redis->keys('*'.'ing:'.'*');
+//        if(!empty($keys)) {
+//            $this->redis->multi();
+//            foreach ($keys as $item) {
+//                $this->redis->del($item);
+//            }
+//            $this->redis->exec();
+//        }
 
         $files = Storage::disk('chatusr')->files();
         $arrayTmp = [];

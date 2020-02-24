@@ -56,7 +56,7 @@ class Request extends AbstractProcess
             $strParam = (array)$request->server;
             $strParam = explode("/", $strParam['request_uri']);      //房间号码
             $iSess = $strParam[1];
-            var_dump('start___'.$request->fd.'____'.microtime().'_____'.$iSess);
+//            var_dump('start___'.$request->fd.'____'.microtime().'_____'.$iSess);
             if(empty($iSess))
                 return app('swoole')->sendToSerf($request->fd, 3, '登陆失效');
             $iRoomInfo = app('swoole')->getUsersess($iSess, $request->fd);                 //从sess取出会员资讯
@@ -86,7 +86,7 @@ class Request extends AbstractProcess
             app('swoole')->push($request->fd, $msg);
             \App\Socket\SwooleEvevts::onOpenAfter($request, $iRoomInfo);
 
-            var_dump('start777777777777___'.$request->fd.'____'.microtime());
+//            var_dump('start777777777777___'.$request->fd.'____'.microtime());
             $AdSource = new AdSource();
             $ISROOMS = $AdSource->getOneSource('chatType');
             $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;

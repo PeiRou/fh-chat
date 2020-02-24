@@ -367,16 +367,16 @@ class ChatSettingController extends Controller
             if(count($hbdt)==0){
                 $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num')->where('chat_hongbao_idx',$id)->first();
             }
+
+            $redis = Redis::connection();
+            $redis->select(REDIS_DB_DAY_CLEAR);
+            $hb_key = 'hbing' . $id;
+            if(!$redis->exists($hb_key)) {
+                $redis->sadd('hbing' . $id, 0);
+            }
+
             //将红包算好数量，放到redis红包里，供人读取
             if($this->saveRedEnvelopeRedis1($hbdt['hongbao_total_num'],$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'],$id)){
-
-                $redis = Redis::connection();
-                $redis->select(REDIS_DB_DAY_CLEAR);
-                $hb_key = 'hbing' . $id;
-                if(!$redis->exists($hb_key)) {
-                    $redis->sadd('hbing' . $id, 0);
-                }
-
                 $data['id'] = $id;
                 $swoole = new Swoole();
                 $res = $swoole->swooletest('hongbao',$room,$data);

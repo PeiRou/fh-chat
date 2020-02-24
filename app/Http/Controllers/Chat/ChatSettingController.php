@@ -70,7 +70,7 @@ class ChatSettingController extends Controller
     //修改房间信息
     public function updRoomInfo(Request $request){
         $redis = Redis::connection();
-        $redis->select(1);
+        $redis->select(REDIS_DB_LOCK_BASIS);
         $key = 'chat_updRoomInfo';
         if($redis->exists($key))
             return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
@@ -146,7 +146,7 @@ class ChatSettingController extends Controller
             'updated_at'=>date("Y-m-d H:i:s",time())
         ]);
         $redis = Redis::connection();
-        $redis->select(1);
+        $redis->select(REDIS_DB_DAY_CLEAR);
         $redis->set('speak',$data[1]=="un"?"un":"on");
         return response()->json(['status'=>true],200);
     }
@@ -178,7 +178,7 @@ class ChatSettingController extends Controller
     //修改聊天室公告
     public function updNoteInfo(Request $request){
         $redis = Redis::connection();
-        $redis->select(1);
+        $redis->select(REDIS_DB_LOCK_BASIS);
         if($redis->exists('addnotc'))
             return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
         $redis->setex('addnotc',5,'ing');
@@ -318,7 +318,7 @@ class ChatSettingController extends Controller
     public function addHongbao(Request $request)
     {
         $redis = Redis::connection();
-        $redis->select(1);                                   //切换到聊天平台
+        $redis->select(REDIS_DB_LOCK_BASIS);                                   //切换到聊天平台
         if($redis->exists('addhb'))
             return response()->json(['status'=>false,'msg'=>'请勿连续点击'],200);
         $redis->setex('addhb',5,'ing');
@@ -369,7 +369,7 @@ class ChatSettingController extends Controller
             }
             //将红包算好数量，放到redis红包里，供人读取
             if($this->saveRedEnvelopeRedis1($hbdt['hongbao_total_num'],$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'],$id)){
-                Redis::select(1);
+                Redis::select(REDIS_DB_DAY_CLEAR);
                 $data['id'] = $id;
                 $swoole = new Swoole();
                 $res = $swoole->swooletest('hongbao',$room,$data);
@@ -385,7 +385,7 @@ class ChatSettingController extends Controller
     public function saveRedEnvelopeRedis1(int $total_num, float $min, float $max, int $id)
     {
         $redis = Redis::connection();
-        $redis->select(9);      //聊天室红包
+        $redis->select(REDIS_DB_DAY_CLEAR);      //聊天室红包
         if(!$redis->exists('hb_'.$id)){
             if($total_num < 0 || $min < 0 || $max <= 0 || $min > $max){
                 return false;
@@ -432,7 +432,6 @@ class ChatSettingController extends Controller
             $res = $this->saveRedEnvelopeRedis1($hb_num,$hbdt['hongbao_min_amount'], $hbdt['hongbao_max_amount'] ,$id);
         }
         if($res){
-            Redis::select(1);
             $data['id'] = $id;
             $swoole = new Swoole();
             $res = $swoole->swooletest('hongbao',$room,$data);
@@ -481,7 +480,7 @@ class ChatSettingController extends Controller
         shuffle($redWardArray);
         shuffle($redWardArray);
         $redis = Redis::connection();
-        $redis->select(9);      //聊天室红包
+        $redis->select(REDIS_DB_DAY_CLEAR);      //聊天室红包
         if(!$redis->exists('hb_'.$id)){
             $sum = 0;
             foreach ($redWardArray as $k => $v){
@@ -498,7 +497,7 @@ class ChatSettingController extends Controller
         $upd = DB::table('chat_hongbao')->where('chat_hongbao_idx',$data)->update(array('hongbao_status'=>3));      //红包状态 1:疯抢中 2:已抢完 3:已关闭
         if($upd==1) {
             $redis = Redis::connection();
-            $redis->select(1);
+            $redis->select(REDIS_DB_DAY_CLEAR);
             $redis->del('hbing'.$data);
             return response()->json(['status' => true], 200);
         }else
@@ -556,8 +555,6 @@ class ChatSettingController extends Controller
             'plans' => $plan,
             'img' => '/game/images/chat/sys.png'                          //用户头像
         );
-        $redis = Redis::connection();
-        $redis->select(1);                                   //切换到聊天平台
         $data['id'] = $session_id;
         $data['game'] = 0;                                  //不分类
         $data['pln'] = json_encode($aRep,JSON_UNESCAPED_UNICODE);
@@ -762,7 +759,7 @@ class ChatSettingController extends Controller
     public function deleteHongbaoBlacklist(Request $request)
     {
         $redis = Redis::connection();
-        $redis->select(5);
+        $redis->select(REDIS_DB_LOCK_BASIS);
         $key = 'deleteHongbaoBlacklist';
         if($redis->exists($key)){
             return response()->json([
@@ -785,7 +782,7 @@ class ChatSettingController extends Controller
     public function addHongbaoBlacklist(Request $request)
     {
         $redis = Redis::connection();
-        $redis->select(5);
+        $redis->select(REDIS_DB_LOCK_BASIS);
         $key = 'addHongbaoBlacklist';
         if($redis->exists($key)){
             return response()->json([

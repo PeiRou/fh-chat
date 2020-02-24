@@ -85,7 +85,7 @@ class Message
         }
 
         return \App\Socket\Pool\RedisPool::invoke(function (\App\Socket\Pool\RedisObject $redis) use($iRoomInfo, $fd, $type, $id) {
-            $redis->select(1);
+            $redis->select(REDIS_DB_LOCK_BASIS);
             //如果全局禁言
 //            if($type == 'room' && $redis->exists('speak') && $redis->get('speak')=='un'){
 //                app('swoole')->sendToSerf($fd,5,'当前聊天室处于禁言状态！');

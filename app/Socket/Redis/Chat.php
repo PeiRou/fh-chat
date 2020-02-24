@@ -21,7 +21,7 @@ class Chat extends Base
         $redisPool = \App\Socket\Utility\Pool\PoolManager::getInstance()->getPool(\App\Socket\Pool\RedisPool::class);
 
         $redis = $redisPool->getObj();
-        $redis->select(1);
+        $redis->select(REDIS_DB_CHAT_USER_MAP);
         $res = static::$name($redis, ...$arguments);
         $redisPool->recycleObj($redis);
         return $res;

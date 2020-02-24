@@ -6,6 +6,13 @@
  * Time: 下午6:06
  */
 
+// redis库使用情况
+define('REDIS_DB_LOCK_BASIS', 5); # 锁重复锁的一些基本的 库 可以清掉
+define('REDIS_DB_DAY_CLEAR', 9);  # 每天固定时间段清除
+define('REDIS_DB_CHAT_USER_MAP', 1); # 聊天室用户在线信息，fd映射
+
+
+
 return [
     'SERVER_NAME' => "fh-chat_swoole",
     'MAIN_SERVER' => [

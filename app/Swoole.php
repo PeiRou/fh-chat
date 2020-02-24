@@ -28,7 +28,7 @@ class Swoole
 //        if($param['type']=='betInfo')
 //            return 'ok';
         $redis = Redis::connection();
-        $redis->select(5);
+        $redis->select(REDIS_DB_LOCK_BASIS);
         $redis->setex('hbpost'.http_build_query($data),3,'on');
         $output = curl_exec($this->ch);
         if($redis->exists('hbpost'.http_build_query($data)))

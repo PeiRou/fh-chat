@@ -10,23 +10,42 @@ namespace App\Socket\Process;
 
 
 use App\Socket\Utility\Process\AbstractProcess;
-use App\Socket\Utility\Task\TaskManager;
 use App\Socket\Utility\Trigger;
+use App\Socket\Utility\Users;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use SameClass\Config\AdSource\AdSource;
+use App\Socket\Redis\Chat;
 
-class Request extends AbstractProcess
+class Request1 extends AbstractProcess
 {
-    private $isRun = false;
+//    private $isRun = false;
+
+    private $num;
+
     public function run($arg)
     {
-        $this->addTick(1000,function (){
-            if(!$this->isRun){
-                $this->isRun = true;
-                while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
-                    TaskManager::async($this->openAction($request));
+        $this->num = config('swoole.MAIN_SERVER.SETTING')['task_worker_num'] - 1;
+        for($i = 0; $i <= $this->num; $i++){
+            $key = 'isRun'.$i;
+            $this->{$key} = false;
+
+            $this->addTick(300,function ()use($key){
+                if(!$this->{$key}){
+                    $this->{$key} = true;
+                    try{
+                        while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
+                            $this->openAction($request);
+                        }
+                    }catch (\Throwable $e){
+                        Trigger::getInstance()->throwable($e);
+                    }finally{
+
+                    }
+                    $this->{$key} = false;
                 }
-                $this->isRun = false;
-            }
-        });
+            });
+        }
     }
 
     public function onShutDown()
@@ -38,6 +57,7 @@ class Request extends AbstractProcess
     {
         // TODO: Implement onReceive() method.
     }
+
     public function openAction($request)
     {
         if(!app('swoole')->ws->connection_info($request->fd)){

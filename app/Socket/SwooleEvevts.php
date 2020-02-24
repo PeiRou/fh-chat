@@ -51,6 +51,7 @@ class SwooleEvevts
             Chat::clearAll(); #清除redis 保存的聊天室信息
             ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
             PersonalLog::delLog(); #删除聊天日志超过一定时间的
+            \App\Socket\Redis1\Redis::exec(10, 'DEL', 'openRequest');
         });
     }
 
@@ -70,7 +71,7 @@ class SwooleEvevts
     {
         FdStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new \App\Socket\Process\Test('testProcess'))->getProcess());
-        app('swoole')->ws->addProcess((new \App\Socket\Process\Request('RequestProcess'))->getProcess());
+        app('swoole')->ws->addProcess((new \App\Socket\Process\Request1('RequestProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $worker_id)
     {

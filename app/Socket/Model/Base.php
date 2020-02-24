@@ -42,9 +42,9 @@ class Base
         do{
             $db = $mysqlPool->getObj();
             if($db) break;
-            \co::sleep(0.3);
+            \co::sleep(0.5);
             $num ++;
-            if($num >= 10) break;
+            if($num >= 20) break;
         }
         while (true);
         $res = static::$name($db, ...$arguments);

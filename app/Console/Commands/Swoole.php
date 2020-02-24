@@ -1185,7 +1185,7 @@ class Swoole extends Command
         ], false);
 
         //重新计算最近30天充值
-        \App\Socket\Pool\MysqlPool::invoke(function (\App\Socket\Pool\MysqlObject $db) use($userid, $aUserBet) {
+        \App\Socket\Pool\Mysql2Pool::invoke(function (\App\Socket\Pool\Mysql2Object $db) use($userid, $aUserBet) {
             $aUserRecharges = $db
                 ->where('userId',$userid)
                 ->where('status',2)

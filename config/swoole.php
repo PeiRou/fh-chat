@@ -12,8 +12,6 @@ define('REDIS_DB_DAY_CLEAR', 9);  # 每天固定时间段清除
 define('REDIS_DB_CHAT_USER_MAP', 1); # 聊天室用户在线信息，fd映射
 define('REDIS_DB_CHAT_USEROPEN_QUEUE', 1); # 聊天室用户open以后处理队列
 
-
-
 return [
     'SERVER_NAME' => "fh-chat_swoole",
     'MAIN_SERVER' => [

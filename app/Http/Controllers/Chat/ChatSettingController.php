@@ -325,6 +325,9 @@ class ChatSettingController extends Controller
         $data['room_id'] = $request->input('room');                //房间id
         $data['type'] = (int)$request->type;
         $data['hongbao_total_amount'] = (float)$request->input('hongbao_total_amount');        //红包总金额
+        if($data['hongbao_total_amount'] >= 10000000){
+            return response()->json(['status'=>false,'msg'=>'金额过大'],200);
+        }
         $data['hongbao_remain_amount'] = (float)$data['hongbao_total_amount'];                 //红包剩馀金额
         $data['recharge'] = $request->input('recharge');                                //最低充值金额
         $data['bet'] = $request->input('bet');                                          //最低下注金额

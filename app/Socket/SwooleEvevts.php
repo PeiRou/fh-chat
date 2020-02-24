@@ -51,7 +51,7 @@ class SwooleEvevts
             Chat::clearAll(); #清除redis 保存的聊天室信息
             ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
             PersonalLog::delLog(); #删除聊天日志超过一定时间的
-            \App\Socket\Redis1\Redis::exec(10, 'DEL', 'openRequest');
+            \App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'DEL', 'openRequest'); # open请求队列
         });
     }
 

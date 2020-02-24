@@ -34,7 +34,7 @@ class Request1 extends AbstractProcess
                 if(!$this->{$key}){
                     $this->{$key} = true;
                     try{
-                        while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
+                        while ($request = json_decode(\App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'LPOP', 'openRequest'))){
                             $this->openAction($request);
                         }
                     }catch (\Throwable $e){

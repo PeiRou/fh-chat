@@ -26,7 +26,7 @@ class Request extends AbstractProcess
         $this->addTick(1000,function (){
             if(!$this->isRun){
                 $this->isRun = true;
-                while ($request = json_decode(\App\Socket\Redis1\Redis::exec(10, 'LPOP', 'openRequest'))){
+                while ($request = json_decode(\App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'LPOP', 'openRequest'))){
                     TaskManager::async(function() use($request){
                         Request::openAction($request);
                     });

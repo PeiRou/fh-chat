@@ -218,7 +218,7 @@ class Swoole extends Command
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
             \App\Socket\SwooleEvevts::onOpen($ws, $request);
-            \App\Socket\Redis1\Redis::exec(10, 'RPUSH', 'openRequest', json_encode($request));
+            \App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'RPUSH', 'openRequest', json_encode($request));
 
 //            DB::disconnect();
 //            error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log

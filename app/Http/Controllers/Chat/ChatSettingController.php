@@ -352,6 +352,7 @@ class ChatSettingController extends Controller
             $func = 'reHongbao1';
         }
         $id = DB::table('chat_hongbao')->insertGetId($data);
+
         if ($id > 0) {
             return $this->$func($data['room_id'].'&'.$id,$data);
         }else
@@ -368,6 +369,7 @@ class ChatSettingController extends Controller
                 $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num')->where('chat_hongbao_idx',$id)->first();
             }
 
+            //放置红包缓存
             $redis = Redis::connection();
             $redis->select(REDIS_DB_DAY_CLEAR);
             $hb_key = 'hbing' . $id;
@@ -438,6 +440,15 @@ class ChatSettingController extends Controller
         if(count($hbdt)==0){
             $hbdt = (array)DB::table('chat_hongbao')->select('hongbao_remain_amount','hongbao_remain_num','type','hongbao_min_amount', 'hongbao_max_amount')->where('chat_hongbao_idx',$id)->first();
         }
+
+        //放置红包缓存
+        $redis = Redis::connection();
+        $redis->select(REDIS_DB_DAY_CLEAR);
+        $hb_key = 'hbing' . $id;
+        if(!$redis->exists($hb_key)) {
+            $redis->sadd('hbing' . $id, 0);
+        }
+
         //将红包算好数量，放到redis红包里，供人读取
         $hb_amount = $hbdt['hongbao_remain_amount'];      //要发的金额
         $hb_num = $hbdt['hongbao_remain_num'];           //要发的数量

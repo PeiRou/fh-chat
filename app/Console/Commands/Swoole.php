@@ -217,6 +217,7 @@ class Swoole extends Command
         $this->ws->set(config('swoole.MAIN_SERVER.SETTING'));
         //监听WebSocket连接打开事件
         $this->ws->on('open', function ($ws, $request) {
+            $this->push($request->fd, 'open');
             \App\Socket\SwooleEvevts::onOpen($ws, $request);
             \App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'RPUSH', 'openRequest', json_encode($request));
 

@@ -28,6 +28,7 @@ class Request extends AbstractProcess
                 $this->isRun = true;
                 while ($request = json_decode(\App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'LPOP', 'openRequest'))){
                     TaskManager::async(function() use($request){
+                        app('swoole')->push($request->fd, 'a');
                         Request::openAction($request);
                     });
                 }
@@ -48,10 +49,13 @@ class Request extends AbstractProcess
     public static function openAction($request)
     {
         if(!app('swoole')->ws->connection_info($request->fd)){
+            app('swoole')->push($request->fd, 'a:close'.__line__);
             return false;
         }
         DB::disconnect();
         error_log(date('Y-m-d H:i:s',time())." | ".$request->fd." => ".json_encode($request).PHP_EOL, 3, '/tmp/chat/open.log');        //只要连接就记下log
+
+        app('swoole')->push($request->fd, 'a:'.__line__);
         try {
             $strParam = (array)$request->server;
             $strParam = explode("/", $strParam['request_uri']);      //房间号码
@@ -82,8 +86,10 @@ class Request extends AbstractProcess
             //回传自己的基本设置
             if($iRoomInfo['setNickname']==0)
                 $iRoomInfo['nickname'] = '';
+            app('swoole')->push($request->fd, 'a:'.__line__);
             $msg = app('swoole')->msg(7,'fstInit',$iRoomInfo);
             app('swoole')->push($request->fd, $msg);
+            app('swoole')->push($request->fd, 'a7:'.__line__);
             \App\Socket\SwooleEvevts::onOpenAfter($request, $iRoomInfo);
 
 //            var_dump('start777777777777___'.$request->fd.'____'.microtime());
@@ -106,6 +112,7 @@ class Request extends AbstractProcess
                 app('swoole')->inRoom(1, $request->fd, $iRoomInfo, $iSess);
             }
         }catch (\Exception $e){
+            app('swoole')->push($request->fd, 'a:error'.__line__);
             Trigger::getInstance()->throwable($e);
 //                error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }

@@ -1287,7 +1287,6 @@ class Swoole extends Command
             $chatusr = 'chatusr:'.md5($iRoomInfo['userId']);
             Storage::disk('chatusr')->put($chatusr, $room_key);
             Storage::disk('chatusrfd')->put('chatusrfd:'.$room_key,json_encode($iRoomInfo,JSON_UNESCAPED_UNICODE));
-            usleep(25000);
         }catch (\Exception $e){
             error_log(date('Y-m-d H:i:s',time()).$e.PHP_EOL, 3, '/tmp/chat/err.log');
         }

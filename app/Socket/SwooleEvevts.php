@@ -46,13 +46,17 @@ class SwooleEvevts
     }
     public static function onStart($server)
     {
-        swoole_set_process_name(config('swoole.SERVER_NAME')."_master");
-        go(function(){
-            Chat::clearAll(); #清除redis 保存的聊天室信息
-            ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
-            PersonalLog::delLog(); #删除聊天日志超过一定时间的
-            \App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'DEL', 'openRequest'); # open请求队列
-        });
+        try{
+            swoole_set_process_name(config('swoole.SERVER_NAME')."_master");
+            go(function(){
+                Chat::clearAll(); #清除redis 保存的聊天室信息
+                ChatRoomDt::clearInvalidUser(); #删除ChatRoomDt表在user表里已经删掉的会员
+                PersonalLog::delLog(); #删除聊天日志超过一定时间的
+                \App\Socket\Redis1\Redis::exec(REDIS_DB_CHAT_USEROPEN_QUEUE, 'DEL', 'openRequest'); # open请求队列
+            });
+        }catch (\Throwable $e){
+            Trigger::getInstance()->throwable($e);
+        }
     }
 
     public static function onTask($server, \Swoole\Server\Task $task)
@@ -72,6 +76,7 @@ class SwooleEvevts
         FdStatus::getInstance(); // 创建fd状态表
 //        app('swoole')->ws->addProcess((new \App\Socket\Process\Test('testProcess'))->getProcess());
         app('swoole')->ws->addProcess((new \App\Socket\Process\Request(config('swoole.SERVER_NAME').'_RequestProcess'))->getProcess());
+        app('swoole')->ws->addProcess((new \App\Socket\Process\ListenMasterException(config('swoole.SERVER_NAME').'_ListenMasterExceptionProcess'))->getProcess());
     }
     public static function onWorkerStart($server, $worker_id)
     {

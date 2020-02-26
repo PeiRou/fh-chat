@@ -12,6 +12,7 @@ defined('REDIS_DB_DAY_CLEAR') or define('REDIS_DB_DAY_CLEAR', 9);  # 每天固�
 defined('REDIS_DB_CHAT_USER_MAP') or define('REDIS_DB_CHAT_USER_MAP', 1); # 聊天室用户在线信息，fd映射
 defined('REDIS_DB_CHAT_USEROPEN_QUEUE') or define('REDIS_DB_CHAT_USEROPEN_QUEUE', 1); # 聊天室用户open以后处理队列
 
+
 return [
     'SERVER_NAME' => "fh-chat_swoole",
     'MAIN_SERVER' => [
@@ -22,6 +23,7 @@ return [
             'task_max_request' => 10000,
             'enable_coroutine' => true,
             'task_enable_coroutine' => true,
+            'pid_file' => storage_path().'/pid.pid',
 //            'package_max_length' => 1024 * 1024 * 20
         ],
     ],

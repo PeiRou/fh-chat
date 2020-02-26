@@ -21,6 +21,7 @@ class ListenMasterException extends AbstractProcess
                 $this->isRun = true;
                 try{
                     if(!\swoole_process::kill(app('swoole')->ws->master_pid, 0)){
+                        writeLog('restart','MasterException');
                         \swoole_process::kill(app('swoole')->ws->manager_pid, 0) && \swoole_process::kill(app('swoole')->ws->manager_pid, SIGTERM);
                     }
                 }catch (\Throwable $e){

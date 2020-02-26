@@ -47,6 +47,7 @@ class SwooleEvevts
     public static function onStart($server)
     {
         try{
+            writeLog('restart','start');
             swoole_set_process_name(config('swoole.SERVER_NAME')."_master");
             go(function(){
                 Chat::clearAll(); #清除redis 保存的聊天室信息

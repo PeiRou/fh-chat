@@ -56,7 +56,7 @@ class Chat extends Base
     //通过userId 查询 fd list
     protected static function findFdListToUserId($redis, int $userId)
     {
-        return array_diff(explode(',', $redis->hGet('userIdFdMap', $userId)), ['']);
+        return array_unique(array_diff(explode(',', $redis->hGet('userIdFdMap', $userId)), ['']));
     }
 
     //设置User Fd list

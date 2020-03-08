@@ -69,6 +69,8 @@ class SwooleEvevts
             }catch (\Throwable $throwable){
                 Trigger::getInstance()->throwable($throwable);
             }
+        }else{# 处理队列任务
+            is_string($taskObj) && eval($taskObj);
         }
     }
 

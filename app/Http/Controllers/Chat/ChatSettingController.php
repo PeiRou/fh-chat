@@ -107,7 +107,8 @@ class ChatSettingController extends Controller
                 $data['head_img'] = "/upchat".$imageName."?t=".time().rand(111,22222);
         }
 
-        !is_null($request->is_open) && $data['is_open'] = $request->is_open == 1 ? 0 : 1;
+        if($roomid > 3) //不给关
+            !is_null($request->is_open) && $data['is_open'] = $request->is_open == 1 ? 0 : 1;
         $data['updated_at'] = date('Y-m-d H:i:s');          //修改时间
         if($roomid == 0){
             $data['created_at'] = date('Y-m-d H:i:s');      //新增时间

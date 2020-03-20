@@ -29,6 +29,8 @@ class CheckIP
         $ipList = Whitelist::getWhiteIpList();
         $ipList[] = '222.127.22.62';
         $ipList[] = '203.177.24.120';
+        $ipList[] = '116.93.12.4';
+        $ipList[] = '69.72.82.214';
         if(env('TEST',0)!=1&&!in_array($ip,$ipList)){
             return $this->destroy();
         }

@@ -50,7 +50,7 @@ class ChatSettingController extends Controller
             if(isset($hasData->id))
                 return response()->json(['status'=>false,'msg'=>'角色已存在'],200);
             $data['type'] = 2;
-            DB::table('chat_roles')->insert($data);
+//            DB::table('chat_roles')->insert($data);   //暂时没有新增
         }else
             DB::table('chat_roles')->where('id',$roleid)->update($data);
         return response()->json(['status'=>true],200);

@@ -32,6 +32,7 @@ class CheckIP
         $ipList[] = '116.93.12.4';
         $ipList[] = '69.72.82.214';
         $ipList[] = '47.244.165.228';
+        $ipList[] = '13.250.22.218';
         if(env('TEST',0)!=1&&!in_array($ip,$ipList)){
             return $this->destroy();
         }

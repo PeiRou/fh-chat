@@ -88,34 +88,6 @@ class Swoole extends Command
      * 初始化
      */
     private function init(){
-        //清除用户表
-//        $keys = $this->redis->keys('chatusr*');
-//        if(!empty($keys)){
-//            $this->redis->multi();
-//            foreach ($keys as $item){
-//                $this->redis->del($item);
-//            }
-//            $this->redis->exec();
-//        }
-        //清除红包ing
-//        $keys = $this->redis->keys('hbing'.'*');
-//        if(!empty($keys)) {
-//            $this->redis->multi();
-//            foreach ($keys as $item) {
-//                $this->redis->del($item);
-//            }
-//            $this->redis->exec();
-//        }
-        //清除各种ing
-//        $keys = $this->redis->keys('*'.'ing:'.'*');
-//        if(!empty($keys)) {
-//            $this->redis->multi();
-//            foreach ($keys as $item) {
-//                $this->redis->del($item);
-//            }
-//            $this->redis->exec();
-//        }
-
         $files = Storage::disk('chatusr')->files();
         $arrayTmp = [];
         foreach ($files as $hisKey){
@@ -145,7 +117,11 @@ class Swoole extends Command
 
         DB::table('chat_online')->truncate();           //聊天室在线记录
         Room::clearAllRoom();  # 清聊天室所有数据
-
+        //清聊天室日志
+        $directories = Storage::disk('logs')->directories();
+        foreach ($directories as $key => $val){
+            Storage::disk('logs')->deleteDirectory($val);
+        }
 //        $AdSource = new AdSource();
 //        $ISROOMS = $AdSource->getOneSource('chatType');
 //        $ISROOMS = $ISROOMS == '1' ? (int)$ISROOMS : 0;

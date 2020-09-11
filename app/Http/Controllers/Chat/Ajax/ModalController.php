@@ -22,15 +22,15 @@ class ModalController extends Controller
     );
 
     //更新计划任务彩种
-    private function setlottery(){
+    private function setPlanlottery(){
         $Games = new Games();
-        $this->lottery = $Games->setlottery('havePlan');
-        $this->gameIdtoType = $Games->getGameFileData('gameIdtoType');
+        $this->lottery = $Games->setlottery(['gameId','lottery'],'havePlan',true);
+        $this->gameIdtoType = $Games->getGameData('gameIdtoType');
         $this->cnLotteryType = $Games->cnLotteryType;
     }
     //取得计划任务彩种
     public function getLottery(){
-        $this->setlottery();
+        $this->setPlanlottery();
         return json_encode($this->lottery);
     }
     //获取房间类型
@@ -83,7 +83,7 @@ class ModalController extends Controller
         $roomInfo = DB::table('chat_room')->where('room_id', @$data[0])->first();
         $pushBetGames = !empty($roomInfo)?explode(',',$roomInfo->pushBetGame):[];
         $openGames = DB::table('game')->where('status',1)->get();
-        $this->setlottery();
+        $this->setPlanlottery();
         return view('modal.editRoomLimit')->with('id',@$data[0])->with('name',@$data[1])->with('roomType',@$data[2])->with('rech',@$data[3])->with('bet',@$data[4])->with('roomInfo', $roomInfo)
             ->with('games',$games)
             ->with('lotterys',$this->lottery)
